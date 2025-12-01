@@ -1,0 +1,45 @@
+* {
+  box-sizing: border-box;
+  font-family: "Poppins", sans-serif;
+}
+#root {
+  font-size: 16px;
+}
+.navbar-links-wrapper::-webkit-scrollbar {
+  width: 6px;
+}
+.navbar-links-wrapper::-webkit-scrollbar-thumb {
+  background-color: #2090bc;
+  border-radius: 25px;
+}
+.navbar-links-wrapper::-webkit-scrollbar-track {
+  background-color: #254f5f;
+  border-radius: 25px;
+}
+.recent_customer_chart .apexcharts-legend {
+  display: grid !important;
+  grid-template-columns: repeat(2, 1fr) !important;
+  column-gap: 10px !important;
+  row-gap: 4px !important;
+}
+
+.recent_customer_chart .apexcharts-legend-series {
+  display: flex !important;
+  align-items: center;
+  gap: 6px;
+  justify-content: center;
+}
+
+.extra-room-radio .ant-radio-wrapper .ant-radio-inner {
+  border-color: orange;
+  /* background-color: orange; */
+}
+
+.extra-room-radio .ant-radio-wrapper .ant-radio-checked .ant-radio-inner {
+  border-color: orange;
+  background-color: orange;
+}
+
+.extra-room-radio .ant-radio-wrapper:hover .ant-radio-inner {
+  border-color: orange;
+}
