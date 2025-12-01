@@ -464,7 +464,7 @@ const EditClient = () => {
                     </div>
 
                     {/* DESCRIPTION */}
-                    <div className="col-span-2">
+                    <div className="col-span-full">
                       <label>{t("DESCRIPTION")}</label>
                       <Controller
                         control={control}

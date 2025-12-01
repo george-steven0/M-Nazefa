@@ -261,10 +261,10 @@ const AddClient = () => {
                   className="flex flex-wrap flex-col gap-10 [&>section]:grid [&>section]:grid-cols-1 [&>section]:md:grid-cols-2 [&>section]:lg:grid-cols-3 [&>section]:gap-5 [&>section>div>label]:block [&>section>div>label]:mb-1 [&>section>div>label]:capitalize [&>section>div>label]:font-medium [&>section>div>input]:border-[#C4C4C4] [&>section>div>input]:py-2 [&>section>div>select]:border-[#C4C4C4] [&>section>div>select]:py-2 [&>section>div>select]:w-full [&>section>div>p]:mt-1 [&>section>div>p]:text-xs [&>section>div>p]:capitalize [&>section>div>p]:text-mainRed"
                 >
                   <section className="address-info-section">
-                    <article className="flex items-center gap-5 personal-title capitalize col-span-full text-xl text-[#1D1B1B] font-semibold">
-                      <span>
+                    <article className="col-span-full basis-full flex items-center gap-5 personal-title capitalize text-xl text-[#1D1B1B] font-semibold">
+                      <p>
                         {t("ADDRESS")} #{index + 1}
-                      </span>
+                      </p>
                       {fields?.length <= 1 ? null : (
                         <Button
                           icon={<FaTrashAlt />}
@@ -464,7 +464,7 @@ const AddClient = () => {
                     </div>
 
                     {/* DESCRIPTION */}
-                    <div className="col-span-2">
+                    <div className="col-span-full">
                       <label>{t("DESCRIPTION")}</label>
                       <Controller
                         control={control}

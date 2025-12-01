@@ -19,19 +19,23 @@ const Title = ({
 }: titleProps) => {
   return (
     <div
-      className={`title-wrapper flex items-center justify-between ${className}`}
+      className={`title-wrapper flex flex-wrap md:flex-nowrap items-center justify-between ${className}`}
     >
       <span
-        className={`${
-          !subTitle
-            ? "text-[clamp(2rem,2.7vw,4rem)] font-bold"
-            : "font-semibold text-[clamp(2rem,2vw,4rem)]"
-        } capitalize text-black`}
+        className={`
+          basis-full md:basis-auto
+          ${
+            !subTitle
+              ? "text-[clamp(2rem,2.7vw,4rem)] font-bold"
+              : "font-semibold text-[clamp(2rem,2vw,4rem)]"
+          } capitalize text-black`}
       >
         {title}
       </span>
 
-      <div>{typeof component === "function" ? component() : component}</div>
+      <div className="basis-full md:basis-auto flex justify-end">
+        {typeof component === "function" ? component() : component}
+      </div>
     </div>
   );
 };

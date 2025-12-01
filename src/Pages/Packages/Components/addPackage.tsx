@@ -176,7 +176,7 @@ const AddPackage = () => {
             {errors?.subTitle ? <p>{errors?.subTitle?.message}</p> : null}
           </div>
 
-          <div className="col-span-2">
+          <div className="col-span-full">
             <label>{t("DESCRIPTION")}</label>
             <Controller
               control={control}

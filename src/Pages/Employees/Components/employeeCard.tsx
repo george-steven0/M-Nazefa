@@ -3,7 +3,7 @@ import avatar from "../../../assets/imgs/avatar.png";
 const EmployeeCard = () => {
   return (
     <div
-      className={`cursor-pointer py-3 flex flex-col justify-start items-center gap-2 px-3 border-b border-r border-[#E2E1E1]`}
+      className={`cursor-pointer py-3 flex flex-col justify-start items-center gap-2 px-3 border-b   border-r border-l border-[#E2E1E1]`}
     >
       <div className="">
         <img src={avatar} alt="employee" className="size-24 rounded-full" />

@@ -22,7 +22,7 @@ const PackageChart = () => {
           blur: 10,
           opacity: 0.5,
         },
-        zoom: { enabled: false },
+        zoom: { enabled: true, type: "x" },
         toolbar: { show: false },
       },
       colors: ["#072D3C"],
@@ -63,6 +63,9 @@ const PackageChart = () => {
           "Nov",
           "Dec",
         ],
+        // range: 5,
+        // max: 5,
+
         // title: { text: "Month" },
       },
       yaxis: {

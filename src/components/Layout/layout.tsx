@@ -16,7 +16,7 @@ export default function Layout() {
     <div className="h-screen overflow-hidden">
       <section className="flex items-start size-full">
         <aside
-          className={`lg:basis-[25%] xl:basis-[20%] min-w-[300px] max-w-[300px] lg:min-w-0 h-full bg-mainColor transition-all z-99999 fixed md:relative ${
+          className={`lg:basis-[25%] xl:basis-[20%] min-w-[300px] max-w-[300px] lg:min-w-0 h-full bg-mainColor transition-all z-99999 md:z-99 fixed md:relative ${
             toggle ? "-left-full md:left-0" : "left-0"
           }`}
         >

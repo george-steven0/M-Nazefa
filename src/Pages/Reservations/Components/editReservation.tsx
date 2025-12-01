@@ -50,9 +50,9 @@ const EditReservation = () => {
 
       <section className="mt-4 form-container">
         <form onSubmit={handleSubmit(handleSubmitForm)} noValidate>
-          <div className="flex flex-col gap-15 [&>section]:grid [&>section]:grid-cols-1 [&>section]:md:grid-cols-3 [&>section]:gap-5 [&>section>div>label]:block [&>section>div>label]:mb-1 [&>section>div>label]:capitalize [&>section>div>label]:font-medium [&>section>div>input]:border-[#C4C4C4] [&>section>div>select]:border-[#C4C4C4] [&>section>div>input]:py-2 [&>section>div>select]:py-2 [&>section>div>p]:mt-1 [&>section>div>p]:text-xs [&>section>div>p]:text-mainRed">
+          <div className="flex flex-col gap-15 [&>section]:grid [&>section]:grid-cols-1 [&>section]:md:grid-cols-2 [&>section]:lg:grid-cols-3 [&>section]:gap-5 [&>section>div>label]:block [&>section>div>label]:mb-1 [&>section>div>label]:capitalize [&>section>div>label]:font-medium [&>section>div>input]:border-[#C4C4C4] [&>section>div>select]:border-[#C4C4C4] [&>section>div>input]:py-2 [&>section>div>select]:py-2 [&>section>div>p]:mt-1 [&>section>div>p]:text-xs [&>section>div>p]:text-mainRed">
             <section className="customer-selection-wrapper ">
-              <div className="col-span-1 text-xl text-[#1D1B1B] ">
+              <div className="col-span-2 lg:col-span-1 text-xl text-[#1D1B1B] ">
                 <label className="font-semibold">{t("SELECT_CUSTOMER")}</label>
 
                 <Controller
