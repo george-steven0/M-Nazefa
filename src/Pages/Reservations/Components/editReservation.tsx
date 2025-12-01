@@ -253,7 +253,7 @@ const EditReservation = () => {
               </div>
             </section>
 
-            <section className="address-info-section">
+            {/* <section className="address-info-section">
               <div className="address-title capitalize col-span-full text-xl text-[#1D1B1B] font-semibold ">
                 {t("ADDRESS")}
               </div>
@@ -461,7 +461,7 @@ const EditReservation = () => {
                   <p>{errors?.description?.message}</p>
                 ) : null}
               </div>
-            </section>
+            </section> */}
 
             <section className="appintment-info-wrapper">
               <div className="capitalize col-span-full text-xl text-[#1D1B1B] font-semibold">
@@ -550,7 +550,7 @@ const EditReservation = () => {
               </div>
             </section>
 
-            <section className="bulding-info-wrapper">
+            {/* <section className="bulding-info-wrapper">
               <div className="capitalize col-span-full text-xl text-[#1D1B1B] font-semibold">
                 {t("BUILDING_DETAILS")}
               </div>
@@ -973,7 +973,7 @@ const EditReservation = () => {
 
                 {errors?.duration && <p>{errors.duration.message}</p>}
               </div>
-            </section>
+            </section> */}
 
             <section className="extra-services-wrapper">
               <div className="capitalize col-span-full text-xl text-[#1D1B1B] font-semibold">

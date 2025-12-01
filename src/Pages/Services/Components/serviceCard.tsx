@@ -34,7 +34,7 @@ const ServiceCard = ({ id }: { id: number }) => {
           >
             <Switch
               loading={false}
-              onClick={(checked, e) => e?.stopPropagation()}
+              onClick={(_checked, e) => e?.stopPropagation()}
             />
           </ConfigProvider>
         </div>
