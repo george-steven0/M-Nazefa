@@ -1,15 +1,28 @@
 import { BiSortAlt2 } from "react-icons/bi";
 import { useTranslation } from "react-i18next";
 import Title from "../../components/Common/Title/title";
-import { Button, Dropdown, type MenuProps } from "antd";
+import { Button, Dropdown, Skeleton, type MenuProps } from "antd";
 import EmployeeCard from "./Components/employeeCard";
 import CustomPagination from "../../components/Common/Pagination/pagination";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import { useGetAllEmployeesQuery } from "../../components/APIs/EmployeesQuery/EMPLOYEES_QUERY";
+import { useState } from "react";
 
 const Employees = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { pathname } = useLocation();
+  const [pagination, setPagination] = useState({
+    CurrentPage: 1,
+    NumberOfItemsPerPage: 15,
+  });
+
+  const { data, isLoading, isFetching } = useGetAllEmployeesQuery({
+    page: pagination.CurrentPage,
+    size: pagination.NumberOfItemsPerPage,
+  });
+
+  // console.log(data);
 
   const items: MenuProps["items"] = [
     {
@@ -74,8 +87,8 @@ const Employees = () => {
     );
   };
 
-  const handleNavigateView = (index: number) => {
-    navigate(`view-employee?id=${index}`);
+  const handleNavigateView = (id: string | number) => {
+    navigate(`view-employee?id=${id}`);
   };
   return (
     <div className="employees-container h-full flex flex-col justify-start">
@@ -84,15 +97,28 @@ const Employees = () => {
       </section>
 
       <section className="employees-cards-wrapper grow max-h-[70vh] overflow-y-auto mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 xl-grid-cols-5">
-        {[...Array(18)]?.map((_, index) => (
-          <div key={index + 1} onClick={() => handleNavigateView(index + 1)}>
-            <EmployeeCard />
-          </div>
-        ))}
+        {isLoading || isFetching
+          ? [...Array(10)]?.map((_, index) => (
+              <Skeleton key={index} avatar paragraph={{ rows: 2 }} />
+            ))
+          : data?.data?.map((employee) => (
+              <div
+                key={employee?.id}
+                onClick={() => handleNavigateView(employee?.id)}
+              >
+                <EmployeeCard employee={employee} />
+              </div>
+            ))}
       </section>
 
       <section className="mt-10 w-full flex justify-center">
-        <CustomPagination />
+        <CustomPagination
+          setPagination={setPagination}
+          pagination={pagination}
+          total={
+            data?.paginationHeader ? data?.paginationHeader?.totalItems : 0
+          }
+        />
       </section>
     </div>
   );

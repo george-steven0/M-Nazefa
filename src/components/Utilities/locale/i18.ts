@@ -27,7 +27,7 @@ i18n
     },
     detection: {
       order: ["localStorage"],
-      lookupLocalStorage: "inqLng",
+      lookupLocalStorage: "mNazLng",
       // caches: ['localStorage'],
       //   checkWhitelist: true,
       //   checkForSimilarInWhitelist: true,

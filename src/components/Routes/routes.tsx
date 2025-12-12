@@ -26,137 +26,155 @@ import AddService from "../../Pages/Services/Components/addService";
 import EditService from "../../Pages/Services/Components/editService";
 import ViewService from "../../Pages/Services/Components/viewService";
 import Messages from "../../Pages/Messages/messages";
+import Login from "../../Pages/Login/login";
+import AuthRule from "./Rules/authRole";
+import GuestRule from "./Rules/guestRole";
 
 export const routes = createBrowserRouter([
   {
-    path: "/",
-    element: <App />,
-    errorElement: <ErrorBoundary />,
+    element: <GuestRule />,
     children: [
       {
-        index: true,
-        id: "dashboard",
-        element: <Dashboard />,
+        path: "/login",
+        element: <Login />,
       },
+    ],
+  },
+  {
+    element: <AuthRule />,
+    children: [
       {
-        path: "/profile",
-        id: "profile",
-        element: <CommingSoon />,
-      },
-      {
-        id: "employees",
-        path: "/employees",
-        element: <Employees />,
+        path: "/",
+        element: <App />,
+        errorElement: <ErrorBoundary />,
         children: [
           {
-            id: "add-employee",
-            path: "add-employee",
-            element: <AddEmployee />,
+            index: true,
+            id: "dashboard",
+            path: "dashboard",
+            element: <Dashboard />,
           },
           {
-            id: "edit-employee",
-            path: "edit-employee",
-            element: <EditEmployee />,
+            path: "/profile",
+            id: "profile",
+            element: <CommingSoon />,
           },
           {
-            id: "view-employee",
-            path: "view-employee",
-            element: <ViewEmployee />,
+            id: "employees",
+            path: "/employees",
+            element: <Employees />,
+            children: [
+              {
+                id: "add-employee",
+                path: "add-employee",
+                element: <AddEmployee />,
+              },
+              {
+                id: "edit-employee",
+                path: "edit-employee",
+                element: <EditEmployee />,
+              },
+              {
+                id: "view-employee",
+                path: "view-employee",
+                element: <ViewEmployee />,
+              },
+            ],
+          },
+          {
+            id: "workers",
+            path: "/workers",
+            element: <Workers />,
+          },
+          {
+            id: "services",
+            path: "/services",
+            element: <Services />,
+            children: [
+              {
+                id: "add-service",
+                path: "add-service",
+                element: <AddService />,
+              },
+              {
+                id: "edit-service",
+                path: "edit-service",
+                element: <EditService />,
+              },
+              {
+                id: "view-service",
+                path: "view-service",
+                element: <ViewService />,
+              },
+            ],
+          },
+          {
+            id: "clients",
+            path: "/clients",
+            element: <Clients />,
+            children: [
+              {
+                id: "add-client",
+                path: "add-client",
+                element: <AddClient />,
+              },
+              {
+                id: "edit-client",
+                path: "edit-client",
+                element: <EditClient />,
+              },
+            ],
+          },
+          {
+            id: "packages",
+            path: "/packages",
+            element: <Packages />,
+            children: [
+              {
+                id: "add-package",
+                path: "add-package",
+                element: <AddPackage />,
+              },
+              {
+                id: "edit-package",
+                path: "edit-package",
+                element: <EditPackage />,
+              },
+              {
+                id: "view-package",
+                path: "view-package",
+                element: <ViewPackage />,
+              },
+            ],
+          },
+          {
+            id: "reservations",
+            path: "/reservations",
+            element: <Reservations />,
+            children: [
+              {
+                id: "add-reservation",
+                path: "add-reservation",
+                element: <AddReservation />,
+              },
+              {
+                id: "edit-reservation",
+                path: "edit-reservation",
+                element: <EditReservation />,
+              },
+              {
+                id: "reservation-details",
+                path: "reservation-details",
+                element: <ReservationDetails />,
+              },
+            ],
+          },
+          {
+            id: "messages",
+            path: "/messages",
+            element: <Messages />,
           },
         ],
-      },
-      {
-        id: "workers",
-        path: "/workers",
-        element: <Workers />,
-      },
-      {
-        id: "services",
-        path: "/services",
-        element: <Services />,
-        children: [
-          {
-            id: "add-service",
-            path: "add-service",
-            element: <AddService />,
-          },
-          {
-            id: "edit-service",
-            path: "edit-service",
-            element: <EditService />,
-          },
-          {
-            id: "view-service",
-            path: "view-service",
-            element: <ViewService />,
-          },
-        ],
-      },
-      {
-        id: "clients",
-        path: "/clients",
-        element: <Clients />,
-        children: [
-          {
-            id: "add-client",
-            path: "add-client",
-            element: <AddClient />,
-          },
-          {
-            id: "edit-client",
-            path: "edit-client",
-            element: <EditClient />,
-          },
-        ],
-      },
-      {
-        id: "packages",
-        path: "/packages",
-        element: <Packages />,
-        children: [
-          {
-            id: "add-package",
-            path: "add-package",
-            element: <AddPackage />,
-          },
-          {
-            id: "edit-package",
-            path: "edit-package",
-            element: <EditPackage />,
-          },
-          {
-            id: "view-package",
-            path: "view-package",
-            element: <ViewPackage />,
-          },
-        ],
-      },
-      {
-        id: "reservations",
-        path: "/reservations",
-        element: <Reservations />,
-        children: [
-          {
-            id: "add-reservation",
-            path: "add-reservation",
-            element: <AddReservation />,
-          },
-          {
-            id: "edit-reservation",
-            path: "edit-reservation",
-            element: <EditReservation />,
-          },
-          {
-            id: "reservation-details",
-            path: "reservation-details",
-            element: <ReservationDetails />,
-          },
-        ],
-      },
-      {
-        id: "messages",
-        path: "/messages",
-        element: <Messages />,
       },
     ],
   },

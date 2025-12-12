@@ -7,7 +7,9 @@ import { RouterProvider } from "react-router-dom";
 import { routes } from "./components/Routes/routes.tsx";
 import "./components/Utilities/locale/i18.ts";
 import "@ant-design/v5-patch-for-react-19";
-createRoot(document.getElementById("root")!).render(
+import { Provider } from "react-redux";
+import { store } from "./components/APIs/store.ts";
+createRoot(document.getElementById("nazefa")!).render(
   <StrictMode>
     <ToastContainer
       closeOnClick
@@ -15,7 +17,9 @@ createRoot(document.getElementById("root")!).render(
       pauseOnHover
       autoClose={5000}
     />
-    <RouterProvider router={routes} />
+    <Provider store={store}>
+      <RouterProvider router={routes} />
+    </Provider>
     {/* <App /> */}
   </StrictMode>
 );

@@ -117,5 +117,7 @@
     "DRY_CLEANING": "Dry-cleaning services",
     "PACKAGE": "Package",
     "SEND_MESSAGE": "send message",
-    "ADDRESSES": "Addresses"
+    "ADDRESSES": "Addresses",
+    "PASSWORD": "password",
+    "USER_NAME": "User name"
 }

@@ -13,14 +13,20 @@ import {
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import type {
+  APIErrorProps,
   employeeFormProps,
   FileType,
 } from "../../../components/Utilities/Types/types";
 import dayjs from "dayjs";
 import { getBase64 } from "../../../components/Utilities/helper";
+import { useGetAllRolesQuery } from "../../../components/APIs/Roles/ROLE_QUERY";
+import { useAddEmployeeMutation } from "../../../components/APIs/EmployeesQuery/EMPLOYEES_QUERY";
+import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 
 const AddEmployee = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const {
     reset,
     control,
@@ -32,6 +38,11 @@ const AddEmployee = () => {
   const [fileList, setFileList] = useState<UploadFile[]>([]);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewImage, setPreviewImage] = useState("");
+
+  const { data } = useGetAllRolesQuery(null);
+
+  const [addEmployee, { isLoading }] = useAddEmployeeMutation();
+  // console.log(data?.data);
 
   //   const onChange: UploadProps["onChange"] = ({ fileList: newFileList }) => {
   //     setFileList(newFileList.slice(-1));
@@ -56,14 +67,49 @@ const AddEmployee = () => {
   const resetForm = () => {
     reset();
   };
-  const submitForm = (data: employeeFormProps) => {
+  const submitForm = async (data: employeeFormProps) => {
     const formattedData = {
       ...data,
-      dateOfBirth: dayjs(data.dateOfBirth)?.format("YYYY-MM-DD"),
-      startingDate: dayjs(data.startingDate)?.format("YYYY-MM-DD"),
+      DateOfBirth: dayjs(data.DateOfBirth)?.toISOString(),
+      StartingDate: dayjs(data.StartingDate)?.toISOString(),
     };
-    console.log(formattedData);
+
+    const formData = new FormData();
+    await Object.entries(formattedData).forEach(([key, value]) => {
+      // Handle different types of values
+      if (Array.isArray(value)) {
+        value.forEach((v) => formData.append(key, v));
+      } else if (value instanceof File) {
+        formData.append(key, value);
+      } else if (value !== undefined && value !== null) {
+        formData.append(key, String(value));
+      }
+    });
+
+    try {
+      await addEmployee(formData).unwrap();
+      toast.success("Employee added successfully");
+      navigate("/employees");
+    } catch (error) {
+      const err = error as APIErrorProps;
+      if (
+        err?.data?.validationErrors &&
+        err?.data?.validationErrors.length > 0
+      ) {
+        const errs = err?.data?.validationErrors.join("\n");
+        toast.error(errs);
+      } else {
+        toast.error("Failed to add employee");
+      }
+    }
   };
+
+  // Roles
+
+  const roles = data?.data?.map((role) => ({
+    value: role.id,
+    label: role.name?.replace(/([A-Z])/g, " $1"),
+  }));
   return (
     <div className="add-new-employee">
       <section className="new-employee-title-wrapper">
@@ -80,7 +126,7 @@ const AddEmployee = () => {
             <div className="employee-image col-span-full text-center w-full flex flex-col justify-center items-center gap-1">
               <Controller
                 control={control}
-                name="image"
+                name="ImageFile"
                 rules={{
                   required: {
                     value: true,
@@ -125,14 +171,14 @@ const AddEmployee = () => {
                 )}
               />
 
-              {errors?.image ? <p>{errors?.image?.message}</p> : null}
+              {errors?.ImageFile ? <p>{errors?.ImageFile?.message}</p> : null}
             </div>
 
             <div>
               <label>{t("FIRST_NAME")}</label>
               <Controller
                 control={control}
-                name="firstName"
+                name="FirstName"
                 rules={{
                   required: {
                     value: true,
@@ -145,12 +191,12 @@ const AddEmployee = () => {
                     variant="filled"
                     placeholder="Enter first name"
                     className="placeholder:capitalize"
-                    status={errors?.firstName ? "error" : ""}
+                    status={errors?.FirstName ? "error" : ""}
                   />
                 )}
               />
 
-              {errors?.firstName ? <p>{errors?.firstName?.message}</p> : null}
+              {errors?.FirstName ? <p>{errors?.FirstName?.message}</p> : null}
             </div>
 
             <div>
@@ -158,7 +204,7 @@ const AddEmployee = () => {
 
               <Controller
                 control={control}
-                name="lastName"
+                name="LastName"
                 rules={{
                   required: {
                     value: true,
@@ -169,21 +215,21 @@ const AddEmployee = () => {
                   <Input
                     {...field}
                     variant="filled"
-                    placeholder="Enter first name"
+                    placeholder="Enter last name"
                     className="placeholder:capitalize"
-                    status={errors?.lastName ? "error" : ""}
+                    status={errors?.LastName ? "error" : ""}
                   />
                 )}
               />
 
-              {errors?.lastName ? <p>{errors?.lastName?.message}</p> : null}
+              {errors?.LastName ? <p>{errors?.LastName?.message}</p> : null}
             </div>
 
             <div>
               <label>{t("GENDER")}</label>
               <Controller
                 control={control}
-                name="gender"
+                name="Gender"
                 rules={{
                   required: {
                     value: true,
@@ -193,9 +239,10 @@ const AddEmployee = () => {
                 render={({ field }) => (
                   <Select
                     {...field}
+                    placeholder="Select gender"
                     className="min-h-10 border-[#C4C4C4] border rounded-md capitalize [&>.ant-select-selector]:capitalize"
                     variant="filled"
-                    status={errors?.gender ? "error" : ""}
+                    status={errors?.Gender ? "error" : ""}
                     // defaultValue="male"
                     style={{ width: "100%" }}
                     onChange={(e) => {
@@ -212,14 +259,14 @@ const AddEmployee = () => {
                 )}
               />
 
-              {errors?.gender ? <p>{errors?.gender?.message}</p> : null}
+              {errors?.Gender ? <p>{errors?.Gender?.message}</p> : null}
             </div>
 
             <div>
               <label>{t("PHONE_NUMBER")}</label>
               <Controller
                 control={control}
-                name="phoneNumber"
+                name="PhoneNumber"
                 rules={{
                   required: {
                     value: true,
@@ -230,15 +277,15 @@ const AddEmployee = () => {
                   <Input
                     {...field}
                     variant="filled"
-                    placeholder="Enter first name"
+                    placeholder="Enter phone number"
                     className="placeholder:capitalize"
-                    status={errors?.phoneNumber ? "error" : ""}
+                    status={errors?.PhoneNumber ? "error" : ""}
                   />
                 )}
               />
 
-              {errors?.phoneNumber ? (
-                <p>{errors?.phoneNumber?.message}</p>
+              {errors?.PhoneNumber ? (
+                <p>{errors?.PhoneNumber?.message}</p>
               ) : null}
             </div>
 
@@ -246,7 +293,7 @@ const AddEmployee = () => {
               <label>{t("EMAIL")}</label>
               <Controller
                 control={control}
-                name="email"
+                name="Email"
                 rules={{
                   required: {
                     value: true,
@@ -257,21 +304,71 @@ const AddEmployee = () => {
                   <Input
                     {...field}
                     variant="filled"
-                    placeholder="Enter first name"
+                    placeholder="Enter email"
                     className="placeholder:capitalize"
-                    status={errors?.email ? "error" : ""}
+                    status={errors?.Email ? "error" : ""}
                   />
                 )}
               />
 
-              {errors?.email ? <p>{errors?.email?.message}</p> : null}
+              {errors?.Email ? <p>{errors?.Email?.message}</p> : null}
+            </div>
+
+            <div>
+              <label>{t("USER_NAME")}</label>
+              <Controller
+                control={control}
+                name="UserName"
+                rules={{
+                  required: {
+                    value: true,
+                    message: t("REQUIRED"),
+                  },
+                }}
+                render={({ field }) => (
+                  <Input
+                    {...field}
+                    variant="filled"
+                    placeholder="Enter user name"
+                    className="placeholder:capitalize"
+                    status={errors?.UserName ? "error" : ""}
+                  />
+                )}
+              />
+
+              {errors?.UserName ? <p>{errors?.UserName?.message}</p> : null}
+            </div>
+
+            <div>
+              <label>{t("PASSWORD")}</label>
+              <Controller
+                control={control}
+                name="Password"
+                rules={{
+                  required: {
+                    value: true,
+                    message: t("REQUIRED"),
+                  },
+                }}
+                render={({ field }) => (
+                  <Input.Password
+                    {...field}
+                    variant="filled"
+                    placeholder="Enter Password"
+                    className="placeholder:capitalize py-2 border-[#C4C4C4]"
+                    status={errors?.Password ? "error" : ""}
+                  />
+                )}
+              />
+
+              {errors?.Password ? <p>{errors?.Password?.message}</p> : null}
             </div>
 
             <div>
               <label>{t("DATE_OF_BIRTH")}</label>
               <Controller
                 control={control}
-                name="dateOfBirth"
+                name="DateOfBirth"
                 rules={{
                   required: {
                     value: true,
@@ -283,7 +380,7 @@ const AddEmployee = () => {
                     className="min-h-10 w-full border-[#C4C4C4] border rounded-md capitalize [&>.ant-select-selector]:capitalize"
                     {...field}
                     variant="filled"
-                    status={errors?.dateOfBirth ? "error" : ""}
+                    status={errors?.DateOfBirth ? "error" : ""}
                     value={field.value ? dayjs(field.value) : null}
                     onChange={(e) => {
                       field.onChange(dayjs(e));
@@ -291,8 +388,8 @@ const AddEmployee = () => {
                   />
                 )}
               />
-              {errors?.dateOfBirth ? (
-                <p>{errors?.dateOfBirth?.message}</p>
+              {errors?.DateOfBirth ? (
+                <p>{errors?.DateOfBirth?.message}</p>
               ) : null}
             </div>
 
@@ -300,7 +397,7 @@ const AddEmployee = () => {
               <label>{t("EMPLOYEE_ROLE")}</label>
               <Controller
                 control={control}
-                name="role"
+                name="Role"
                 rules={{
                   required: {
                     value: true,
@@ -308,24 +405,32 @@ const AddEmployee = () => {
                   },
                 }}
                 render={({ field }) => (
-                  <Input
+                  <Select
                     {...field}
+                    placeholder="Select Role"
+                    mode="multiple"
+                    className="h-10 border-[#C4C4C4] border rounded-md capitalize [&>.ant-select-selector]:capitalize [&_.ant-select-selection-wrap]:h-full"
                     variant="filled"
-                    placeholder="Enter first name"
-                    className="placeholder:capitalize"
-                    status={errors?.role ? "error" : ""}
+                    status={errors?.Role ? "error" : ""}
+                    // defaultValue="male"
+                    style={{ width: "100%" }}
+                    onChange={(e) => {
+                      field.onChange(e);
+                      //   handleChange(e);
+                    }}
+                    options={roles}
                   />
                 )}
               />
 
-              {errors?.role ? <p>{errors?.role?.message}</p> : null}
+              {errors?.Role ? <p>{errors?.Role?.message}</p> : null}
             </div>
 
             {/* <div>
               <label>{t("WORK_ID")}</label>
               <Controller
                 control={control}
-                name="workId"
+                name="WorkId"
                 rules={{
                   required: {
                     value: true,
@@ -338,19 +443,19 @@ const AddEmployee = () => {
                     variant="filled"
                     placeholder="Enter first name"
                     className="placeholder:capitalize"
-                    status={errors?.workId ? "error" : ""}
+                    status={errors?.WorkId ? "error" : ""}
                   />
                 )}
               />
 
-              {errors?.workId ? <p>{errors?.workId?.message}</p> : null}
+              {errors?.WorkId ? <p>{errors?.WorkId?.message}</p> : null}
             </div> */}
 
             <div>
               <label>{t("STARTING_DATE")}</label>
               <Controller
                 control={control}
-                name="startingDate"
+                name="StartingDate"
                 rules={{
                   required: {
                     value: true,
@@ -362,7 +467,7 @@ const AddEmployee = () => {
                     className="min-h-10 w-full border-[#C4C4C4] border rounded-md capitalize [&>.ant-select-selector]:capitalize"
                     {...field}
                     variant="filled"
-                    status={errors?.startingDate ? "error" : ""}
+                    status={errors?.StartingDate ? "error" : ""}
                     value={field.value ? dayjs(field.value) : null}
                     onChange={(e) => {
                       field.onChange(dayjs(e));
@@ -370,8 +475,8 @@ const AddEmployee = () => {
                   />
                 )}
               />
-              {errors?.startingDate ? (
-                <p>{errors?.startingDate?.message}</p>
+              {errors?.StartingDate ? (
+                <p>{errors?.StartingDate?.message}</p>
               ) : null}
             </div>
 
@@ -379,7 +484,7 @@ const AddEmployee = () => {
               <label>{t("ID_NUMBER")}</label>
               <Controller
                 control={control}
-                name="idNumber"
+                name="IdNumber"
                 rules={{
                   required: {
                     value: true,
@@ -390,21 +495,21 @@ const AddEmployee = () => {
                   <Input
                     {...field}
                     variant="filled"
-                    placeholder="Enter first name"
+                    placeholder="Enter id number"
                     className="placeholder:capitalize"
-                    status={errors?.idNumber ? "error" : ""}
+                    status={errors?.IdNumber ? "error" : ""}
                   />
                 )}
               />
 
-              {errors?.idNumber ? <p>{errors?.idNumber?.message}</p> : null}
+              {errors?.IdNumber ? <p>{errors?.IdNumber?.message}</p> : null}
             </div>
 
             <div>
               <label>{t("POSTAL_CODE")}</label>
               <Controller
                 control={control}
-                name="postalCode"
+                name="PostalCode"
                 rules={{
                   required: {
                     value: true,
@@ -415,21 +520,21 @@ const AddEmployee = () => {
                   <Input
                     {...field}
                     variant="filled"
-                    placeholder="Enter first name"
+                    placeholder="Enter postal code"
                     className="placeholder:capitalize"
-                    status={errors?.postalCode ? "error" : ""}
+                    status={errors?.PostalCode ? "error" : ""}
                   />
                 )}
               />
 
-              {errors?.postalCode ? <p>{errors?.postalCode?.message}</p> : null}
+              {errors?.PostalCode ? <p>{errors?.PostalCode?.message}</p> : null}
             </div>
 
-            <div className="md:col-span-2">
+            <div className="col-span-full">
               <label>{t("ADDRESS")}</label>
               <Controller
                 control={control}
-                name="address"
+                name="Address"
                 rules={{
                   required: {
                     value: true,
@@ -440,21 +545,25 @@ const AddEmployee = () => {
                   <Input
                     {...field}
                     variant="filled"
-                    placeholder="Enter first name"
+                    placeholder="Enter address"
                     className="placeholder:capitalize"
-                    status={errors?.address ? "error" : ""}
+                    status={errors?.Address ? "error" : ""}
                   />
                 )}
               />
 
-              {errors?.address ? <p>{errors?.address?.message}</p> : null}
+              {errors?.Address ? <p>{errors?.Address?.message}</p> : null}
             </div>
 
             <section className="form_btn col-span-full mt-8 flex items-center justify-center gap-4 [&>button]:py-[18px] [&>button]:min-w-[100px] [&>button]:capitalize">
               <Button className="bg-lightGray text-black" onClick={resetForm}>
                 {t("RESET")}
               </Button>
-              <Button htmlType="submit" className="bg-mainColor text-white">
+              <Button
+                loading={isLoading}
+                htmlType="submit"
+                className="bg-mainColor text-white"
+              >
                 {t("ADD_EMPLOYEE")}
               </Button>
             </section>

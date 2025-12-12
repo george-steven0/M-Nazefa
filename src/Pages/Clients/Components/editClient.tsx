@@ -15,23 +15,23 @@ const EditClient = () => {
     formState: { errors },
   } = useForm<clientFormPropsType>({
     defaultValues: {
-      addresses: [
+      customerAddresses: [
         {
-          city: "",
-          area: "",
+          cityId: "",
+          areaId: "",
           street: "",
           apartment: "",
           floor: "",
           postalCode: "",
           landmark: "",
-          description: "",
+          fullDescription: "",
         },
       ],
     },
   });
 
   const { fields, append, remove } = useFieldArray({
-    name: "addresses",
+    name: "customerAddresses",
     control: control,
     rules: {
       required: {
@@ -47,14 +47,14 @@ const EditClient = () => {
 
   const handleAddAddress = () => {
     append({
-      city: "",
-      area: "",
+      cityId: "",
+      areaId: "",
       street: "",
       apartment: "",
       floor: "",
       postalCode: "",
       landmark: "",
-      description: "",
+      fullDescription: "",
       space: "",
       buildType: "",
       states: "",
@@ -280,7 +280,7 @@ const EditClient = () => {
                       <label>{t("CITY")}</label>
                       <Controller
                         control={control}
-                        name={`addresses.${index}.city`}
+                        name={`customerAddresses.${index}.cityId`}
                         rules={{
                           required: { value: true, message: t("REQUIRED") },
                         }}
@@ -291,13 +291,15 @@ const EditClient = () => {
                             placeholder="Enter city"
                             className="placeholder:capitalize"
                             status={
-                              errors?.addresses?.[index]?.city ? "error" : ""
+                              errors?.customerAddresses?.[index]?.cityId
+                                ? "error"
+                                : ""
                             }
                           />
                         )}
                       />
-                      {errors?.addresses?.[index]?.city && (
-                        <p>{errors.addresses[index].city.message}</p>
+                      {errors?.customerAddresses?.[index]?.cityId && (
+                        <p>{errors.customerAddresses[index].cityId.message}</p>
                       )}
                     </div>
 
@@ -306,7 +308,7 @@ const EditClient = () => {
                       <label>{t("AREA")}</label>
                       <Controller
                         control={control}
-                        name={`addresses.${index}.area`}
+                        name={`customerAddresses.${index}.areaId`}
                         rules={{
                           required: { value: true, message: t("REQUIRED") },
                         }}
@@ -317,13 +319,15 @@ const EditClient = () => {
                             placeholder="Enter area"
                             className="placeholder:capitalize"
                             status={
-                              errors?.addresses?.[index]?.area ? "error" : ""
+                              errors?.customerAddresses?.[index]?.areaId
+                                ? "error"
+                                : ""
                             }
                           />
                         )}
                       />
-                      {errors?.addresses?.[index]?.area && (
-                        <p>{errors.addresses[index].area.message}</p>
+                      {errors?.customerAddresses?.[index]?.areaId && (
+                        <p>{errors.customerAddresses[index].areaId.message}</p>
                       )}
                     </div>
 
@@ -332,7 +336,7 @@ const EditClient = () => {
                       <label>{t("STREET")}</label>
                       <Controller
                         control={control}
-                        name={`addresses.${index}.street`}
+                        name={`customerAddresses.${index}.street`}
                         rules={{
                           required: { value: true, message: t("REQUIRED") },
                         }}
@@ -343,13 +347,15 @@ const EditClient = () => {
                             placeholder="Enter street"
                             className="placeholder:capitalize"
                             status={
-                              errors?.addresses?.[index]?.street ? "error" : ""
+                              errors?.customerAddresses?.[index]?.street
+                                ? "error"
+                                : ""
                             }
                           />
                         )}
                       />
-                      {errors?.addresses?.[index]?.street && (
-                        <p>{errors.addresses[index].street.message}</p>
+                      {errors?.customerAddresses?.[index]?.street && (
+                        <p>{errors.customerAddresses[index].street.message}</p>
                       )}
                     </div>
 
@@ -358,7 +364,7 @@ const EditClient = () => {
                       <label>{t("APARTMENT")}</label>
                       <Controller
                         control={control}
-                        name={`addresses.${index}.apartment`}
+                        name={`customerAddresses.${index}.apartment`}
                         rules={{
                           required: { value: true, message: t("REQUIRED") },
                         }}
@@ -369,15 +375,17 @@ const EditClient = () => {
                             placeholder="Enter apartment number"
                             className="placeholder:capitalize"
                             status={
-                              errors?.addresses?.[index]?.apartment
+                              errors?.customerAddresses?.[index]?.apartment
                                 ? "error"
                                 : ""
                             }
                           />
                         )}
                       />
-                      {errors?.addresses?.[index]?.apartment && (
-                        <p>{errors.addresses[index].apartment.message}</p>
+                      {errors?.customerAddresses?.[index]?.apartment && (
+                        <p>
+                          {errors.customerAddresses[index].apartment.message}
+                        </p>
                       )}
                     </div>
 
@@ -386,7 +394,7 @@ const EditClient = () => {
                       <label>{t("FLOOR")}</label>
                       <Controller
                         control={control}
-                        name={`addresses.${index}.floor`}
+                        name={`customerAddresses.${index}.floor`}
                         rules={{
                           required: { value: true, message: t("REQUIRED") },
                         }}
@@ -397,13 +405,15 @@ const EditClient = () => {
                             placeholder="Enter floor number"
                             className="placeholder:capitalize"
                             status={
-                              errors?.addresses?.[index]?.floor ? "error" : ""
+                              errors?.customerAddresses?.[index]?.floor
+                                ? "error"
+                                : ""
                             }
                           />
                         )}
                       />
-                      {errors?.addresses?.[index]?.floor && (
-                        <p>{errors.addresses[index].floor.message}</p>
+                      {errors?.customerAddresses?.[index]?.floor && (
+                        <p>{errors.customerAddresses[index].floor.message}</p>
                       )}
                     </div>
 
@@ -412,7 +422,7 @@ const EditClient = () => {
                       <label>{t("POSTAL_CODE")}</label>
                       <Controller
                         control={control}
-                        name={`addresses.${index}.postalCode`}
+                        name={`customerAddresses.${index}.postalCode`}
                         rules={{
                           required: { value: true, message: t("REQUIRED") },
                         }}
@@ -423,15 +433,17 @@ const EditClient = () => {
                             placeholder="Enter postal code"
                             className="placeholder:capitalize"
                             status={
-                              errors?.addresses?.[index]?.postalCode
+                              errors?.customerAddresses?.[index]?.postalCode
                                 ? "error"
                                 : ""
                             }
                           />
                         )}
                       />
-                      {errors?.addresses?.[index]?.postalCode && (
-                        <p>{errors.addresses[index].postalCode.message}</p>
+                      {errors?.customerAddresses?.[index]?.postalCode && (
+                        <p>
+                          {errors.customerAddresses[index].postalCode.message}
+                        </p>
                       )}
                     </div>
 
@@ -440,7 +452,7 @@ const EditClient = () => {
                       <label>{t("LANDMARK")}</label>
                       <Controller
                         control={control}
-                        name={`addresses.${index}.landmark`}
+                        name={`customerAddresses.${index}.landmark`}
                         rules={{
                           required: { value: true, message: t("REQUIRED") },
                         }}
@@ -451,15 +463,17 @@ const EditClient = () => {
                             placeholder="Enter landmark"
                             className="placeholder:capitalize"
                             status={
-                              errors?.addresses?.[index]?.landmark
+                              errors?.customerAddresses?.[index]?.landmark
                                 ? "error"
                                 : ""
                             }
                           />
                         )}
                       />
-                      {errors?.addresses?.[index]?.landmark && (
-                        <p>{errors.addresses[index].landmark.message}</p>
+                      {errors?.customerAddresses?.[index]?.landmark && (
+                        <p>
+                          {errors.customerAddresses[index].landmark.message}
+                        </p>
                       )}
                     </div>
 
@@ -468,7 +482,7 @@ const EditClient = () => {
                       <label>{t("DESCRIPTION")}</label>
                       <Controller
                         control={control}
-                        name={`addresses.${index}.description`}
+                        name={`customerAddresses.${index}.fullDescription`}
                         rules={{
                           required: { value: true, message: t("REQUIRED") },
                         }}
@@ -479,15 +493,21 @@ const EditClient = () => {
                             placeholder="Enter description"
                             className="placeholder:capitalize"
                             status={
-                              errors?.addresses?.[index]?.description
+                              errors?.customerAddresses?.[index]
+                                ?.fullDescription
                                 ? "error"
                                 : ""
                             }
                           />
                         )}
                       />
-                      {errors?.addresses?.[index]?.description && (
-                        <p>{errors.addresses[index].description.message}</p>
+                      {errors?.customerAddresses?.[index]?.fullDescription && (
+                        <p>
+                          {
+                            errors.customerAddresses[index]?.fullDescription
+                              .message
+                          }
+                        </p>
                       )}
                     </div>
                   </section>
@@ -506,7 +526,7 @@ const EditClient = () => {
                       <label>{t("SPACE")}</label>
                       <Controller
                         control={control}
-                        name={`addresses.${index}.space`}
+                        name={`customerAddresses.${index}.space`}
                         rules={{
                           required: { value: true, message: t("REQUIRED") },
                         }}
@@ -517,13 +537,15 @@ const EditClient = () => {
                             placeholder="Enter space"
                             className="placeholder:capitalize"
                             status={
-                              errors?.addresses?.[index]?.space ? "error" : ""
+                              errors?.customerAddresses?.[index]?.space
+                                ? "error"
+                                : ""
                             }
                           />
                         )}
                       />
-                      {errors?.addresses?.[index]?.space && (
-                        <p>{errors.addresses[index].space.message}</p>
+                      {errors?.customerAddresses?.[index]?.space && (
+                        <p>{errors.customerAddresses[index].space.message}</p>
                       )}
                     </div>
 
@@ -532,7 +554,7 @@ const EditClient = () => {
                       <label>{t("BUILDING_TYPE")}</label>
                       <Controller
                         control={control}
-                        name={`addresses.${index}.buildType`}
+                        name={`customerAddresses.${index}.buildType`}
                         rules={{
                           required: { value: true, message: t("REQUIRED") },
                         }}
@@ -543,7 +565,7 @@ const EditClient = () => {
                             placeholder="Select building type"
                             variant="filled"
                             status={
-                              errors?.addresses?.[index]?.buildType
+                              errors?.customerAddresses?.[index]?.buildType
                                 ? "error"
                                 : ""
                             }
@@ -555,8 +577,10 @@ const EditClient = () => {
                           />
                         )}
                       />
-                      {errors?.addresses?.[index]?.buildType && (
-                        <p>{errors.addresses[index].buildType.message}</p>
+                      {errors?.customerAddresses?.[index]?.buildType && (
+                        <p>
+                          {errors.customerAddresses[index].buildType.message}
+                        </p>
                       )}
                     </div>
 
@@ -565,7 +589,7 @@ const EditClient = () => {
                       <label>{t("STATE")}</label>
                       <Controller
                         control={control}
-                        name={`addresses.${index}.states`}
+                        name={`customerAddresses.${index}.states`}
                         rules={{
                           required: { value: true, message: t("REQUIRED") },
                         }}
@@ -576,7 +600,9 @@ const EditClient = () => {
                             placeholder="Select state"
                             variant="filled"
                             status={
-                              errors?.addresses?.[index]?.states ? "error" : ""
+                              errors?.customerAddresses?.[index]?.states
+                                ? "error"
+                                : ""
                             }
                             options={[
                               { value: "1", label: "Alexandria" },
@@ -586,8 +612,8 @@ const EditClient = () => {
                           />
                         )}
                       />
-                      {errors?.addresses?.[index]?.states && (
-                        <p>{errors.addresses[index].states.message}</p>
+                      {errors?.customerAddresses?.[index]?.states && (
+                        <p>{errors.customerAddresses[index].states.message}</p>
                       )}
                     </div>
 
@@ -596,7 +622,7 @@ const EditClient = () => {
                       <label>{t("LAND_TYPE")}</label>
                       <Controller
                         control={control}
-                        name={`addresses.${index}.landType`}
+                        name={`customerAddresses.${index}.landType`}
                         rules={{
                           required: { value: true, message: t("REQUIRED") },
                         }}
@@ -607,15 +633,17 @@ const EditClient = () => {
                             placeholder="Enter land type"
                             className="placeholder:capitalize"
                             status={
-                              errors?.addresses?.[index]?.landType
+                              errors?.customerAddresses?.[index]?.landType
                                 ? "error"
                                 : ""
                             }
                           />
                         )}
                       />
-                      {errors?.addresses?.[index]?.landType && (
-                        <p>{errors.addresses[index].landType.message}</p>
+                      {errors?.customerAddresses?.[index]?.landType && (
+                        <p>
+                          {errors.customerAddresses[index].landType.message}
+                        </p>
                       )}
                     </div>
 
@@ -624,7 +652,7 @@ const EditClient = () => {
                       <label>{t("INSECTS")}</label>
                       <Controller
                         control={control}
-                        name={`addresses.${index}.insects`}
+                        name={`customerAddresses.${index}.insects`}
                         rules={{
                           required: { value: true, message: t("REQUIRED") },
                         }}
@@ -635,7 +663,9 @@ const EditClient = () => {
                             placeholder="Insects?"
                             variant="filled"
                             status={
-                              errors?.addresses?.[index]?.insects ? "error" : ""
+                              errors?.customerAddresses?.[index]?.insects
+                                ? "error"
+                                : ""
                             }
                             options={[
                               { value: "true", label: "Yes" },
@@ -644,8 +674,8 @@ const EditClient = () => {
                           />
                         )}
                       />
-                      {errors?.addresses?.[index]?.insects && (
-                        <p>{errors.addresses[index].insects.message}</p>
+                      {errors?.customerAddresses?.[index]?.insects && (
+                        <p>{errors.customerAddresses[index].insects.message}</p>
                       )}
                     </div>
 
@@ -654,7 +684,7 @@ const EditClient = () => {
                       <label>{t("RODENTS")}</label>
                       <Controller
                         control={control}
-                        name={`addresses.${index}.rodents`}
+                        name={`customerAddresses.${index}.rodents`}
                         rules={{
                           required: { value: true, message: t("REQUIRED") },
                         }}
@@ -665,7 +695,9 @@ const EditClient = () => {
                             placeholder="Rodents?"
                             variant="filled"
                             status={
-                              errors?.addresses?.[index]?.rodents ? "error" : ""
+                              errors?.customerAddresses?.[index]?.rodents
+                                ? "error"
+                                : ""
                             }
                             options={[
                               { value: "true", label: "Yes" },
@@ -674,8 +706,8 @@ const EditClient = () => {
                           />
                         )}
                       />
-                      {errors?.addresses?.[index]?.rodents && (
-                        <p>{errors.addresses[index].rodents.message}</p>
+                      {errors?.customerAddresses?.[index]?.rodents && (
+                        <p>{errors.customerAddresses[index].rodents.message}</p>
                       )}
                     </div>
 
@@ -684,7 +716,7 @@ const EditClient = () => {
                       <label>{t("TOOLS")}</label>
                       <Controller
                         control={control}
-                        name={`addresses.${index}.tools`}
+                        name={`customerAddresses.${index}.tools`}
                         rules={{
                           required: { value: true, message: t("REQUIRED") },
                         }}
@@ -695,13 +727,15 @@ const EditClient = () => {
                             placeholder="Enter Tools"
                             className="placeholder:capitalize"
                             status={
-                              errors?.addresses?.[index]?.tools ? "error" : ""
+                              errors?.customerAddresses?.[index]?.tools
+                                ? "error"
+                                : ""
                             }
                           />
                         )}
                       />
-                      {errors?.addresses?.[index]?.tools && (
-                        <p>{errors.addresses[index].tools.message}</p>
+                      {errors?.customerAddresses?.[index]?.tools && (
+                        <p>{errors.customerAddresses[index].tools.message}</p>
                       )}
                     </div>
 
@@ -710,7 +744,7 @@ const EditClient = () => {
                       <label>{t("MATERIAL_BY_GM")}</label>
                       <Controller
                         control={control}
-                        name={`addresses.${index}.materialWeight`}
+                        name={`customerAddresses.${index}.materialWeight`}
                         rules={{
                           required: { value: true, message: t("REQUIRED") },
                         }}
@@ -721,15 +755,20 @@ const EditClient = () => {
                             placeholder="Enter material weight"
                             className="placeholder:capitalize"
                             status={
-                              errors?.addresses?.[index]?.materialWeight
+                              errors?.customerAddresses?.[index]?.materialWeight
                                 ? "error"
                                 : ""
                             }
                           />
                         )}
                       />
-                      {errors?.addresses?.[index]?.materialWeight && (
-                        <p>{errors.addresses[index].materialWeight.message}</p>
+                      {errors?.customerAddresses?.[index]?.materialWeight && (
+                        <p>
+                          {
+                            errors.customerAddresses[index].materialWeight
+                              .message
+                          }
+                        </p>
                       )}
                     </div>
 
@@ -738,7 +777,7 @@ const EditClient = () => {
                       <label>{t("NUMBER_OF_WINDOWS")}</label>
                       <Controller
                         control={control}
-                        name={`addresses.${index}.numberOfWindows`}
+                        name={`customerAddresses.${index}.numberOfWindows`}
                         rules={{
                           required: { value: true, message: t("REQUIRED") },
                         }}
@@ -749,7 +788,8 @@ const EditClient = () => {
                             placeholder="Number of windows"
                             variant="filled"
                             status={
-                              errors?.addresses?.[index]?.numberOfWindows
+                              errors?.customerAddresses?.[index]
+                                ?.numberOfWindows
                                 ? "error"
                                 : ""
                             }
@@ -761,8 +801,13 @@ const EditClient = () => {
                           />
                         )}
                       />
-                      {errors?.addresses?.[index]?.numberOfWindows && (
-                        <p>{errors.addresses[index].numberOfWindows.message}</p>
+                      {errors?.customerAddresses?.[index]?.numberOfWindows && (
+                        <p>
+                          {
+                            errors.customerAddresses[index].numberOfWindows
+                              .message
+                          }
+                        </p>
                       )}
                     </div>
 
@@ -771,7 +816,7 @@ const EditClient = () => {
                       <label>{t("NO_WORKERS")}</label>
                       <Controller
                         control={control}
-                        name={`addresses.${index}.numberOfWorkers`}
+                        name={`customerAddresses.${index}.numberOfWorkers`}
                         rules={{
                           required: { value: true, message: t("REQUIRED") },
                         }}
@@ -782,7 +827,8 @@ const EditClient = () => {
                             placeholder="Number of workers"
                             variant="filled"
                             status={
-                              errors?.addresses?.[index]?.numberOfWorkers
+                              errors?.customerAddresses?.[index]
+                                ?.numberOfWorkers
                                 ? "error"
                                 : ""
                             }
@@ -794,8 +840,13 @@ const EditClient = () => {
                           />
                         )}
                       />
-                      {errors?.addresses?.[index]?.numberOfWorkers && (
-                        <p>{errors.addresses[index].numberOfWorkers.message}</p>
+                      {errors?.customerAddresses?.[index]?.numberOfWorkers && (
+                        <p>
+                          {
+                            errors.customerAddresses[index].numberOfWorkers
+                              .message
+                          }
+                        </p>
                       )}
                     </div>
 
@@ -804,7 +855,7 @@ const EditClient = () => {
                       <label>{t("BRIDE_CLEANS")}</label>
                       <Controller
                         control={control}
-                        name={`addresses.${index}.brideClean`}
+                        name={`customerAddresses.${index}.brideClean`}
                         rules={{
                           required: { value: true, message: t("REQUIRED") },
                         }}
@@ -815,7 +866,7 @@ const EditClient = () => {
                             placeholder="Bride cleans?"
                             variant="filled"
                             status={
-                              errors?.addresses?.[index]?.brideClean
+                              errors?.customerAddresses?.[index]?.brideClean
                                 ? "error"
                                 : ""
                             }
@@ -826,8 +877,10 @@ const EditClient = () => {
                           />
                         )}
                       />
-                      {errors?.addresses?.[index]?.brideClean && (
-                        <p>{errors.addresses[index].brideClean.message}</p>
+                      {errors?.customerAddresses?.[index]?.brideClean && (
+                        <p>
+                          {errors.customerAddresses[index].brideClean.message}
+                        </p>
                       )}
                     </div>
 
@@ -835,7 +888,7 @@ const EditClient = () => {
                     <div>
                       <label>{t("VISIT_DURATION")}</label>
                       <Controller
-                        name={`addresses.${index}.duration`}
+                        name={`customerAddresses.${index}.duration`}
                         control={control}
                         rules={{
                           required: { value: true, message: t("REQUIRED") },
@@ -845,7 +898,7 @@ const EditClient = () => {
                             className="min-h-10 w-full border-[#C4C4C4] border rounded-md"
                             variant="filled"
                             status={
-                              errors?.addresses?.[index]?.duration
+                              errors?.customerAddresses?.[index]?.duration
                                 ? "error"
                                 : ""
                             }
@@ -871,8 +924,10 @@ const EditClient = () => {
                           />
                         )}
                       />
-                      {errors?.addresses?.[index]?.duration && (
-                        <p>{errors.addresses[index].duration.message}</p>
+                      {errors?.customerAddresses?.[index]?.duration && (
+                        <p>
+                          {errors.customerAddresses[index].duration.message}
+                        </p>
                       )}
                     </div>
                   </section>

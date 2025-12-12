@@ -1,4 +1,3 @@
-import { BsFillTrash3Fill } from "react-icons/bs";
 import { useTranslation } from "react-i18next";
 import Title from "../../../components/Common/Title/title";
 import ImgCrop from "antd-img-crop";
@@ -11,33 +10,96 @@ import {
   Upload,
   type UploadFile,
 } from "antd";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import type {
+  APIErrorProps,
   employeeFormProps,
   FileType,
 } from "../../../components/Utilities/Types/types";
 import dayjs from "dayjs";
-import { useSearchParams } from "react-router-dom";
 import { getBase64 } from "../../../components/Utilities/helper";
+import { useGetAllRolesQuery } from "../../../components/APIs/Roles/ROLE_QUERY";
+import {
+  useEditEmployeeMutation,
+  useGetEmployeeByIdQuery,
+} from "../../../components/APIs/EmployeesQuery/EMPLOYEES_QUERY";
+import { toast } from "react-toastify";
+import { useNavigate, useSearchParams } from "react-router-dom";
+
 const EditEmployee = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
 
-  const [searchParams] = useSearchParams();
-  const id = searchParams.get("id");
-  console.log(id);
+  const [params] = useSearchParams();
+  const id = params.get("id");
+  const { data: employeeData } = useGetEmployeeByIdQuery(
+    { id: id! },
+    {
+      skip: !id,
+    }
+  );
 
+  // Roles
+  const { data, isSuccess: isRolesSuccess } = useGetAllRolesQuery(null);
+
+  const roles = data?.data?.map((role) => ({
+    value: role.id,
+    label: role.name?.replace(/([A-Z])/g, " $1"),
+  }));
+
+  const defaultValues = {
+    FirstName: employeeData?.data?.fullName?.split(" ")[0],
+    LastName: employeeData?.data?.fullName?.split(" ")[1],
+    Gender: employeeData?.data?.gender,
+    DateOfBirth: employeeData?.data?.dateOfBirth,
+    PhoneNumber: employeeData?.data?.phoneNumber,
+    Email: employeeData?.data?.email,
+    Address: employeeData?.data?.address,
+    PostalCode: employeeData?.data?.postalCode,
+    IdNumber: employeeData?.data?.idNumber,
+    WorkId: employeeData?.data?.workId,
+    StartingDate: employeeData?.data?.startingDate,
+    Role: employeeData?.data?.roles,
+  };
   const {
     reset,
     control,
     handleSubmit,
     formState: { errors },
-  } = useForm<employeeFormProps>();
+  } = useForm<employeeFormProps>({
+    defaultValues: defaultValues,
+  });
+
+  useEffect(() => {
+    // console.log(isRolesSuccess);
+
+    if (id && employeeData?.isSuccess && isRolesSuccess) {
+      const defaultRoleIds = roles
+        ?.filter((role) =>
+          employeeData?.data?.roles?.map((label) => label === role?.label)
+        )
+        ?.map((role) => role?.value);
+      // console.log(defaultRoleIds);
+
+      reset({
+        ...defaultValues,
+        Role: defaultRoleIds,
+      });
+    }
+  }, [id, employeeData?.isSuccess, isRolesSuccess, reset]);
+
+  // console.log(getValues());
 
   /* File Input */
   const [fileList, setFileList] = useState<UploadFile[]>([]);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewImage, setPreviewImage] = useState("");
+
+  // console.log(employeeData);
+
+  const [editEmployee, { isLoading }] = useEditEmployeeMutation();
+  // console.log(data?.data);
 
   //   const onChange: UploadProps["onChange"] = ({ fileList: newFileList }) => {
   //     setFileList(newFileList.slice(-1));
@@ -60,24 +122,60 @@ const EditEmployee = () => {
 
   //reset form
   const resetForm = () => {
-    reset();
+    reset(defaultValues);
+    // setPreviewImage("");
+    // setFileList([]);
   };
-  const submitForm = (data: employeeFormProps) => {
+
+  const submitForm = async (data: employeeFormProps) => {
     const formattedData = {
       ...data,
-      dateOfBirth: dayjs(data.dateOfBirth)?.format("YYYY-MM-DD"),
-      startingDate: dayjs(data.startingDate)?.format("YYYY-MM-DD"),
+      DateOfBirth: dayjs(data.DateOfBirth)?.toISOString(),
+      StartingDate: dayjs(data.StartingDate)?.toISOString(),
     };
-    console.log(formattedData);
+
+    // console.log(formattedData);
+
+    const formData = new FormData();
+    await Object.entries(formattedData).forEach(([key, value]) => {
+      // Handle different types of values
+      // if (Array.isArray(value)) {
+      //   value.forEach((v) => formData.append(key, v));
+      // } else if (value instanceof File) {
+      //   formData.append(key, value);
+      // } else if (value !== undefined && value !== null) {
+      //   formData.append(key, String(value));
+      // }
+      formData.append(key, String(value));
+    });
+    await formData.append("Id", id!);
+
+    try {
+      await editEmployee(formData).unwrap();
+      toast.success("Employee updated successfully");
+      navigate("/employees");
+    } catch (error) {
+      const err = error as APIErrorProps;
+      if (
+        err?.data?.validationErrors &&
+        err?.data?.validationErrors.length > 0
+      ) {
+        const errs = err?.data?.validationErrors.join("\n");
+        toast.error(errs);
+      } else {
+        toast.error("Failed to update employee");
+      }
+    }
   };
+
   return (
-    <div className="add-new-employee">
+    <div className="edit-employee">
       <section className="new-employee-title-wrapper">
         <Title title={t("EDIT_EMPLOYEE")} subTitle />
       </section>
 
-      <section className="add-employee-content w-full mt-4">
-        <div className="add-employee-form">
+      <section className="edit-employee-content w-full">
+        <div className="edit-employee-form">
           <form
             noValidate
             onSubmit={handleSubmit(submitForm)}
@@ -86,7 +184,7 @@ const EditEmployee = () => {
             <div className="employee-image col-span-full text-center w-full flex flex-col justify-center items-center gap-1">
               <Controller
                 control={control}
-                name="image"
+                name="ImageFile"
                 rules={{
                   required: {
                     value: true,
@@ -131,14 +229,14 @@ const EditEmployee = () => {
                 )}
               />
 
-              {errors?.image ? <p>{errors?.image?.message}</p> : null}
+              {errors?.ImageFile ? <p>{errors?.ImageFile?.message}</p> : null}
             </div>
 
             <div>
               <label>{t("FIRST_NAME")}</label>
               <Controller
                 control={control}
-                name="firstName"
+                name="FirstName"
                 rules={{
                   required: {
                     value: true,
@@ -151,12 +249,12 @@ const EditEmployee = () => {
                     variant="filled"
                     placeholder="Enter first name"
                     className="placeholder:capitalize"
-                    status={errors?.firstName ? "error" : ""}
+                    status={errors?.FirstName ? "error" : ""}
                   />
                 )}
               />
 
-              {errors?.firstName ? <p>{errors?.firstName?.message}</p> : null}
+              {errors?.FirstName ? <p>{errors?.FirstName?.message}</p> : null}
             </div>
 
             <div>
@@ -164,7 +262,7 @@ const EditEmployee = () => {
 
               <Controller
                 control={control}
-                name="lastName"
+                name="LastName"
                 rules={{
                   required: {
                     value: true,
@@ -175,21 +273,21 @@ const EditEmployee = () => {
                   <Input
                     {...field}
                     variant="filled"
-                    placeholder="Enter first name"
+                    placeholder="Enter last name"
                     className="placeholder:capitalize"
-                    status={errors?.lastName ? "error" : ""}
+                    status={errors?.LastName ? "error" : ""}
                   />
                 )}
               />
 
-              {errors?.lastName ? <p>{errors?.lastName?.message}</p> : null}
+              {errors?.LastName ? <p>{errors?.LastName?.message}</p> : null}
             </div>
 
             <div>
               <label>{t("GENDER")}</label>
               <Controller
                 control={control}
-                name="gender"
+                name="Gender"
                 rules={{
                   required: {
                     value: true,
@@ -199,9 +297,10 @@ const EditEmployee = () => {
                 render={({ field }) => (
                   <Select
                     {...field}
+                    placeholder="Select gender"
                     className="min-h-10 border-[#C4C4C4] border rounded-md capitalize [&>.ant-select-selector]:capitalize"
                     variant="filled"
-                    status={errors?.gender ? "error" : ""}
+                    status={errors?.Gender ? "error" : ""}
                     // defaultValue="male"
                     style={{ width: "100%" }}
                     onChange={(e) => {
@@ -218,14 +317,14 @@ const EditEmployee = () => {
                 )}
               />
 
-              {errors?.gender ? <p>{errors?.gender?.message}</p> : null}
+              {errors?.Gender ? <p>{errors?.Gender?.message}</p> : null}
             </div>
 
             <div>
               <label>{t("PHONE_NUMBER")}</label>
               <Controller
                 control={control}
-                name="phoneNumber"
+                name="PhoneNumber"
                 rules={{
                   required: {
                     value: true,
@@ -236,15 +335,15 @@ const EditEmployee = () => {
                   <Input
                     {...field}
                     variant="filled"
-                    placeholder="Enter first name"
+                    placeholder="Enter phone number"
                     className="placeholder:capitalize"
-                    status={errors?.phoneNumber ? "error" : ""}
+                    status={errors?.PhoneNumber ? "error" : ""}
                   />
                 )}
               />
 
-              {errors?.phoneNumber ? (
-                <p>{errors?.phoneNumber?.message}</p>
+              {errors?.PhoneNumber ? (
+                <p>{errors?.PhoneNumber?.message}</p>
               ) : null}
             </div>
 
@@ -252,7 +351,7 @@ const EditEmployee = () => {
               <label>{t("EMAIL")}</label>
               <Controller
                 control={control}
-                name="email"
+                name="Email"
                 rules={{
                   required: {
                     value: true,
@@ -263,21 +362,71 @@ const EditEmployee = () => {
                   <Input
                     {...field}
                     variant="filled"
-                    placeholder="Enter first name"
+                    placeholder="Enter email"
                     className="placeholder:capitalize"
-                    status={errors?.email ? "error" : ""}
+                    status={errors?.Email ? "error" : ""}
                   />
                 )}
               />
 
-              {errors?.email ? <p>{errors?.email?.message}</p> : null}
+              {errors?.Email ? <p>{errors?.Email?.message}</p> : null}
+            </div>
+
+            <div>
+              <label>{t("USER_NAME")}</label>
+              <Controller
+                control={control}
+                name="UserName"
+                rules={{
+                  required: {
+                    value: true,
+                    message: t("REQUIRED"),
+                  },
+                }}
+                render={({ field }) => (
+                  <Input
+                    {...field}
+                    variant="filled"
+                    placeholder="Enter user name"
+                    className="placeholder:capitalize"
+                    status={errors?.UserName ? "error" : ""}
+                  />
+                )}
+              />
+
+              {errors?.UserName ? <p>{errors?.UserName?.message}</p> : null}
+            </div>
+
+            <div>
+              <label>{t("PASSWORD")}</label>
+              <Controller
+                control={control}
+                name="Password"
+                rules={{
+                  required: {
+                    value: true,
+                    message: t("REQUIRED"),
+                  },
+                }}
+                render={({ field }) => (
+                  <Input.Password
+                    {...field}
+                    variant="filled"
+                    placeholder="Enter Password"
+                    className="placeholder:capitalize py-2 border-[#C4C4C4]"
+                    status={errors?.Password ? "error" : ""}
+                  />
+                )}
+              />
+
+              {errors?.Password ? <p>{errors?.Password?.message}</p> : null}
             </div>
 
             <div>
               <label>{t("DATE_OF_BIRTH")}</label>
               <Controller
                 control={control}
-                name="dateOfBirth"
+                name="DateOfBirth"
                 rules={{
                   required: {
                     value: true,
@@ -289,7 +438,7 @@ const EditEmployee = () => {
                     className="min-h-10 w-full border-[#C4C4C4] border rounded-md capitalize [&>.ant-select-selector]:capitalize"
                     {...field}
                     variant="filled"
-                    status={errors?.dateOfBirth ? "error" : ""}
+                    status={errors?.DateOfBirth ? "error" : ""}
                     value={field.value ? dayjs(field.value) : null}
                     onChange={(e) => {
                       field.onChange(dayjs(e));
@@ -297,8 +446,8 @@ const EditEmployee = () => {
                   />
                 )}
               />
-              {errors?.dateOfBirth ? (
-                <p>{errors?.dateOfBirth?.message}</p>
+              {errors?.DateOfBirth ? (
+                <p>{errors?.DateOfBirth?.message}</p>
               ) : null}
             </div>
 
@@ -306,7 +455,7 @@ const EditEmployee = () => {
               <label>{t("EMPLOYEE_ROLE")}</label>
               <Controller
                 control={control}
-                name="role"
+                name="Role"
                 rules={{
                   required: {
                     value: true,
@@ -314,24 +463,32 @@ const EditEmployee = () => {
                   },
                 }}
                 render={({ field }) => (
-                  <Input
+                  <Select
                     {...field}
+                    placeholder="Select Role"
+                    mode="multiple"
+                    className="h-10 border-[#C4C4C4] border rounded-md capitalize [&>.ant-select-selector]:capitalize [&_.ant-select-selection-wrap]:h-full"
                     variant="filled"
-                    placeholder="Enter first name"
-                    className="placeholder:capitalize"
-                    status={errors?.role ? "error" : ""}
+                    status={errors?.Role ? "error" : ""}
+                    // defaultValue="male"
+                    style={{ width: "100%" }}
+                    onChange={(e) => {
+                      field.onChange(e);
+                      //   handleChange(e);
+                    }}
+                    options={roles}
                   />
                 )}
               />
 
-              {errors?.role ? <p>{errors?.role?.message}</p> : null}
+              {errors?.Role ? <p>{errors?.Role?.message}</p> : null}
             </div>
 
             {/* <div>
               <label>{t("WORK_ID")}</label>
               <Controller
                 control={control}
-                name="workId"
+                name="WorkId"
                 rules={{
                   required: {
                     value: true,
@@ -344,19 +501,19 @@ const EditEmployee = () => {
                     variant="filled"
                     placeholder="Enter first name"
                     className="placeholder:capitalize"
-                    status={errors?.workId ? "error" : ""}
+                    status={errors?.WorkId ? "error" : ""}
                   />
                 )}
               />
 
-              {errors?.workId ? <p>{errors?.workId?.message}</p> : null}
+              {errors?.WorkId ? <p>{errors?.WorkId?.message}</p> : null}
             </div> */}
 
             <div>
               <label>{t("STARTING_DATE")}</label>
               <Controller
                 control={control}
-                name="startingDate"
+                name="StartingDate"
                 rules={{
                   required: {
                     value: true,
@@ -368,7 +525,7 @@ const EditEmployee = () => {
                     className="min-h-10 w-full border-[#C4C4C4] border rounded-md capitalize [&>.ant-select-selector]:capitalize"
                     {...field}
                     variant="filled"
-                    status={errors?.startingDate ? "error" : ""}
+                    status={errors?.StartingDate ? "error" : ""}
                     value={field.value ? dayjs(field.value) : null}
                     onChange={(e) => {
                       field.onChange(dayjs(e));
@@ -376,8 +533,8 @@ const EditEmployee = () => {
                   />
                 )}
               />
-              {errors?.startingDate ? (
-                <p>{errors?.startingDate?.message}</p>
+              {errors?.StartingDate ? (
+                <p>{errors?.StartingDate?.message}</p>
               ) : null}
             </div>
 
@@ -385,7 +542,7 @@ const EditEmployee = () => {
               <label>{t("ID_NUMBER")}</label>
               <Controller
                 control={control}
-                name="idNumber"
+                name="IdNumber"
                 rules={{
                   required: {
                     value: true,
@@ -396,21 +553,21 @@ const EditEmployee = () => {
                   <Input
                     {...field}
                     variant="filled"
-                    placeholder="Enter first name"
+                    placeholder="Enter id number"
                     className="placeholder:capitalize"
-                    status={errors?.idNumber ? "error" : ""}
+                    status={errors?.IdNumber ? "error" : ""}
                   />
                 )}
               />
 
-              {errors?.idNumber ? <p>{errors?.idNumber?.message}</p> : null}
+              {errors?.IdNumber ? <p>{errors?.IdNumber?.message}</p> : null}
             </div>
 
             <div>
               <label>{t("POSTAL_CODE")}</label>
               <Controller
                 control={control}
-                name="postalCode"
+                name="PostalCode"
                 rules={{
                   required: {
                     value: true,
@@ -421,21 +578,21 @@ const EditEmployee = () => {
                   <Input
                     {...field}
                     variant="filled"
-                    placeholder="Enter first name"
+                    placeholder="Enter postal code"
                     className="placeholder:capitalize"
-                    status={errors?.postalCode ? "error" : ""}
+                    status={errors?.PostalCode ? "error" : ""}
                   />
                 )}
               />
 
-              {errors?.postalCode ? <p>{errors?.postalCode?.message}</p> : null}
+              {errors?.PostalCode ? <p>{errors?.PostalCode?.message}</p> : null}
             </div>
 
-            <div className="md:col-span-2">
+            <div className="col-span-full">
               <label>{t("ADDRESS")}</label>
               <Controller
                 control={control}
-                name="address"
+                name="Address"
                 rules={{
                   required: {
                     value: true,
@@ -446,32 +603,26 @@ const EditEmployee = () => {
                   <Input
                     {...field}
                     variant="filled"
-                    placeholder="Enter first name"
+                    placeholder="Enter address"
                     className="placeholder:capitalize"
-                    status={errors?.address ? "error" : ""}
+                    status={errors?.Address ? "error" : ""}
                   />
                 )}
               />
 
-              {errors?.address ? <p>{errors?.address?.message}</p> : null}
+              {errors?.Address ? <p>{errors?.Address?.message}</p> : null}
             </div>
-
-            <section className="delete-employee mt-4  ">
-              <Button className="flex items-center gap-2 font-medium text-mainRed border-none shadow-none capitalize">
-                <span>
-                  <BsFillTrash3Fill size={20} />
-                </span>
-
-                <span>{t("DELETE_EMPLOYEE")}</span>
-              </Button>
-            </section>
 
             <section className="form_btn col-span-full mt-8 flex items-center justify-center gap-4 [&>button]:py-[18px] [&>button]:min-w-[100px] [&>button]:capitalize">
               <Button className="bg-lightGray text-black" onClick={resetForm}>
                 {t("RESET")}
               </Button>
-              <Button htmlType="submit" className="bg-mainColor text-white">
-                {t("SAVE_CHANGES")}
+              <Button
+                loading={isLoading}
+                htmlType="submit"
+                className="bg-mainColor text-white"
+              >
+                {t("EDIT_EMPLOYEE")}
               </Button>
             </section>
           </form>

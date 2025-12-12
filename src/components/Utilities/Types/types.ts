@@ -6,26 +6,107 @@ export type translationType = {
   t: TFunction;
 };
 
+export type APIErrorProps = {
+  data: {
+    errorMessage: string;
+    validationErrors: string[];
+  };
+};
+
+export type APIResponse<T> = {
+  data: T[];
+  paginationHeader: {
+    CurrentPage: number;
+    totalPages: number;
+    NumberOfItemsPerPage: number;
+    totalItems: number;
+  };
+  isSuccess?: boolean;
+  errorMessages?: string[];
+};
+
+export type SingleAPIResponse<T> = {
+  data: T;
+  isSuccess?: boolean;
+  errorMessages?: string[];
+};
+
+export type APIParams = {
+  page?: string | number;
+  size?: string | number;
+  id?: string | number;
+};
+
+export type APIError = {
+  status: number;
+  data?: {
+    message?: string;
+  };
+};
+
 export type ChartState = {
   series: ApexAxisChartSeries | ApexNonAxisChartSeries;
   options: ApexOptions;
 };
 export type FileType = Parameters<GetProp<UploadProps, "beforeUpload">>[0];
 
-export type employeeFormProps = {
-  firstName: string;
-  lastName: string;
-  gender: string;
-  phoneNumber: string | number;
+export type loginProps = {
   email: string;
-  dateOfBirth: string;
-  role: string;
-  workId: string;
-  startingDate: string;
-  idNumber: string | number;
-  postalCode: string;
+  password: string;
+};
+export type loginResponseProps = {
+  token: string;
+  email: string;
+  fullName: string;
+  rolesList: string[];
+  userName: string;
+};
+export type employeeFormProps = {
+  DateOfBirth: string;
+  Email: string;
+  Password: string;
+  UserName: string;
+  FirstName: string;
+  Gender: string;
+  LastName: string;
+  PhoneNumber: string | number;
+  Role: string[];
+  WorkId?: string;
+  StartingDate: string;
+  IdNumber: string | number;
+  PostalCode: string;
+  Address: string;
+  ImageFile: string | File;
+};
+
+export type rolesProps = {
+  id: string;
+  name: string;
+  description: string;
+};
+export type employeeResponseProps = {
+  id: string;
+  fullName: string;
+  userName: string;
+  roles: rolesProps[];
+  imagePath: string | null;
+};
+
+export type singleEmployeeProps = {
   address: string;
-  image: string | File;
+  userName: string;
+  dateOfBirth: string;
+  email: string;
+  fullName: string;
+  gender: string;
+  id: string;
+  idNumber: string;
+  imagePath: string;
+  phoneNumber: string;
+  postalCode: string;
+  roles: string[];
+  startingDate: string;
+  workId: string;
 };
 
 export type clientsPropsType = {
@@ -38,14 +119,14 @@ export type clientsPropsType = {
 };
 
 type addressProps = {
-  city: string;
-  area: string;
+  cityId: string;
+  areaId: string;
   street: string;
   apartment: string;
-  floor: string;
+  floor: string | number;
   postalCode: string;
   landmark: string;
-  description: string;
+  fullDescription: string;
 };
 export type clientFormPropsType = {
   firstName: string;
@@ -54,7 +135,7 @@ export type clientFormPropsType = {
   idNumber: string | number;
   phoneNumber: string | number;
   email: string;
-  addresses: (addressProps & buildingProps)[];
+  customerAddresses: (addressProps & buildingProps)[];
 };
 
 export type packageFormProps = {
@@ -119,4 +200,9 @@ export type messagesProps = {
   title: string;
   message: string;
   customerId: string | number;
+};
+
+export type LoginProps = {
+  email: string;
+  password: string;
 };

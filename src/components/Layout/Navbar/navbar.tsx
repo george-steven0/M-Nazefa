@@ -25,7 +25,7 @@ const Navbar = ({
     {
       id: "dashboard",
       name: t("DASHBOARD"),
-      path: "/",
+      path: "/dashboard",
       icon: dashboardIcon,
     },
     {

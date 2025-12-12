@@ -117,5 +117,7 @@
     "DRY_CLEANING": "خدمات التنظيف الجاف",
     "PACKAGE": "الباقة",
     "SEND_MESSAGE": "ارسل الرسالة",
-    "ADDRESSES": "العناوين"
+    "ADDRESSES": "العناوين",
+    "PASSWORD": "باسورد",
+    "USER_NAME": "اسم المستخدم"
 }
