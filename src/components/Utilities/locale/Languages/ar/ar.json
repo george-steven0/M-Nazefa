@@ -119,5 +119,17 @@
     "SEND_MESSAGE": "ارسل الرسالة",
     "ADDRESSES": "العناوين",
     "PASSWORD": "باسورد",
-    "USER_NAME": "اسم المستخدم"
+    "USER_NAME": "اسم المستخدم",
+    "CHANGE_PASSWORD": "تغيير كلمة المرور",
+    "NEW_PASSWORD": "كلمة المرور الجديدة",
+    "MIN_LENGTH": "اقل عدد من الحروف يجب ان يكون {{length}}",
+    "MAX_LENGTH": "اقصي عدد من الحروف يجب ان لا يتعدى {{length}}",
+    "ROLES": "المهام",
+    "ADD_ROLE": "أضف مهام جديدة",
+    "EDIT_ROLE": "تعديل المهام",
+    "ONLY_NUMBER": "مسموح بالارقام فقط",
+    "DEACTIVATE": "إلغاء التفعيل",
+    "DEACTIVATE_SUCCESS": "تم إلغاء التفعيل بنجاح.",
+    "DEACTIVATE_ERROR": "حدث خطأ غير متوقع.",
+    "ACTIVE": "نشط"
 }

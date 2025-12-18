@@ -15,6 +15,16 @@ export const API = createApi({
       return headers;
     },
   }),
-  tagTypes: ["employees", "roles", "cities", "clients"],
+  tagTypes: [
+    "employees",
+    "singleEmployee",
+    "roles",
+    "cities",
+    "clients",
+    "areas",
+    "buildingTypes",
+    "landTypes",
+    "states",
+  ],
   endpoints: () => ({}),
 });

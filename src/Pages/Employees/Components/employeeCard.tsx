@@ -9,7 +9,7 @@ const EmployeeCard = ({ employee }: employeeCardProps) => {
 
   return (
     <div
-      className={`cursor-pointer py-3 flex flex-col justify-start items-center gap-2 px-3 border-b min-h-[200px]  border-r border-l border-[#E2E1E1]`}
+      className={`cursor-pointer h-full py-3 flex flex-col justify-start items-center gap-2 px-3 border-b  border-r border-l border-[#E2E1E1]`}
     >
       <div className="">
         <img
@@ -31,10 +31,18 @@ const EmployeeCard = ({ employee }: employeeCardProps) => {
       <div>
         <p
           className="capitalize text-mainGray line-clamp-1"
-          title="Employee name"
+          title={
+            employee?.roles && employee?.roles.length > 0
+              ? employee?.roles
+                  .map((role) => role?.replace(/([a-z])([A-Z])/g, "$1 $2"))
+                  .join(", ")
+              : "Role"
+          }
         >
           {employee?.roles && employee?.roles.length > 0
-            ? employee?.roles.join(", ")
+            ? employee?.roles
+                .map((role) => role?.replace(/([a-z])([A-Z])/g, "$1 $2"))
+                .join(", ")
             : "Role"}
         </p>
       </div>

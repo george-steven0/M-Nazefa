@@ -5,7 +5,7 @@ export default function Notfound() {
   const navigate = useNavigate();
 
   const handleNavigation = () => {
-    navigate(-1);
+    navigate("/");
   };
   return (
     <div className="flex flex-col gap-5 h-screen items-center justify-center">
@@ -14,7 +14,7 @@ export default function Notfound() {
         onClick={handleNavigation}
         className="text-white bg-mainColor! py-5 min-w-xl"
       >
-        Go Back
+        Go Home
       </Button>
     </div>
   );

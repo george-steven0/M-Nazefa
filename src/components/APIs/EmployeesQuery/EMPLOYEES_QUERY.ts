@@ -1,6 +1,8 @@
 import type {
   APIParams,
   APIResponse,
+  changePasswordForm,
+  deactivateEmployeeProps,
   employeeFormProps,
   employeeResponseProps,
   SingleAPIResponse,
@@ -13,7 +15,7 @@ const employees = API.injectEndpoints({
     //replace any type with the employee response type
     getAllEmployees: build.query<APIResponse<employeeResponseProps>, APIParams>(
       {
-        query: ({ page, size }) => {
+        query: ({ page, size, DescendingOrder, search }) => {
           const myPage = page ? String(page) : "1";
           const mySize = size ? String(size) : "10";
 
@@ -24,6 +26,8 @@ const employees = API.injectEndpoints({
             headers: {
               CurrentPage: myPage,
               NumberOfItemsPerPage: mySize,
+              DescendingOrder: DescendingOrder!.toString(),
+              SearchTerm: search,
             },
           };
         },
@@ -43,6 +47,7 @@ const employees = API.injectEndpoints({
           },
         };
       },
+      providesTags: ["singleEmployee"],
     }),
 
     addEmployee: build.mutation<APIResponse<employeeFormProps>, FormData>({
@@ -54,7 +59,7 @@ const employees = API.injectEndpoints({
           "Content-Type": "multipart/form-data",
         },
       }),
-      invalidatesTags: ["employees"],
+      invalidatesTags: ["employees", "singleEmployee"],
     }),
 
     editEmployee: build.mutation<APIResponse<employeeFormProps>, FormData>({
@@ -66,7 +71,34 @@ const employees = API.injectEndpoints({
           "Content-Type": "multipart/form-data",
         },
       }),
+      invalidatesTags: ["employees", "singleEmployee"],
+    }),
+
+    deactivateEmployee: build.mutation<
+      SingleAPIResponse<deactivateEmployeeProps>,
+      deactivateEmployeeProps
+    >({
+      query: (data) => ({
+        url: `/Employee/DeactivateEmployee`,
+        method: "POST",
+        body: data,
+      }),
       invalidatesTags: ["employees"],
+    }),
+
+    changePassword: build.mutation<
+      SingleAPIResponse<changePasswordForm>,
+      changePasswordForm
+    >({
+      query: (data) => ({
+        url: `/Employee/UpdatePassword`,
+        method: "POST",
+        body: data,
+        // headers: {
+        //   "Content-Type": "multipart/form-data",
+        // },
+      }),
+      // invalidatesTags: ["employees"],
     }),
   }),
 });
@@ -76,4 +108,6 @@ export const {
   useGetEmployeeByIdQuery,
   useAddEmployeeMutation,
   useEditEmployeeMutation,
+  useChangePasswordMutation,
+  useDeactivateEmployeeMutation,
 } = employees;

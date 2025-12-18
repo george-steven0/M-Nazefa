@@ -29,6 +29,7 @@ import Messages from "../../Pages/Messages/messages";
 import Login from "../../Pages/Login/login";
 import AuthRule from "./Rules/authRole";
 import GuestRule from "./Rules/guestRole";
+import Roles from "../../Pages/Roles/roles";
 
 export const routes = createBrowserRouter([
   {
@@ -80,6 +81,11 @@ export const routes = createBrowserRouter([
                 element: <ViewEmployee />,
               },
             ],
+          },
+          {
+            id: "roles",
+            path: "/roles",
+            element: <Roles />,
           },
           {
             id: "workers",

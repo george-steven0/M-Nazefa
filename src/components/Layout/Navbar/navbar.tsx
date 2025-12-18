@@ -6,12 +6,13 @@ import customersIcon from "../../../assets/imgs/customersIcon.svg";
 import packagesIcon from "../../../assets/imgs/packagesIcon.svg";
 import reservationIcon from "../../../assets/imgs/reservationIcon.svg";
 import messagesIcon from "../../../assets/imgs/messagesIcon.svg";
-import { NavLink, useLocation } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import navVector from "../../../assets/imgs/navbarVector.svg";
 import { Button } from "antd";
 import { useTranslation } from "react-i18next";
 import { FaSignOutAlt } from "react-icons/fa";
+import { MdOutlinePermContactCalendar } from "react-icons/md";
 
 const Navbar = ({
   setToggle,
@@ -20,6 +21,7 @@ const Navbar = ({
 }) => {
   const { t } = useTranslation();
   const { pathname } = useLocation();
+  const navigate = useNavigate();
 
   const navLinks = [
     {
@@ -39,6 +41,13 @@ const Navbar = ({
       name: t("EMPLOYEES"),
       path: "/employees",
       icon: employeesIcon,
+    },
+    {
+      id: "roles",
+      name: t("ROLES"),
+      path: "/roles",
+      icon: <MdOutlinePermContactCalendar />,
+      iconType: "fontIcon",
     },
     {
       id: "clients",
@@ -82,6 +91,10 @@ const Navbar = ({
     setToggle(true);
   }, [pathname]);
 
+  const handleLogout = () => {
+    navigate("/login");
+    sessionStorage.clear();
+  };
   return (
     <div className="size-full flex flex-col justify-between items-start">
       <div className="flex flex-col w-full py-6">
@@ -103,7 +116,15 @@ const Navbar = ({
                   }`
                 }
               >
-                <img src={link?.icon} alt={link?.id} className="size-6" />
+                {link?.iconType === "fontIcon" ? (
+                  <span className="text-2xl">{link?.icon}</span>
+                ) : (
+                  <img
+                    src={link?.icon as string}
+                    alt={link?.id}
+                    className="size-6"
+                  />
+                )}
                 <span>{link?.name}</span>
               </NavLink>
             ))}
@@ -113,7 +134,10 @@ const Navbar = ({
 
       <section className="w-full">
         <div className="w-full mb-4 flex justify-center">
-          <Button className="w-full max-w-[80%] z-999 font-semibold mb-8 text-white bg-transparent hover:bg-white hover:text-mainColor">
+          <Button
+            onClick={handleLogout}
+            className="w-full max-w-[80%] z-999 font-semibold mb-8 text-white bg-transparent hover:bg-white hover:text-mainColor"
+          >
             <span>
               <FaSignOutAlt size={18} />
             </span>

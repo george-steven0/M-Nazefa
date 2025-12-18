@@ -23,6 +23,8 @@ import { useGetAllRolesQuery } from "../../../components/APIs/Roles/ROLE_QUERY";
 import { useAddEmployeeMutation } from "../../../components/APIs/EmployeesQuery/EMPLOYEES_QUERY";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
+import imageCompression from "browser-image-compression";
+import { options } from "../../../components/Utilities/consts";
 
 const AddEmployee = () => {
   const { t } = useTranslation();
@@ -31,6 +33,7 @@ const AddEmployee = () => {
     reset,
     control,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm<employeeFormProps>();
 
@@ -56,12 +59,22 @@ const AddEmployee = () => {
     setPreviewImage(file.url || (file.preview as string));
     setPreviewOpen(true);
   };
-  /* End File Input */
+  /* Compress File Input */
+  const handleFileUpload = async (file: File) => {
+    const compressedFile = await imageCompression(file, options);
 
-  //Gender Select
-  //   const handleChange = (value: string) => {
-  //     console.log(`selected ${value}`);
-  //   };
+    const formattedFile = new File(
+      [compressedFile],
+      file.name.replace(/\.[^/.]+$/, ".jpg"),
+      {
+        type: "image/jpeg",
+      }
+    );
+    // console.log(formattedFile);
+
+    setValue("ImageFile", formattedFile);
+  };
+  /* Compress File Input */
 
   //reset form
   const resetForm = () => {
@@ -85,6 +98,8 @@ const AddEmployee = () => {
         formData.append(key, String(value));
       }
     });
+
+    // console.log(formattedData);
 
     try {
       await addEmployee(formData).unwrap();
@@ -142,9 +157,15 @@ const AddEmployee = () => {
                         fileList={fileList}
                         onChange={({ file, fileList }) => {
                           setFileList(fileList); // took fielist because it must take an array of files
+                          // console.log(fileList[0]?.originFileObj);
 
                           if (file) {
+                            // console.log(file);
+
                             field.onChange(file);
+                            handleFileUpload(
+                              fileList[0]?.originFileObj as File
+                            );
                           }
                         }}
                         onPreview={handlePreview}
@@ -299,6 +320,10 @@ const AddEmployee = () => {
                     value: true,
                     message: t("REQUIRED"),
                   },
+                  pattern: {
+                    value: /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
+                    message: "Email is not valid",
+                  },
                 }}
                 render={({ field }) => (
                   <Input
@@ -408,9 +433,16 @@ const AddEmployee = () => {
                   <Select
                     {...field}
                     placeholder="Select Role"
-                    mode="multiple"
-                    className="h-10 border-[#C4C4C4] border rounded-md capitalize [&>.ant-select-selector]:capitalize [&_.ant-select-selection-wrap]:h-full"
+                    mode="tags"
+                    className="h-auto border-[#C4C4C4] border rounded-md capitalize [&>.ant-select-selector]:capitalize [&_.ant-select-selection-wrap]:h-full [&_.ant-select-selection-wrap]:py-[3px] [&_.ant-select-selection-wrap]:capitalize"
                     variant="filled"
+                    styles={{
+                      popup: {
+                        root: {
+                          textTransform: "capitalize",
+                        },
+                      },
+                    }}
                     status={errors?.Role ? "error" : ""}
                     // defaultValue="male"
                     style={{ width: "100%" }}

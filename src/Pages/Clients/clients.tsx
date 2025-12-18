@@ -1,13 +1,14 @@
 import { AiOutlineEye } from "react-icons/ai";
 import { BiEdit } from "react-icons/bi";
 import { Button, Table, type TableProps } from "antd";
-import type { clientsPropsType } from "../../components/Utilities/Types/types";
-import { useTranslation } from "react-i18next";
+import type { clientFormPropsType } from "../../components/Utilities/Types/types";
 import Title from "../../components/Common/Title/title";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useSearchBox } from "../../components/Common/Search/searchInput";
+import { useGetAllCustomersQuery } from "../../components/APIs/ClientQuery/CLIENTS_QUERY";
+import { useTranslation } from "react-i18next";
 
-const Actions = ({ data }: { data: clientsPropsType }) => {
+const Actions = ({ data }: { data: clientFormPropsType }) => {
   const navigate = useNavigate();
   const handleNavigateEdit = () => {
     navigate(`edit-client?id=${data?.id}`);
@@ -34,7 +35,11 @@ const Clients = () => {
   const navigate = useNavigate();
   const { pathname } = useLocation();
 
-  const columns: TableProps<clientsPropsType>["columns"] = [
+  const { data: customers, isLoading, isFetching } = useGetAllCustomersQuery();
+
+  // console.log(customers?.data);
+
+  const columns: TableProps<clientFormPropsType>["columns"] = [
     {
       title: "ID",
       dataIndex: "id",
@@ -42,38 +47,37 @@ const Clients = () => {
       render: (text) => <p>{text}</p>,
     },
     {
-      title: "Name",
+      title: t("FULL_NAME"),
       dataIndex: "name",
       key: "name",
-      render: (text) => <span>{text}</span>,
+      render: (_, data) => (
+        <span>{data?.firstName + " " + data?.lastName}</span>
+      ),
     },
     {
-      title: "Phone Number",
+      title: t("PHONE_NUMBER"),
       dataIndex: "phoneNumber",
       key: "phoneNumber",
     },
     {
-      title: "Joining Date",
-      dataIndex: "joinDate",
-      key: "joinDate",
+      title: t("ID_NUMBER"),
+      dataIndex: "idNumber",
+      key: "idNumber",
     },
+
     {
       title: "Status",
-      dataIndex: "status",
+      dataIndex: "isActive",
       key: "status",
       render: (data) => (
         <span
           className={`w-[100px] rounded-xl p-2 block text-center font-semibold ${
-            data === "VIP"
+            data === true
               ? "text-[#027A48] bg-[#027A48]/20"
-              : data === "Stable"
-              ? "text-[#493971] bg-[#493971]/20"
-              : data === "Refunded"
-              ? "text-[#1D1B1B] bg-[#1D1B1B]/20"
-              : ""
+              : "text-mainRed bg-mainRed/20"
           }`}
         >
-          {data}
+          {data ? t("ACTIVE") : t("DEACTIVATED")}
         </span>
       ),
     },
@@ -83,32 +87,7 @@ const Clients = () => {
     },
   ];
 
-  const data: clientsPropsType[] = [
-    {
-      key: "1",
-      id: "1",
-      name: "John Brown",
-      phoneNumber: "+20115778532",
-      joinDate: "25-11-2023",
-      status: "VIP",
-    },
-    {
-      key: "2",
-      id: "2",
-      name: "Mike thunder",
-      phoneNumber: "+200000532",
-      joinDate: "10-11-2025",
-      status: "Stable",
-    },
-    {
-      key: "3",
-      id: "3",
-      name: "John Brown",
-      phoneNumber: "+20115778532",
-      joinDate: "05-11-2003",
-      status: "Refunded",
-    },
-  ];
+  const data: clientFormPropsType[] = customers?.data ? customers?.data : [];
 
   const handleAddButton = () => {
     return (
@@ -162,9 +141,10 @@ const Clients = () => {
       </section>
 
       <section className="mt-8">
-        <Table<clientsPropsType>
+        <Table<clientFormPropsType>
           columns={columns}
           dataSource={data}
+          loading={isLoading || isFetching}
           // onRow={(record) => ({
           //   onClick: () => handleRowClick(record),
           //   style: {

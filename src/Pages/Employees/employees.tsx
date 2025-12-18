@@ -1,12 +1,13 @@
-import { BiSortAlt2 } from "react-icons/bi";
 import { useTranslation } from "react-i18next";
 import Title from "../../components/Common/Title/title";
-import { Button, Dropdown, Skeleton, type MenuProps } from "antd";
+import { Button, Divider, Dropdown, Skeleton, type MenuProps } from "antd";
 import EmployeeCard from "./Components/employeeCard";
 import CustomPagination from "../../components/Common/Pagination/pagination";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useGetAllEmployeesQuery } from "../../components/APIs/EmployeesQuery/EMPLOYEES_QUERY";
 import { useState } from "react";
+import { useSearchBox } from "../../components/Common/Search/searchInput";
+import { MdFilterAlt } from "react-icons/md";
 
 const Employees = () => {
   const { t } = useTranslation();
@@ -16,10 +17,15 @@ const Employees = () => {
     CurrentPage: 1,
     NumberOfItemsPerPage: 15,
   });
+  const [sort, setSort] = useState("false");
+
+  const { SearchBox, debounceValue } = useSearchBox();
 
   const { data, isLoading, isFetching } = useGetAllEmployeesQuery({
     page: pagination.CurrentPage,
     size: pagination.NumberOfItemsPerPage,
+    DescendingOrder: sort,
+    search: debounceValue,
   });
 
   // console.log(data);
@@ -27,11 +33,11 @@ const Employees = () => {
   const items: MenuProps["items"] = [
     {
       label: "New to old",
-      key: "0",
+      key: "true",
     },
     {
       label: "Old to new",
-      key: "1",
+      key: "false",
     },
     // {
     //   label: (
@@ -45,14 +51,17 @@ const Employees = () => {
     //   ),
     //   key: "1",
     // },
-    {
-      type: "divider",
-    },
-    {
-      label: "Employee",
-      key: "3",
-    },
   ];
+
+  const handleMenuClick: MenuProps["onClick"] = (info) => {
+    console.log("Clicked item key:", info.key);
+    // You can map key to a value or use it directly
+    if (info.key === "true") {
+      setSort("true");
+    } else if (info.key === "false") {
+      setSort("false");
+    }
+  };
 
   const isChildEmployeePage =
     pathname.includes("add-employee") ||
@@ -74,12 +83,26 @@ const Employees = () => {
           {t("ADD_EMPLOYEE")}
         </Button>
 
-        <Dropdown menu={{ items }} trigger={["click"]}>
+        <Dropdown
+          menu={{ items, onClick: handleMenuClick, selectedKeys: [sort] }}
+          trigger={["click"]}
+          popupRender={(menu) => (
+            <div className="bg-white rounded-xl shadow-md p-2 min-w-[220px]">
+              {/* 🔍 Search box */}
+              {SearchBox()}
+
+              <Divider style={{ margin: "8px 0" }} />
+
+              {/* Default menu */}
+              {menu}
+            </div>
+          )}
+        >
           <a onClick={(e) => e.preventDefault()}>
             <Button
               shape="circle"
               size="large"
-              icon={<BiSortAlt2 className="text-[#343434] size-5 md:size-5" />}
+              icon={<MdFilterAlt className="text-[#343434] size-5 md:size-5" />}
             />
           </a>
         </Dropdown>
@@ -91,20 +114,21 @@ const Employees = () => {
     navigate(`view-employee?id=${id}`);
   };
   return (
-    <div className="employees-container h-full flex flex-col justify-start">
+    <div className="employees-container h-full items-stretch flex flex-col justify-start">
       <section className="employees-title-wrapper">
         <Title title={t("EMPLOYEES")} component={handleAddButton} />
       </section>
 
-      <section className="employees-cards-wrapper grow max-h-[70vh] overflow-y-auto mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 xl-grid-cols-5">
+      <section className="employees-cards-wrapper grow max-h-[70vh] overflow-y-auto mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 xl-grid-cols-5 content-start auto-rows-[200px]">
         {isLoading || isFetching
-          ? [...Array(10)]?.map((_, index) => (
-              <Skeleton key={index} avatar paragraph={{ rows: 2 }} />
+          ? [...Array(pagination?.NumberOfItemsPerPage)]?.map((_, index) => (
+              <Skeleton key={index} avatar paragraph={{ rows: 2 }} active />
             ))
           : data?.data?.map((employee) => (
               <div
                 key={employee?.id}
                 onClick={() => handleNavigateView(employee?.id)}
+                // className="h-[200px]"
               >
                 <EmployeeCard employee={employee} />
               </div>

@@ -8,8 +8,9 @@ export type translationType = {
 
 export type APIErrorProps = {
   data: {
-    errorMessage: string;
-    validationErrors: string[];
+    errorMessage?: string[];
+    errorMessages?: string[];
+    validationErrors?: string[];
   };
 };
 
@@ -35,12 +36,15 @@ export type APIParams = {
   page?: string | number;
   size?: string | number;
   id?: string | number;
+  DescendingOrder?: string;
+  search?: string;
 };
 
 export type APIError = {
   status: number;
   data?: {
     message?: string;
+    errorMessages?: string[];
   };
 };
 
@@ -70,13 +74,22 @@ export type employeeFormProps = {
   Gender: string;
   LastName: string;
   PhoneNumber: string | number;
-  Role: string[];
+  Roles?: string[];
+  Role?: string[];
   WorkId?: string;
   StartingDate: string;
   IdNumber: string | number;
   PostalCode: string;
   Address: string;
   ImageFile: string | File;
+  ImagePath: string | File;
+  File: string | File;
+  IsImageChanged: boolean;
+};
+
+export type deactivateEmployeeProps = {
+  employeeId: string;
+  isActive: boolean;
 };
 
 export type rolesProps = {
@@ -88,7 +101,7 @@ export type employeeResponseProps = {
   id: string;
   fullName: string;
   userName: string;
-  roles: rolesProps[];
+  roles: string[];
   imagePath: string | null;
 };
 
@@ -97,11 +110,13 @@ export type singleEmployeeProps = {
   userName: string;
   dateOfBirth: string;
   email: string;
-  fullName: string;
+  firstName: string;
+  lastName: string;
   gender: string;
   id: string;
   idNumber: string;
   imagePath: string;
+  ImageFile: string;
   phoneNumber: string;
   postalCode: string;
   roles: string[];
@@ -109,26 +124,20 @@ export type singleEmployeeProps = {
   workId: string;
 };
 
-export type clientsPropsType = {
-  key?: string | number;
-  id: string | number;
-  name: string;
-  joinDate: string;
-  phoneNumber: string | number;
-  status: string;
-};
-
 type addressProps = {
   cityId: string;
-  areaId: string;
+  AreaId: string;
+  areaId?: string;
   street: string;
   apartment: string;
   floor: string | number;
   postalCode: string;
   landmark: string;
+  landMark?: string;
   fullDescription: string;
 };
 export type clientFormPropsType = {
+  id?: number | string;
   firstName: string;
   middleName: string;
   lastName: string;
@@ -136,6 +145,7 @@ export type clientFormPropsType = {
   phoneNumber: string | number;
   email: string;
   customerAddresses: (addressProps & buildingProps)[];
+  address?: (addressProps & buildingProps)[];
 };
 
 export type packageFormProps = {
@@ -161,17 +171,21 @@ export type appointmentProps = {
 
 export type buildingProps = {
   space: string;
-  buildType: string;
-  states: string;
-  landType: string;
-  insects: string;
-  rodents: string;
+  BuildingTypeId: string;
+  buildingTypeId?: string;
+  state?: string;
+  LandTypeId: string;
+  landTypeId?: string;
+  insects: string | boolean;
+  rodents: string | boolean;
   tools: string;
   materialWeight: string;
   numberOfWindows: string;
   numberOfWorkers: string;
-  brideClean: string;
+  brideCleansUp: string | boolean;
   duration: string[];
+  visitStart: string;
+  visitEnd: string;
 };
 
 export type extraServiceProps = {
@@ -205,4 +219,21 @@ export type messagesProps = {
 export type LoginProps = {
   email: string;
   password: string;
+};
+
+export type changePasswordForm = {
+  employeeId: string;
+  newPassword: string;
+};
+
+export type rolesFormProps = {
+  id?: string;
+  name: string;
+  description?: string;
+};
+
+export type seedersProps = {
+  id?: string;
+  name: string;
+  arName: string;
 };

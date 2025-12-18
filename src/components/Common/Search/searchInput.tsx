@@ -6,7 +6,9 @@ type searchBoxProps = {
   placeholder?: string;
 };
 
-export const useSearchBox = ({ placeholder }: searchBoxProps) => {
+export const useSearchBox = ({
+  placeholder = "Search...",
+}: searchBoxProps = {}) => {
   const [searchValue, setSearchValue] = useState<string>("");
   const [debounceValue, setdebounceValue] = useState<string>("");
 

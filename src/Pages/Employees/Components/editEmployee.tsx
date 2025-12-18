@@ -7,6 +7,7 @@ import {
   Image,
   Input,
   Select,
+  Skeleton,
   Upload,
   type UploadFile,
 } from "antd";
@@ -26,6 +27,9 @@ import {
 } from "../../../components/APIs/EmployeesQuery/EMPLOYEES_QUERY";
 import { toast } from "react-toastify";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { options } from "../../../components/Utilities/consts";
+import imageCompression from "browser-image-compression";
+import ChangePassword from "./changePassword";
 
 const EditEmployee = () => {
   const { t } = useTranslation();
@@ -33,7 +37,11 @@ const EditEmployee = () => {
 
   const [params] = useSearchParams();
   const id = params.get("id");
-  const { data: employeeData } = useGetEmployeeByIdQuery(
+  const {
+    data: employeeData,
+    isFetching,
+    isLoading: isLoadingEmployee,
+  } = useGetEmployeeByIdQuery(
     { id: id! },
     {
       skip: !id,
@@ -47,10 +55,17 @@ const EditEmployee = () => {
     value: role.id,
     label: role.name?.replace(/([A-Z])/g, " $1"),
   }));
+  const defaultRolesId = data?.data
+    ?.filter((role) => employeeData?.data?.roles?.includes(role.name))
+    .map((role) => role.id);
+
+  // console.log(roles);
+  // console.log(employeeData?.data?.roles);
 
   const defaultValues = {
-    FirstName: employeeData?.data?.fullName?.split(" ")[0],
-    LastName: employeeData?.data?.fullName?.split(" ")[1],
+    FirstName: employeeData?.data?.firstName,
+    LastName: employeeData?.data?.lastName,
+    UserName: employeeData?.data?.userName,
     Gender: employeeData?.data?.gender,
     DateOfBirth: employeeData?.data?.dateOfBirth,
     PhoneNumber: employeeData?.data?.phoneNumber,
@@ -61,30 +76,29 @@ const EditEmployee = () => {
     WorkId: employeeData?.data?.workId,
     StartingDate: employeeData?.data?.startingDate,
     Role: employeeData?.data?.roles,
+    ImagePath: employeeData?.data?.imagePath,
+    ImageFile: employeeData?.data?.imagePath,
   };
   const {
     reset,
     control,
     handleSubmit,
+    setValue,
+    // trigger,
     formState: { errors },
   } = useForm<employeeFormProps>({
     defaultValues: defaultValues,
+    // mode: "onChange",
+    // reValidateMode: "onChange",
   });
 
   useEffect(() => {
     // console.log(isRolesSuccess);
 
     if (id && employeeData?.isSuccess && isRolesSuccess) {
-      const defaultRoleIds = roles
-        ?.filter((role) =>
-          employeeData?.data?.roles?.map((label) => label === role?.label)
-        )
-        ?.map((role) => role?.value);
-      // console.log(defaultRoleIds);
-
       reset({
         ...defaultValues,
-        Role: defaultRoleIds,
+        Roles: defaultRolesId,
       });
     }
   }, [id, employeeData?.isSuccess, isRolesSuccess, reset]);
@@ -95,6 +109,7 @@ const EditEmployee = () => {
   const [fileList, setFileList] = useState<UploadFile[]>([]);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewImage, setPreviewImage] = useState("");
+  const [IsImageChanged, setIsImageChanged] = useState(false);
 
   // console.log(employeeData);
 
@@ -113,7 +128,24 @@ const EditEmployee = () => {
     setPreviewImage(file.url || (file.preview as string));
     setPreviewOpen(true);
   };
-  /* End File Input */
+
+  /* Compress File Input */
+  const handleFileUpload = async (file: File) => {
+    const compressedFile = await imageCompression(file, options);
+
+    const formattedFile = new File(
+      [compressedFile],
+      file.name.replace(/\.[^/.]+$/, ".jpg"),
+      {
+        type: "image/jpeg",
+      }
+    );
+    // console.log(formattedFile);
+
+    setValue("File", formattedFile, { shouldValidate: true });
+    setIsImageChanged(true);
+  };
+  /* Compress File Input */
 
   //Gender Select
   //   const handleChange = (value: string) => {
@@ -123,6 +155,8 @@ const EditEmployee = () => {
   //reset form
   const resetForm = () => {
     reset(defaultValues);
+    setIsImageChanged(false);
+
     // setPreviewImage("");
     // setFileList([]);
   };
@@ -137,23 +171,30 @@ const EditEmployee = () => {
     // console.log(formattedData);
 
     const formData = new FormData();
+    await formData.append("Id", id!);
+    await formData.append("IsImageChanged", IsImageChanged?.toString());
+
     await Object.entries(formattedData).forEach(([key, value]) => {
       // Handle different types of values
-      // if (Array.isArray(value)) {
-      //   value.forEach((v) => formData.append(key, v));
-      // } else if (value instanceof File) {
-      //   formData.append(key, value);
-      // } else if (value !== undefined && value !== null) {
-      //   formData.append(key, String(value));
-      // }
-      formData.append(key, String(value));
+      if (Array.isArray(value)) {
+        value.forEach((v, index) => formData.append(`${key}[${index}]`, v));
+        // formData.append(key, value?.toString());
+      } else if (value instanceof File) {
+        formData.append(key, value);
+      } else if (value !== undefined && value !== null) {
+        formData.append(key, String(value));
+      }
     });
-    await formData.append("Id", id!);
+
+    // for (const [key, value] of formData.entries()) {
+    //   console.log(key, value);
+    // }
 
     try {
       await editEmployee(formData).unwrap();
       toast.success("Employee updated successfully");
       navigate("/employees");
+      setIsImageChanged(false);
     } catch (error) {
       const err = error as APIErrorProps;
       if (
@@ -168,323 +209,377 @@ const EditEmployee = () => {
     }
   };
 
+  useEffect(() => {
+    if (employeeData?.data?.imagePath) {
+      setFileList([
+        {
+          uid: "-1",
+          name: "image.png",
+          status: "done",
+          url: employeeData.data.imagePath,
+        } as UploadFile,
+      ]);
+    }
+  }, [employeeData]);
+
+  // console.log(fileList);
+
+  // Change Password Modal
+
+  const [openChangePassword, setopenChangePassword] = useState(false);
+
+  const handleChangePasswordModal = () => {
+    setopenChangePassword((prev) => !prev);
+  };
+
   return (
     <div className="edit-employee">
       <section className="new-employee-title-wrapper">
-        <Title title={t("EDIT_EMPLOYEE")} subTitle />
+        <Title
+          title={t("EDIT_EMPLOYEE")}
+          subTitle
+          component={
+            <div>
+              <Button
+                onClick={handleChangePasswordModal}
+                className="py-5 min-w-[180px] bg-mainColor text-white"
+              >
+                {t("CHANGE_PASSWORD")}
+              </Button>
+            </div>
+          }
+        />
       </section>
 
-      <section className="edit-employee-content w-full">
-        <div className="edit-employee-form">
-          <form
-            noValidate
-            onSubmit={handleSubmit(submitForm)}
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-5 gap-y-8 [&>div>label]:block [&>div>label]:mb-1 [&>div>label]:capitalize [&>div>label]:font-medium [&>div>input]:border-[#C4C4C4] [&>div>input]:py-2 [&>div>p]:mt-1 [&>div>p]:text-xs [&>div>p]:capitalize [&>div>p]:text-mainRed"
-          >
-            <div className="employee-image col-span-full text-center w-full flex flex-col justify-center items-center gap-1">
-              <Controller
-                control={control}
-                name="ImageFile"
-                rules={{
-                  required: {
-                    value: true,
-                    message: t("REQUIRED"),
-                  },
-                }}
-                render={({ field }) => (
-                  <>
-                    <ImgCrop rotationSlider>
-                      <Upload
-                        {...field}
-                        listType="picture-circle"
-                        fileList={fileList}
-                        onChange={({ file, fileList }) => {
-                          setFileList(fileList); // took fielist because it must take an array of files
+      {isLoadingEmployee || isFetching ? (
+        <Skeleton avatar active paragraph={{ rows: 15 }} />
+      ) : (
+        <section className="edit-employee-content w-full">
+          <div className="edit-employee-form">
+            <form
+              noValidate
+              onSubmit={handleSubmit(submitForm)}
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-5 gap-y-8 [&>div>label]:block [&>div>label]:mb-1 [&>div>label]:capitalize [&>div>label]:font-medium [&>div>input]:border-[#C4C4C4] [&>div>input]:py-2 [&>div>p]:mt-1 [&>div>p]:text-xs [&>div>p]:capitalize [&>div>p]:text-mainRed"
+            >
+              <div className="employee-image col-span-full text-center w-full flex flex-col justify-center items-center gap-1">
+                <Controller
+                  control={control}
+                  name="File"
+                  rules={{
+                    validate: () => fileList.length > 0 || t("REQUIRED"),
+                  }}
+                  render={({ field }) => (
+                    <>
+                      <ImgCrop rotationSlider>
+                        <Upload
+                          {...field}
+                          listType="picture-circle"
+                          fileList={fileList}
+                          onChange={({ file, fileList }) => {
+                            setFileList(fileList); // took fielist because it must take an array of files
 
-                          if (file) {
-                            field.onChange(file);
-                          }
-                        }}
-                        onPreview={handlePreview}
-                        beforeUpload={() => false}
-                        maxCount={1}
-                      >
-                        {fileList.length < 1 && "+ Upload"}
-                      </Upload>
-                    </ImgCrop>
+                            if (file) {
+                              // console.log(file);
 
-                    {previewImage && (
-                      <Image
-                        wrapperStyle={{ display: "none" }}
-                        preview={{
-                          visible: previewOpen,
-                          onVisibleChange: (visible) => setPreviewOpen(visible),
-                          afterOpenChange: (visible) =>
-                            !visible && setPreviewImage(""),
-                        }}
-                        src={previewImage}
-                      />
-                    )}
-                  </>
-                )}
-              />
+                              field.onChange(file);
+                              handleFileUpload(
+                                fileList[0]?.originFileObj as File
+                              );
+                              // trigger("File");
+                            }
+                          }}
+                          onPreview={handlePreview}
+                          beforeUpload={() => false}
+                          maxCount={1}
+                        >
+                          {fileList.length < 1 && "+ Upload"}
+                        </Upload>
+                      </ImgCrop>
 
-              {errors?.ImageFile ? <p>{errors?.ImageFile?.message}</p> : null}
-            </div>
+                      {previewImage && (
+                        <Image
+                          wrapperStyle={{ display: "none" }}
+                          preview={{
+                            visible: previewOpen,
+                            onVisibleChange: (visible) =>
+                              setPreviewOpen(visible),
+                            afterOpenChange: (visible) =>
+                              !visible && setPreviewImage(""),
+                          }}
+                          src={previewImage}
+                        />
+                      )}
+                    </>
+                  )}
+                />
 
-            <div>
-              <label>{t("FIRST_NAME")}</label>
-              <Controller
-                control={control}
-                name="FirstName"
-                rules={{
-                  required: {
-                    value: true,
-                    message: t("REQUIRED"),
-                  },
-                }}
-                render={({ field }) => (
-                  <Input
-                    {...field}
-                    variant="filled"
-                    placeholder="Enter first name"
-                    className="placeholder:capitalize"
-                    status={errors?.FirstName ? "error" : ""}
-                  />
-                )}
-              />
+                {errors?.File ? <p>{errors?.File?.message}</p> : null}
+              </div>
 
-              {errors?.FirstName ? <p>{errors?.FirstName?.message}</p> : null}
-            </div>
+              <div>
+                <label>{t("FIRST_NAME")}</label>
+                <Controller
+                  control={control}
+                  name="FirstName"
+                  rules={{
+                    required: {
+                      value: true,
+                      message: t("REQUIRED"),
+                    },
+                  }}
+                  render={({ field }) => (
+                    <Input
+                      {...field}
+                      variant="filled"
+                      placeholder="Enter first name"
+                      className="placeholder:capitalize"
+                      status={errors?.FirstName ? "error" : ""}
+                    />
+                  )}
+                />
 
-            <div>
-              <label>{t("LAST_NAME")}</label>
+                {errors?.FirstName ? <p>{errors?.FirstName?.message}</p> : null}
+              </div>
 
-              <Controller
-                control={control}
-                name="LastName"
-                rules={{
-                  required: {
-                    value: true,
-                    message: t("REQUIRED"),
-                  },
-                }}
-                render={({ field }) => (
-                  <Input
-                    {...field}
-                    variant="filled"
-                    placeholder="Enter last name"
-                    className="placeholder:capitalize"
-                    status={errors?.LastName ? "error" : ""}
-                  />
-                )}
-              />
+              <div>
+                <label>{t("LAST_NAME")}</label>
 
-              {errors?.LastName ? <p>{errors?.LastName?.message}</p> : null}
-            </div>
+                <Controller
+                  control={control}
+                  name="LastName"
+                  rules={{
+                    required: {
+                      value: true,
+                      message: t("REQUIRED"),
+                    },
+                  }}
+                  render={({ field }) => (
+                    <Input
+                      {...field}
+                      variant="filled"
+                      placeholder="Enter last name"
+                      className="placeholder:capitalize"
+                      status={errors?.LastName ? "error" : ""}
+                    />
+                  )}
+                />
 
-            <div>
-              <label>{t("GENDER")}</label>
-              <Controller
-                control={control}
-                name="Gender"
-                rules={{
-                  required: {
-                    value: true,
-                    message: t("REQUIRED"),
-                  },
-                }}
-                render={({ field }) => (
-                  <Select
-                    {...field}
-                    placeholder="Select gender"
-                    className="min-h-10 border-[#C4C4C4] border rounded-md capitalize [&>.ant-select-selector]:capitalize"
-                    variant="filled"
-                    status={errors?.Gender ? "error" : ""}
-                    // defaultValue="male"
-                    style={{ width: "100%" }}
-                    onChange={(e) => {
-                      field.onChange(e);
-                      //   handleChange(e);
-                    }}
-                    options={[
-                      { value: "male", label: t("MALE") },
-                      { value: "female", label: t("FEMALE") },
-                      // { value: 'Yiminghe', label: 'yiminghe' },
-                      // { value: 'disabled', label: 'Disabled', disabled: true },
-                    ]}
-                  />
-                )}
-              />
+                {errors?.LastName ? <p>{errors?.LastName?.message}</p> : null}
+              </div>
 
-              {errors?.Gender ? <p>{errors?.Gender?.message}</p> : null}
-            </div>
+              <div>
+                <label>{t("GENDER")}</label>
+                <Controller
+                  control={control}
+                  name="Gender"
+                  rules={{
+                    required: {
+                      value: true,
+                      message: t("REQUIRED"),
+                    },
+                  }}
+                  render={({ field }) => (
+                    <Select
+                      {...field}
+                      placeholder="Select gender"
+                      className="min-h-10 border-[#C4C4C4] border rounded-md capitalize [&>.ant-select-selector]:capitalize"
+                      variant="filled"
+                      status={errors?.Gender ? "error" : ""}
+                      // defaultValue="male"
+                      style={{ width: "100%" }}
+                      onChange={(e) => {
+                        field.onChange(e);
+                        //   handleChange(e);
+                      }}
+                      options={[
+                        { value: "male", label: t("MALE") },
+                        { value: "female", label: t("FEMALE") },
+                        // { value: 'Yiminghe', label: 'yiminghe' },
+                        // { value: 'disabled', label: 'Disabled', disabled: true },
+                      ]}
+                    />
+                  )}
+                />
 
-            <div>
-              <label>{t("PHONE_NUMBER")}</label>
-              <Controller
-                control={control}
-                name="PhoneNumber"
-                rules={{
-                  required: {
-                    value: true,
-                    message: t("REQUIRED"),
-                  },
-                }}
-                render={({ field }) => (
-                  <Input
-                    {...field}
-                    variant="filled"
-                    placeholder="Enter phone number"
-                    className="placeholder:capitalize"
-                    status={errors?.PhoneNumber ? "error" : ""}
-                  />
-                )}
-              />
+                {errors?.Gender ? <p>{errors?.Gender?.message}</p> : null}
+              </div>
 
-              {errors?.PhoneNumber ? (
-                <p>{errors?.PhoneNumber?.message}</p>
-              ) : null}
-            </div>
+              <div>
+                <label>{t("PHONE_NUMBER")}</label>
+                <Controller
+                  control={control}
+                  name="PhoneNumber"
+                  rules={{
+                    required: {
+                      value: true,
+                      message: t("REQUIRED"),
+                    },
+                  }}
+                  render={({ field }) => (
+                    <Input
+                      {...field}
+                      variant="filled"
+                      placeholder="Enter phone number"
+                      className="placeholder:capitalize"
+                      status={errors?.PhoneNumber ? "error" : ""}
+                    />
+                  )}
+                />
 
-            <div>
-              <label>{t("EMAIL")}</label>
-              <Controller
-                control={control}
-                name="Email"
-                rules={{
-                  required: {
-                    value: true,
-                    message: t("REQUIRED"),
-                  },
-                }}
-                render={({ field }) => (
-                  <Input
-                    {...field}
-                    variant="filled"
-                    placeholder="Enter email"
-                    className="placeholder:capitalize"
-                    status={errors?.Email ? "error" : ""}
-                  />
-                )}
-              />
+                {errors?.PhoneNumber ? (
+                  <p>{errors?.PhoneNumber?.message}</p>
+                ) : null}
+              </div>
 
-              {errors?.Email ? <p>{errors?.Email?.message}</p> : null}
-            </div>
+              <div>
+                <label>{t("EMAIL")}</label>
+                <Controller
+                  control={control}
+                  name="Email"
+                  rules={{
+                    required: {
+                      value: true,
+                      message: t("REQUIRED"),
+                    },
+                    pattern: {
+                      value: /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
+                      message: "Email is not valid",
+                    },
+                  }}
+                  render={({ field }) => (
+                    <Input
+                      {...field}
+                      variant="filled"
+                      placeholder="Enter email"
+                      className="placeholder:capitalize"
+                      status={errors?.Email ? "error" : ""}
+                    />
+                  )}
+                />
 
-            <div>
-              <label>{t("USER_NAME")}</label>
-              <Controller
-                control={control}
-                name="UserName"
-                rules={{
-                  required: {
-                    value: true,
-                    message: t("REQUIRED"),
-                  },
-                }}
-                render={({ field }) => (
-                  <Input
-                    {...field}
-                    variant="filled"
-                    placeholder="Enter user name"
-                    className="placeholder:capitalize"
-                    status={errors?.UserName ? "error" : ""}
-                  />
-                )}
-              />
+                {errors?.Email ? <p>{errors?.Email?.message}</p> : null}
+              </div>
 
-              {errors?.UserName ? <p>{errors?.UserName?.message}</p> : null}
-            </div>
+              <div>
+                <label>{t("USER_NAME")}</label>
+                <Controller
+                  control={control}
+                  name="UserName"
+                  rules={{
+                    required: {
+                      value: true,
+                      message: t("REQUIRED"),
+                    },
+                  }}
+                  render={({ field }) => (
+                    <Input
+                      {...field}
+                      variant="filled"
+                      placeholder="Enter user name"
+                      className="placeholder:capitalize"
+                      status={errors?.UserName ? "error" : ""}
+                    />
+                  )}
+                />
 
-            <div>
-              <label>{t("PASSWORD")}</label>
-              <Controller
-                control={control}
-                name="Password"
-                rules={{
-                  required: {
-                    value: true,
-                    message: t("REQUIRED"),
-                  },
-                }}
-                render={({ field }) => (
-                  <Input.Password
-                    {...field}
-                    variant="filled"
-                    placeholder="Enter Password"
-                    className="placeholder:capitalize py-2 border-[#C4C4C4]"
-                    status={errors?.Password ? "error" : ""}
-                  />
-                )}
-              />
+                {errors?.UserName ? <p>{errors?.UserName?.message}</p> : null}
+              </div>
 
-              {errors?.Password ? <p>{errors?.Password?.message}</p> : null}
-            </div>
+              {/* <div>
+                <label>{t("PASSWORD")}</label>
+                <Controller
+                  control={control}
+                  name="Password"
+                  rules={{
+                    required: {
+                      value: true,
+                      message: t("REQUIRED"),
+                    },
+                  }}
+                  render={({ field }) => (
+                    <Input.Password
+                      {...field}
+                      variant="filled"
+                      placeholder="Enter Password"
+                      className="placeholder:capitalize py-2 border-[#C4C4C4]"
+                      status={errors?.Password ? "error" : ""}
+                    />
+                  )}
+                />
 
-            <div>
-              <label>{t("DATE_OF_BIRTH")}</label>
-              <Controller
-                control={control}
-                name="DateOfBirth"
-                rules={{
-                  required: {
-                    value: true,
-                    message: t("REQUIRED"),
-                  },
-                }}
-                render={({ field }) => (
-                  <DatePicker
-                    className="min-h-10 w-full border-[#C4C4C4] border rounded-md capitalize [&>.ant-select-selector]:capitalize"
-                    {...field}
-                    variant="filled"
-                    status={errors?.DateOfBirth ? "error" : ""}
-                    value={field.value ? dayjs(field.value) : null}
-                    onChange={(e) => {
-                      field.onChange(dayjs(e));
-                    }}
-                  />
-                )}
-              />
-              {errors?.DateOfBirth ? (
-                <p>{errors?.DateOfBirth?.message}</p>
-              ) : null}
-            </div>
+                {errors?.Password ? <p>{errors?.Password?.message}</p> : null}
+              </div> */}
 
-            <div>
-              <label>{t("EMPLOYEE_ROLE")}</label>
-              <Controller
-                control={control}
-                name="Role"
-                rules={{
-                  required: {
-                    value: true,
-                    message: t("REQUIRED"),
-                  },
-                }}
-                render={({ field }) => (
-                  <Select
-                    {...field}
-                    placeholder="Select Role"
-                    mode="multiple"
-                    className="h-10 border-[#C4C4C4] border rounded-md capitalize [&>.ant-select-selector]:capitalize [&_.ant-select-selection-wrap]:h-full"
-                    variant="filled"
-                    status={errors?.Role ? "error" : ""}
-                    // defaultValue="male"
-                    style={{ width: "100%" }}
-                    onChange={(e) => {
-                      field.onChange(e);
-                      //   handleChange(e);
-                    }}
-                    options={roles}
-                  />
-                )}
-              />
+              <div>
+                <label>{t("DATE_OF_BIRTH")}</label>
+                <Controller
+                  control={control}
+                  name="DateOfBirth"
+                  rules={{
+                    required: {
+                      value: true,
+                      message: t("REQUIRED"),
+                    },
+                  }}
+                  render={({ field }) => (
+                    <DatePicker
+                      className="min-h-10 w-full border-[#C4C4C4] border rounded-md capitalize [&>.ant-select-selector]:capitalize"
+                      {...field}
+                      variant="filled"
+                      status={errors?.DateOfBirth ? "error" : ""}
+                      value={field.value ? dayjs(field.value) : null}
+                      onChange={(e) => {
+                        field.onChange(dayjs(e));
+                      }}
+                    />
+                  )}
+                />
+                {errors?.DateOfBirth ? (
+                  <p>{errors?.DateOfBirth?.message}</p>
+                ) : null}
+              </div>
 
-              {errors?.Role ? <p>{errors?.Role?.message}</p> : null}
-            </div>
+              <div>
+                <label>{t("EMPLOYEE_ROLE")}</label>
+                <Controller
+                  control={control}
+                  name="Roles"
+                  rules={{
+                    required: {
+                      value: true,
+                      message: t("REQUIRED"),
+                    },
+                  }}
+                  render={({ field }) => (
+                    <Select
+                      {...field}
+                      placeholder="Select Role"
+                      mode="multiple"
+                      className="h-auto border-[#C4C4C4] border rounded-md capitalize [&>.ant-select-selector]:capitalize [&_.ant-select-selection-wrap]:h-full [&_.ant-select-selection-wrap]:py-[3px] [&_.ant-select-selection-wrap]:capitalize"
+                      variant="filled"
+                      styles={{
+                        popup: {
+                          root: {
+                            textTransform: "capitalize",
+                          },
+                        },
+                      }}
+                      status={errors?.Roles ? "error" : ""}
+                      // defaultValue="male"
+                      style={{ width: "100%" }}
+                      onChange={(e) => {
+                        field.onChange(e);
+                        //   handleChange(e);
+                      }}
+                      options={roles}
+                    />
+                  )}
+                />
 
-            {/* <div>
+                {errors?.Roles ? <p>{errors?.Roles?.message}</p> : null}
+              </div>
+
+              {/* <div>
               <label>{t("WORK_ID")}</label>
               <Controller
                 control={control}
@@ -509,125 +604,135 @@ const EditEmployee = () => {
               {errors?.WorkId ? <p>{errors?.WorkId?.message}</p> : null}
             </div> */}
 
-            <div>
-              <label>{t("STARTING_DATE")}</label>
-              <Controller
-                control={control}
-                name="StartingDate"
-                rules={{
-                  required: {
-                    value: true,
-                    message: t("REQUIRED"),
-                  },
-                }}
-                render={({ field }) => (
-                  <DatePicker
-                    className="min-h-10 w-full border-[#C4C4C4] border rounded-md capitalize [&>.ant-select-selector]:capitalize"
-                    {...field}
-                    variant="filled"
-                    status={errors?.StartingDate ? "error" : ""}
-                    value={field.value ? dayjs(field.value) : null}
-                    onChange={(e) => {
-                      field.onChange(dayjs(e));
-                    }}
-                  />
-                )}
-              />
-              {errors?.StartingDate ? (
-                <p>{errors?.StartingDate?.message}</p>
-              ) : null}
-            </div>
+              <div>
+                <label>{t("STARTING_DATE")}</label>
+                <Controller
+                  control={control}
+                  name="StartingDate"
+                  rules={{
+                    required: {
+                      value: true,
+                      message: t("REQUIRED"),
+                    },
+                  }}
+                  render={({ field }) => (
+                    <DatePicker
+                      className="min-h-10 w-full border-[#C4C4C4] border rounded-md capitalize [&>.ant-select-selector]:capitalize"
+                      {...field}
+                      variant="filled"
+                      status={errors?.StartingDate ? "error" : ""}
+                      value={field.value ? dayjs(field.value) : null}
+                      onChange={(e) => {
+                        field.onChange(dayjs(e));
+                      }}
+                    />
+                  )}
+                />
+                {errors?.StartingDate ? (
+                  <p>{errors?.StartingDate?.message}</p>
+                ) : null}
+              </div>
 
-            <div>
-              <label>{t("ID_NUMBER")}</label>
-              <Controller
-                control={control}
-                name="IdNumber"
-                rules={{
-                  required: {
-                    value: true,
-                    message: t("REQUIRED"),
-                  },
-                }}
-                render={({ field }) => (
-                  <Input
-                    {...field}
-                    variant="filled"
-                    placeholder="Enter id number"
-                    className="placeholder:capitalize"
-                    status={errors?.IdNumber ? "error" : ""}
-                  />
-                )}
-              />
+              <div>
+                <label>{t("ID_NUMBER")}</label>
+                <Controller
+                  control={control}
+                  name="IdNumber"
+                  rules={{
+                    required: {
+                      value: true,
+                      message: t("REQUIRED"),
+                    },
+                  }}
+                  render={({ field }) => (
+                    <Input
+                      {...field}
+                      variant="filled"
+                      placeholder="Enter id number"
+                      className="placeholder:capitalize"
+                      status={errors?.IdNumber ? "error" : ""}
+                    />
+                  )}
+                />
 
-              {errors?.IdNumber ? <p>{errors?.IdNumber?.message}</p> : null}
-            </div>
+                {errors?.IdNumber ? <p>{errors?.IdNumber?.message}</p> : null}
+              </div>
 
-            <div>
-              <label>{t("POSTAL_CODE")}</label>
-              <Controller
-                control={control}
-                name="PostalCode"
-                rules={{
-                  required: {
-                    value: true,
-                    message: t("REQUIRED"),
-                  },
-                }}
-                render={({ field }) => (
-                  <Input
-                    {...field}
-                    variant="filled"
-                    placeholder="Enter postal code"
-                    className="placeholder:capitalize"
-                    status={errors?.PostalCode ? "error" : ""}
-                  />
-                )}
-              />
+              <div>
+                <label>{t("POSTAL_CODE")}</label>
+                <Controller
+                  control={control}
+                  name="PostalCode"
+                  rules={{
+                    required: {
+                      value: true,
+                      message: t("REQUIRED"),
+                    },
+                  }}
+                  render={({ field }) => (
+                    <Input
+                      {...field}
+                      variant="filled"
+                      placeholder="Enter postal code"
+                      className="placeholder:capitalize"
+                      status={errors?.PostalCode ? "error" : ""}
+                    />
+                  )}
+                />
 
-              {errors?.PostalCode ? <p>{errors?.PostalCode?.message}</p> : null}
-            </div>
+                {errors?.PostalCode ? (
+                  <p>{errors?.PostalCode?.message}</p>
+                ) : null}
+              </div>
 
-            <div className="col-span-full">
-              <label>{t("ADDRESS")}</label>
-              <Controller
-                control={control}
-                name="Address"
-                rules={{
-                  required: {
-                    value: true,
-                    message: t("REQUIRED"),
-                  },
-                }}
-                render={({ field }) => (
-                  <Input
-                    {...field}
-                    variant="filled"
-                    placeholder="Enter address"
-                    className="placeholder:capitalize"
-                    status={errors?.Address ? "error" : ""}
-                  />
-                )}
-              />
+              <div>
+                <label>{t("ADDRESS")}</label>
+                <Controller
+                  control={control}
+                  name="Address"
+                  rules={{
+                    required: {
+                      value: true,
+                      message: t("REQUIRED"),
+                    },
+                  }}
+                  render={({ field }) => (
+                    <Input
+                      {...field}
+                      variant="filled"
+                      placeholder="Enter address"
+                      className="placeholder:capitalize"
+                      status={errors?.Address ? "error" : ""}
+                    />
+                  )}
+                />
 
-              {errors?.Address ? <p>{errors?.Address?.message}</p> : null}
-            </div>
+                {errors?.Address ? <p>{errors?.Address?.message}</p> : null}
+              </div>
 
-            <section className="form_btn col-span-full mt-8 flex items-center justify-center gap-4 [&>button]:py-[18px] [&>button]:min-w-[100px] [&>button]:capitalize">
-              <Button className="bg-lightGray text-black" onClick={resetForm}>
-                {t("RESET")}
-              </Button>
-              <Button
-                loading={isLoading}
-                htmlType="submit"
-                className="bg-mainColor text-white"
-              >
-                {t("EDIT_EMPLOYEE")}
-              </Button>
-            </section>
-          </form>
-        </div>
-      </section>
+              <section className="form_btn col-span-full mt-8 flex items-center justify-center gap-4 [&>button]:py-[18px] [&>button]:min-w-[100px] [&>button]:capitalize">
+                <Button className="bg-lightGray text-black" onClick={resetForm}>
+                  {t("RESET")}
+                </Button>
+                <Button
+                  loading={isLoading}
+                  htmlType="submit"
+                  className="bg-mainColor text-white"
+                >
+                  {t("EDIT_EMPLOYEE")}
+                </Button>
+              </section>
+            </form>
+          </div>
+        </section>
+      )}
+      <ChangePassword
+        open={openChangePassword}
+        close={handleChangePasswordModal}
+        t={t}
+        userName={employeeData?.data?.userName ?? ""}
+        id={id ?? ""}
+      />
     </div>
   );
 };
