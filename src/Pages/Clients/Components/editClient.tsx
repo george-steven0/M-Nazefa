@@ -86,7 +86,7 @@ const EditClient = () => {
   });
 
   // console.log(getValues("customerAddresses"));
-  console.log(data?.data?.address?.map((address) => address));
+  // console.log(data?.data?.address?.map((address) => address));
 
   useEffect(() => {
     if (data?.data) {
@@ -146,20 +146,25 @@ const EditClient = () => {
     //     formData.append(key, String(value));
     //   }
     // });
+
     // console.log(data);
+
     const formattedData = {
       ...data,
       id: id!,
-      customerAddresses: data.customerAddresses.map((address) => ({
+      customerAddresses: data.customerAddresses.map((address, index) => ({
+        id: index + 1,
         ...address,
-        visitStart: address.duration[0],
-        visitEnd: address.duration[1],
-        rodents: Boolean(address?.rodents),
-        insects: Boolean(address?.insects),
-        brideCleansUp: Boolean(address?.brideCleansUp),
-        // duration: undefined, // Remove the original duration array
+        visitStart: address?.duration?.[0] || "",
+        visitEnd: address?.duration?.[1] || "",
+        rodents: address.rodents === "true",
+        insects: address.insects === "true",
+        brideCleansUp: address.brideCleansUp === "true",
+        duration: undefined,
       })),
     };
+
+    // console.log("formattedData", formattedData);
 
     // console.log(formattedData);
 

@@ -12,7 +12,7 @@ const clients = API.injectEndpoints({
         url: `/Customer/GetAllCustomers`,
         method: "GET",
       }),
-      providesTags: ["clients"],
+      providesTags: [{ type: "clients", id: "LIST" }],
     }),
 
     getCustomerById: build.query<
@@ -26,6 +26,7 @@ const clients = API.injectEndpoints({
           id,
         },
       }),
+      providesTags: (_res, _err, { id }) => [{ type: "clients", id }],
     }),
 
     addNewClient: build.mutation<
@@ -40,7 +41,7 @@ const clients = API.injectEndpoints({
         //   "Content-Type": "multipart/form-data",
         // },
       }),
-      invalidatesTags: ["clients"],
+      invalidatesTags: [{ type: "clients", id: "LIST" }],
     }),
 
     editClient: build.mutation<
@@ -55,7 +56,10 @@ const clients = API.injectEndpoints({
         //   "Content-Type": "multipart/form-data",
         // },
       }),
-      invalidatesTags: ["clients"],
+      invalidatesTags: (_res, _err, { id }) => [
+        { type: "clients", id },
+        { type: "clients", id: "LIST" },
+      ],
     }),
   }),
 });

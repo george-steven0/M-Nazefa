@@ -31,7 +31,7 @@ const employees = API.injectEndpoints({
             },
           };
         },
-        providesTags: ["employees"],
+        providesTags: [{ type: "employees", id: "LIST" }],
       }
     ),
 
@@ -47,7 +47,7 @@ const employees = API.injectEndpoints({
           },
         };
       },
-      providesTags: ["singleEmployee"],
+      providesTags: (_res, _err, { id }) => [{ type: "employees", id }],
     }),
 
     addEmployee: build.mutation<APIResponse<employeeFormProps>, FormData>({
@@ -59,7 +59,7 @@ const employees = API.injectEndpoints({
           "Content-Type": "multipart/form-data",
         },
       }),
-      invalidatesTags: ["employees", "singleEmployee"],
+      invalidatesTags: [{ type: "employees", id: "LIST" }],
     }),
 
     editEmployee: build.mutation<APIResponse<employeeFormProps>, FormData>({
@@ -71,7 +71,7 @@ const employees = API.injectEndpoints({
           "Content-Type": "multipart/form-data",
         },
       }),
-      invalidatesTags: ["employees", "singleEmployee"],
+      invalidatesTags: [{ type: "employees", id: "LIST" }],
     }),
 
     deactivateEmployee: build.mutation<
@@ -83,7 +83,7 @@ const employees = API.injectEndpoints({
         method: "POST",
         body: data,
       }),
-      invalidatesTags: ["employees"],
+      invalidatesTags: [{ type: "employees", id: "LIST" }],
     }),
 
     changePassword: build.mutation<
@@ -98,7 +98,7 @@ const employees = API.injectEndpoints({
         //   "Content-Type": "multipart/form-data",
         // },
       }),
-      // invalidatesTags: ["employees"],
+      invalidatesTags: [{ type: "employees", id: "LIST" }],
     }),
   }),
 });

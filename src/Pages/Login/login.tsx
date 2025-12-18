@@ -18,7 +18,7 @@ const Login = () => {
   const submitForm = async (data: loginProps) => {
     try {
       const res = await login(data).unwrap();
-      console.log(res);
+      // console.log(res);
       if (res?.isSuccess) {
         toast.success("Login Successfully");
         sessionStorage.setItem("mNazTk", res?.data?.token);

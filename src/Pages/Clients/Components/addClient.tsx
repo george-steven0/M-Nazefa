@@ -101,12 +101,12 @@ const AddClient = () => {
       ...data,
       customerAddresses: data.customerAddresses.map((address) => ({
         ...address,
-        visitStart: address.duration[0],
-        visitEnd: address.duration[1],
-        rodents: Boolean(address?.rodents),
-        insects: Boolean(address?.insects),
-        brideCleansUp: Boolean(address?.brideCleansUp),
-        // duration: undefined, // Remove the original duration array
+        visitStart: address?.duration?.[0] || "",
+        visitEnd: address?.duration?.[1] || "",
+        rodents: address.rodents === "true",
+        insects: address.insects === "true",
+        brideCleansUp: address.brideCleansUp === "true",
+        duration: undefined,
       })),
     };
 

@@ -12,7 +12,7 @@ const Actions = ({ data }: { data: clientFormPropsType }) => {
   const navigate = useNavigate();
   const handleNavigateEdit = () => {
     navigate(`edit-client?id=${data?.id}`);
-    console.log(data);
+    // console.log(data);
   };
   return (
     <div className="flex items-center gap-2">
@@ -82,6 +82,7 @@ const Clients = () => {
       ),
     },
     {
+      key: "actions",
       title: "Actions",
       render: (data) => <Actions data={data} />,
     },
@@ -142,6 +143,8 @@ const Clients = () => {
 
       <section className="mt-8">
         <Table<clientFormPropsType>
+          id="clients-table"
+          rowKey={(record) => record?.id || ""}
           columns={columns}
           dataSource={data}
           loading={isLoading || isFetching}

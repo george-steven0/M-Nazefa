@@ -545,7 +545,7 @@ const AddressRow = ({
             rules={{
               required: { value: true, message: t("REQUIRED") },
               pattern: {
-                value: /^[0-9]+$/,
+                value: /^\d+(\.\d+)?$/,
                 message: t("ONLY_NUMBER"),
               },
             }}

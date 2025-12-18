@@ -183,7 +183,7 @@ export type buildingProps = {
   numberOfWindows: string;
   numberOfWorkers: string;
   brideCleansUp: string | boolean;
-  duration: string[];
+  duration?: string[];
   visitStart: string;
   visitEnd: string;
 };
