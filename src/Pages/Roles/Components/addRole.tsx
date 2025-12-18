@@ -42,7 +42,8 @@ const AddRole = ({ open, close, t }: addRoleProps) => {
         err?.data?.validationErrors &&
         err?.data?.validationErrors.length > 0
       ) {
-        const errs = err?.data?.errorMessage.join("\n");
+        const errs =
+          err?.data?.errorMessage && err?.data?.errorMessage.join("\n");
         toast.error(errs);
       } else {
         toast.error("Failed to add role");

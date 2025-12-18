@@ -2,12 +2,12 @@ import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import Title from "../../components/Common/Title/title";
 import { useTranslation } from "react-i18next";
 import { useSearchBox } from "../../components/Common/Search/searchInput";
-import type { clientsPropsType } from "../../components/Utilities/Types/types";
 import { Button, Table, type TableProps } from "antd";
 // import { BiEdit } from "react-icons/bi";
 import { AiOutlineEye } from "react-icons/ai";
+import type { serviceFormProps } from "../../components/Utilities/Types/types";
 
-const Actions = ({ data }: { data: clientsPropsType }) => {
+const Actions = ({ data }: { data: serviceFormProps }) => {
   const navigate = useNavigate();
   //   const handleNavigateEdit = () => {
   //     navigate(`edit-reservation?id=${data?.id}`);
@@ -45,7 +45,7 @@ export const Reservations = () => {
     placeholder: "Search Reservations",
   });
 
-  const columns: TableProps<clientsPropsType>["columns"] = [
+  const columns: TableProps<serviceFormProps>["columns"] = [
     {
       title: "ID",
       dataIndex: "id",
@@ -94,30 +94,24 @@ export const Reservations = () => {
     },
   ];
 
-  const data: clientsPropsType[] = [
+  const data: serviceFormProps[] = [
     {
-      key: "1",
       id: "1",
-      name: "John Brown",
-      phoneNumber: "+20115778532",
-      joinDate: "25-11-2023",
-      status: "VIP",
+      package: "John Brown",
+      extraId: ["1", "2", "3"],
+      extraDescription: "John Brown",
     },
     {
-      key: "2",
       id: "2",
-      name: "Mike thunder",
-      phoneNumber: "+200000532",
-      joinDate: "10-11-2025",
-      status: "Stable",
+      package: "Mike thunder",
+      extraId: ["1", "2", "3"],
+      extraDescription: "John Brown",
     },
     {
-      key: "3",
       id: "3",
-      name: "John Brown",
-      phoneNumber: "+20115778532",
-      joinDate: "05-11-2003",
-      status: "Refunded",
+      package: "John Brown",
+      extraId: ["1", "2", "3"],
+      extraDescription: "John Brown",
     },
   ];
 
@@ -157,7 +151,7 @@ export const Reservations = () => {
         </section>
 
         <section className="mt-8">
-          <Table<clientsPropsType>
+          <Table<serviceFormProps>
             columns={columns}
             dataSource={data}
             // onRow={(record) => ({

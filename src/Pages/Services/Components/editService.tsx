@@ -161,7 +161,7 @@ const EditService = () => {
                       ))}
                     </Checkbox.Group>
 
-                    {field.value.length > 0 && (
+                    {field?.value && field?.value?.length > 0 && (
                       <Controller
                         name="extraDescription"
                         control={control}

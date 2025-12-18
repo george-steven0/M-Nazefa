@@ -203,11 +203,11 @@ export type reservationFormProps = {
 
 export type serviceFormProps = {
   id?: string | number;
-  title: string;
-  description: string;
-  package: string;
-  extraId: (string | number)[];
-  extraDescription: string;
+  title?: string;
+  description?: string;
+  package?: string;
+  extraId?: (string | number)[];
+  extraDescription?: string;
 };
 
 export type messagesProps = {
