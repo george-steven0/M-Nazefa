@@ -93,7 +93,7 @@ const Navbar = ({
 
   const handleLogout = () => {
     navigate("/login");
-    sessionStorage.clear();
+    localStorage.clear();
   };
   return (
     <div className="size-full flex flex-col justify-between items-start">

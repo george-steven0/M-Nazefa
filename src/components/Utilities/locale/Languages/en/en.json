@@ -131,5 +131,6 @@
     "DEACTIVATE": "Deactivate",
     "DEACTIVATE_SUCCESS": "Employee deactivated successfully.",
     "DEACTIVATE_ERROR": "An unexpected error occurred.",
-    "ACTIVE": "Active"
+    "ACTIVE": "Active",
+    "CUSTOMER": "Customer"
 }

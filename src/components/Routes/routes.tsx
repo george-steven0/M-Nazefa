@@ -30,6 +30,7 @@ import Login from "../../Pages/Login/login";
 import AuthRule from "./Rules/authRole";
 import GuestRule from "./Rules/guestRole";
 import Roles from "../../Pages/Roles/roles";
+import ViewClient from "../../Pages/Clients/Components/viewClient";
 
 export const routes = createBrowserRouter([
   {
@@ -128,6 +129,11 @@ export const routes = createBrowserRouter([
                 id: "edit-client",
                 path: "edit-client",
                 element: <EditClient />,
+              },
+              {
+                id: "view-client",
+                path: "view-client",
+                element: <ViewClient />,
               },
             ],
           },

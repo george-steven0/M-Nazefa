@@ -10,8 +10,8 @@ import { useTranslation } from "react-i18next";
 
 const Actions = ({ data }: { data: clientFormPropsType }) => {
   const navigate = useNavigate();
-  const handleNavigateEdit = () => {
-    navigate(`edit-client?id=${data?.id}`);
+  const handleNavigate = (type: string) => {
+    navigate(`${type}-client?id=${data?.id}`);
     // console.log(data);
   };
   return (
@@ -19,12 +19,13 @@ const Actions = ({ data }: { data: clientFormPropsType }) => {
       <Button
         shape="circle"
         className="hover:bg-mainColor/60 hover:text-white hover:border-transparent size-10 [&>span]:flex [&>span]:items-center"
-        onClick={handleNavigateEdit}
+        onClick={() => handleNavigate("edit")}
         icon={<BiEdit size={20} />}
       />
       <Button
-        className="hover:bg-mainGray/60 hover:text-white hover:border-transparent size-10 [&>span]:flex [&>span]:items-center"
         shape="circle"
+        className="hover:bg-mainGray/60 hover:text-white hover:border-transparent size-10 [&>span]:flex [&>span]:items-center"
+        onClick={() => handleNavigate("view")}
         icon={<AiOutlineEye size={20} />}
       />
     </div>
@@ -71,7 +72,7 @@ const Clients = () => {
       key: "status",
       render: (data) => (
         <span
-          className={`w-[100px] rounded-xl p-2 block text-center font-semibold ${
+          className={`w-[120px] text-xs rounded-full p-2 block text-center font-semibold ${
             data === true
               ? "text-[#027A48] bg-[#027A48]/20"
               : "text-mainRed bg-mainRed/20"

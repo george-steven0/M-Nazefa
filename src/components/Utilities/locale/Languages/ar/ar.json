@@ -131,5 +131,6 @@
     "DEACTIVATE": "إلغاء التفعيل",
     "DEACTIVATE_SUCCESS": "تم إلغاء التفعيل بنجاح.",
     "DEACTIVATE_ERROR": "حدث خطأ غير متوقع.",
-    "ACTIVE": "نشط"
+    "ACTIVE": "نشط",
+    "CUSTOMER": "عميل"
 }

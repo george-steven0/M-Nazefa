@@ -1,7 +1,7 @@
 import { Navigate, Outlet } from "react-router-dom";
 
 export default function AuthRule() {
-  const tk = sessionStorage.getItem("mNazTk");
+  const tk = localStorage.getItem("mNazTk");
   //   console.log(tk);
 
   if (!tk) {

@@ -4,8 +4,8 @@ import i18next from "i18next";
 const langSlice = createSlice({
   name: "Lang/slice",
   initialState: {
-    lang: sessionStorage.getItem("mNazLang")
-      ? sessionStorage.getItem("mNazLang")
+    lang: localStorage.getItem("mNazLang")
+      ? localStorage.getItem("mNazLang")
       : "en",
   },
   reducers: {

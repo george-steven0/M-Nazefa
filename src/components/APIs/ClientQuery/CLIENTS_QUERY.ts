@@ -61,6 +61,24 @@ const clients = API.injectEndpoints({
         { type: "clients", id: "LIST" },
       ],
     }),
+
+    deactivateClient: build.mutation<
+      SingleAPIResponse<clientFormPropsType>,
+      { customerId: string; isActive: boolean }
+    >({
+      query: (data) => ({
+        url: `/Customer/DeactivateCustomer`,
+        method: "POST",
+        body: data,
+        // headers: {
+        //   "Content-Type": "multipart/form-data",
+        // },
+      }),
+      invalidatesTags: (_res, _err, { customerId }) => [
+        { type: "clients", id: customerId },
+        { type: "clients", id: "LIST" },
+      ],
+    }),
   }),
 });
 
@@ -69,4 +87,5 @@ export const {
   useGetCustomerByIdQuery,
   useAddNewClientMutation,
   useEditClientMutation,
+  useDeactivateClientMutation,
 } = clients;

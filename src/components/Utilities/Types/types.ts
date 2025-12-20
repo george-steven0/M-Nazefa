@@ -144,6 +144,7 @@ export type clientFormPropsType = {
   idNumber: string | number;
   phoneNumber: string | number;
   email: string;
+  isActive?: boolean;
   customerAddresses: (addressProps & buildingProps)[];
   address?: (addressProps & buildingProps)[];
 };
