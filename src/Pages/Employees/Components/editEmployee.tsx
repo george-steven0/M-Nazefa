@@ -166,6 +166,9 @@ const EditEmployee = () => {
       ...data,
       DateOfBirth: dayjs(data.DateOfBirth)?.toISOString(),
       StartingDate: dayjs(data.StartingDate)?.toISOString(),
+      Email: data?.Email
+        ? `${data.Email.trim().replace(/@.*/, "")}${DOMAIN}`
+        : undefined,
     };
 
     // console.log(formattedData);
