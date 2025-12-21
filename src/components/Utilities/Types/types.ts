@@ -198,6 +198,7 @@ export type extraServiceProps = {
 
 export type reservationFormProps = {
   customerId: string | number;
+  duration: string[];
 } & clientFormPropsType &
   appointmentProps &
   buildingProps &
