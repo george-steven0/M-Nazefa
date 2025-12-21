@@ -1,4 +1,4 @@
-import { createBrowserRouter } from "react-router-dom";
+import { createBrowserRouter, Navigate } from "react-router-dom";
 import App from "../../App";
 // import Home from "../../Pages/Home/home";
 import Notfound from "../../Pages/Notfound/notfound";
@@ -52,8 +52,11 @@ export const routes = createBrowserRouter([
         children: [
           {
             index: true,
-            id: "dashboard",
+            element: <Navigate to="dashboard" replace />,
+          },
+          {
             path: "dashboard",
+            id: "dashboard",
             element: <Dashboard />,
           },
           {
