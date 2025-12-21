@@ -134,5 +134,14 @@
     "ACTIVE": "Active",
     "CUSTOMER": "Customer",
     "PASSWORD_PATTERN_MESSAGE": "Password must contain at least one uppercase and one lowercase letter and one special character",
-    "CUSTOMER_TYPE": "Customer type"
+    "CUSTOMER_TYPE": "Customer type",
+    "LOGOUT": "Logout",
+    "LAST_WEEK": "Last week",
+    "LAST_MONTH": "Last month",
+    "LAST_YEAR": "Last year",
+    "SELECT_OPTION": "Select option",
+    "DIRECT": "Direct",
+    "REFERRAL": "Referral",
+    "SOCIAL_MEDIA": "Social Media",
+    "MONTHLY_DATA": "Monthly Data"
 }

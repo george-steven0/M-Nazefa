@@ -1,8 +1,9 @@
 import { useState } from "react";
 import Chart from "react-apexcharts";
 import type { ChartState } from "../../../../components/Utilities/Types/types";
+import type { TFunction } from "i18next";
 
-const PackageChart = () => {
+const PackageChart = ({ t }: { t: TFunction }) => {
   const [state] = useState<ChartState>({
     series: [
       {
@@ -29,7 +30,7 @@ const PackageChart = () => {
       dataLabels: { enabled: false },
       stroke: { curve: "smooth", width: 2 },
       title: {
-        text: "Monthly Data",
+        text: t("MONTHLY_DATA"),
         align: "left",
       },
       grid: {

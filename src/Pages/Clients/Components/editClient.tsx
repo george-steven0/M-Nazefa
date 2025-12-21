@@ -56,8 +56,9 @@ const EditClient = () => {
     email: data?.data.email ?? "",
     phoneNumber: data?.data.phoneNumber ?? "",
     idNumber: data?.data.idNumber ?? "",
-    CustomerTypeId: data?.data.customerTypeId ?? "",
+    CustomeTypeId: data?.data.customerTypeId ?? "",
     customerAddresses: data?.data?.address?.map((address) => ({
+      id: address?.id,
       cityId: address?.cityId ?? "",
       AreaId: address?.areaId ?? "",
       street: address?.street ?? "",
@@ -81,6 +82,9 @@ const EditClient = () => {
       // visitEnd: address?.visitEnd ?? "",
     })),
   };
+
+  // console.log("defaultValues", defaultValues);
+
   const {
     control,
     handleSubmit,
@@ -156,12 +160,13 @@ const EditClient = () => {
     // });
 
     // console.log(data);
+    // console.log(data);
 
     const formattedData = {
       ...data,
       id: id!,
-      customerAddresses: data.customerAddresses.map((address, index) => ({
-        id: index + 1,
+      customerAddresses: data.customerAddresses.map((address) => ({
+        id: address?.id || 0,
         ...address,
         // visitStart: address?.duration?.[0] || "",
         // visitEnd: address?.duration?.[1] || "",
@@ -173,8 +178,6 @@ const EditClient = () => {
     };
 
     // console.log("formattedData", formattedData);
-
-    // console.log(formattedData);
 
     try {
       await editClient(formattedData).unwrap();
@@ -394,7 +397,7 @@ const EditClient = () => {
                   <label>{t("CUSTOMER_TYPE")}</label>
                   <Controller
                     control={control}
-                    name={`CustomerTypeId`}
+                    name={`CustomeTypeId`}
                     rules={{
                       required: { value: true, message: t("REQUIRED") },
                     }}

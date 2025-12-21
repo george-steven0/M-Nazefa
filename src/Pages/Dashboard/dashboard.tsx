@@ -55,7 +55,7 @@ const Dashboard = () => {
           </div>
 
           <div className="packages-line-chart-wrapper basis-full lg:basis-[68%] h-full grow">
-            <PackageChart />
+            <PackageChart t={t} />
           </div>
         </section>
 

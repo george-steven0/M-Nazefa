@@ -67,6 +67,7 @@
     "CURRENT_TOTAL_RESERVATION": "إجمالي اليوم من الحجوزات",
     "MONTHLY_TOTAL_RESERVATION": "إجمالي الشهر من الحجوزات",
     "OUR_CLIENTS": "عملائنا",
+    "CLIENTS": "العملاء",
     "MOST_PACKAGES": "الباقات الأكثر استخداما",
     "RECEN_CUSTOMERS": "أخر العملاء",
     "SEE_ALL_CUSTOMERS": "مشاهدة جميع العملاء",
@@ -134,5 +135,14 @@
     "ACTIVE": "نشط",
     "CUSTOMER": "عميل",
     "PASSWORD_PATTERN_MESSAGE": "كلمه المرور يجب ان تحتوى علي الاقل علي حرف واحد كابيتال وعلي الاقل حرف صغير وعلي الاقل رمز خاص",
-    "CUSTOMER_TYPE": "نوع العميل"
+    "CUSTOMER_TYPE": "نوع العميل",
+    "LOGOUT": "تسجيل الخروج",
+    "LAST_WEEK": "اخر اسبوع",
+    "LAST_MONTH": "اخر شهر",
+    "LAST_YEAR": "اخر سنه",
+    "SELECT_OPTION": "اختر خيار",
+    "DIRECT": "مباشر",
+    "REFERRAL": "إحالة",
+    "SOCIAL_MEDIA": "وسائل التواصل الاجتماعي",
+    "MONTHLY_DATA": "البيانات الشهرية"
 }

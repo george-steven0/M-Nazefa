@@ -125,6 +125,7 @@ export type singleEmployeeProps = {
 };
 
 type addressProps = {
+  id?: string | number;
   cityId: string;
   AreaId: string;
   areaId?: string;
@@ -145,6 +146,7 @@ export type clientFormPropsType = {
   phoneNumber: string | number;
   email: string;
   isActive?: boolean;
+  CustomeTypeId?: string | number;
   CustomerTypeId?: string | number;
   customerTypeId?: string | number;
   customerAddresses: (addressProps & buildingProps)[];

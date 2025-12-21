@@ -1,9 +1,13 @@
-import { BiChevronRight } from "react-icons/bi";
+import { BiChevronLeft, BiChevronRight } from "react-icons/bi";
 import { RxAvatar } from "react-icons/rx";
 import type { translationType } from "../../../../components/Utilities/Types/types";
 import { Link } from "react-router-dom";
+import { useAppSelector } from "../../../../components/APIs/store";
 
 const RecentCustomers = ({ t }: translationType) => {
+  const { lang } = useAppSelector((state) => state.lang);
+  // console.log(lang);
+
   const topThree = [
     {
       id: 1,
@@ -54,7 +58,11 @@ const RecentCustomers = ({ t }: translationType) => {
         <Link to="/" className="flex items-center gap-1">
           <span>{t("SEE_ALL_CUSTOMERS")}</span>
           <span>
-            <BiChevronRight size={20} />
+            {lang === "en" ? (
+              <BiChevronRight size={20} />
+            ) : (
+              <BiChevronLeft size={20} />
+            )}
           </span>
         </Link>
       </section>

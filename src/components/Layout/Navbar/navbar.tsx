@@ -141,7 +141,7 @@ const Navbar = ({
             <span>
               <FaSignOutAlt size={18} />
             </span>
-            <span>Logout</span>
+            <span>{t("LOGOUT")}</span>
           </Button>
         </div>
         <img
