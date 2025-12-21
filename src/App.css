@@ -43,3 +43,6 @@
 .extra-room-radio .ant-radio-wrapper:hover .ant-radio-inner {
   border-color: orange;
 }
+.ant-table-thead {
+  text-transform: capitalize;
+}

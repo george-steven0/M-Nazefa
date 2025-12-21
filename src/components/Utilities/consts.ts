@@ -5,3 +5,5 @@ export const options = {
   fileType: "image/jpeg", // 🔥 unify extension
   initialQuality: 0.8,
 };
+
+export const DOMAIN = "@madamnazifa.com";

@@ -145,8 +145,28 @@ export type clientFormPropsType = {
   phoneNumber: string | number;
   email: string;
   isActive?: boolean;
+  CustomerTypeId?: string | number;
+  customerTypeId?: string | number;
   customerAddresses: (addressProps & buildingProps)[];
   address?: (addressProps & buildingProps)[];
+};
+export type buildingProps = {
+  space: string;
+  BuildingTypeId: string;
+  buildingTypeId?: string;
+  state?: string;
+  LandTypeId: string;
+  landTypeId?: string;
+  // insects: string | boolean;
+  // rodents: string | boolean;
+  // tools: string;
+  // materialWeight: string;
+  numberOfWindows: string;
+  // numberOfWorkers: string;
+  // brideCleansUp: string | boolean;
+  // duration?: string[];
+  // visitStart: string;
+  // visitEnd: string;
 };
 
 export type packageFormProps = {
@@ -168,25 +188,6 @@ export type appointmentProps = {
   date: string;
   startTime: string;
   endTime: string;
-};
-
-export type buildingProps = {
-  space: string;
-  BuildingTypeId: string;
-  buildingTypeId?: string;
-  state?: string;
-  LandTypeId: string;
-  landTypeId?: string;
-  insects: string | boolean;
-  rodents: string | boolean;
-  tools: string;
-  materialWeight: string;
-  numberOfWindows: string;
-  numberOfWorkers: string;
-  brideCleansUp: string | boolean;
-  duration?: string[];
-  visitStart: string;
-  visitEnd: string;
 };
 
 export type extraServiceProps = {

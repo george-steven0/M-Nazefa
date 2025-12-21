@@ -59,6 +59,14 @@ const employees = API.injectEndpoints({
       },
       providesTags: ["states"],
     }),
+
+    getCustomerTypes: build.query<SingleAPIResponse<seedersProps[]>, void>({
+      query: () => ({
+        url: `/DDL/GetAllCustomerTypes`,
+        method: "GET",
+      }),
+      // providesTags: [{ type: "clients", id: "LIST" }],
+    }),
   }),
 });
 export const {
@@ -67,4 +75,5 @@ export const {
   useGetBuildingTypesQuery,
   useGetLandTypesQuery,
   useGetStatesQuery,
+  useGetCustomerTypesQuery,
 } = employees;

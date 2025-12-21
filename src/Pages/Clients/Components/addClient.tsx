@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import Title from "../../../components/Common/Title/title";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
-import { Button, Input } from "antd";
+import { Button, Input, Select } from "antd";
 import type {
   APIErrorProps,
   clientFormPropsType,
@@ -14,6 +14,7 @@ import utc from "dayjs/plugin/utc"; // Required for the 'Z' (UTC) output
 import AddressRow from "./AddressRow/addressRow";
 import { useAppSelector } from "../../../components/APIs/store";
 import { useNavigate } from "react-router-dom";
+import { useGetCustomerTypesQuery } from "../../../components/APIs/Seeders/SEEDERS_RTK_QUERY";
 dayjs.extend(utc);
 
 const AddClient = () => {
@@ -21,6 +22,14 @@ const AddClient = () => {
   const [addNewClient, { isLoading }] = useAddNewClientMutation();
   const { lang } = useAppSelector((state) => state?.lang);
   const navigate = useNavigate();
+
+  const {
+    data: customerTypes,
+    isLoading: isCustomerTypesLoading,
+    isFetching: isCustomerTypesFetching,
+  } = useGetCustomerTypesQuery();
+
+  // console.log(customerTypes);
 
   const {
     control,
@@ -73,16 +82,16 @@ const AddClient = () => {
       BuildingTypeId: "",
       // state: "",
       LandTypeId: "",
-      insects: "",
-      rodents: "",
-      tools: "",
-      materialWeight: "",
+      // insects: "",
+      // rodents: "",
+      // tools: "",
+      // materialWeight: "",
       numberOfWindows: "",
-      numberOfWorkers: "",
-      brideCleansUp: "",
-      duration: ["", ""],
-      visitStart: "",
-      visitEnd: "",
+      // numberOfWorkers: "",
+      // brideCleansUp: "",
+      // duration: ["", ""],
+      // visitStart: "",
+      // visitEnd: "",
     });
   };
 
@@ -101,12 +110,12 @@ const AddClient = () => {
       ...data,
       customerAddresses: data.customerAddresses.map((address) => ({
         ...address,
-        visitStart: address?.duration?.[0] || "",
-        visitEnd: address?.duration?.[1] || "",
-        rodents: address.rodents === "true",
-        insects: address.insects === "true",
-        brideCleansUp: address.brideCleansUp === "true",
-        duration: undefined,
+        // visitStart: address?.duration?.[0] || "",
+        // visitEnd: address?.duration?.[1] || "",
+        // rodents: address.rodents === "true",
+        // insects: address.insects === "true",
+        // brideCleansUp: address.brideCleansUp === "true",
+        // duration: undefined,
       })),
     };
 
@@ -230,9 +239,13 @@ const AddClient = () => {
                     value: true,
                     message: t("REQUIRED"),
                   },
+                  pattern: {
+                    value: /^[0-9]*$/,
+                    message: t("ONLY_NUMBER"),
+                  },
                   minLength: {
-                    value: 7,
-                    message: t("MIN_LENGTH", { length: 7 }),
+                    value: 14,
+                    message: t("MIN_LENGTH", { length: 14 }),
                   },
                   maxLength: {
                     value: 14,
@@ -246,6 +259,8 @@ const AddClient = () => {
                     placeholder="Enter id number"
                     className="placeholder:capitalize"
                     status={errors?.idNumber ? "error" : ""}
+                    maxLength={14}
+                    minLength={14}
                   />
                 )}
               />
@@ -311,6 +326,35 @@ const AddClient = () => {
               />
 
               {errors?.email ? <p>{errors?.email?.message}</p> : null}
+            </div>
+
+            <div>
+              <label>{t("CUSTOMER_TYPE")}</label>
+              <Controller
+                control={control}
+                name={`CustomerTypeId`}
+                rules={{
+                  required: { value: true, message: t("REQUIRED") },
+                }}
+                render={({ field }) => (
+                  <Select
+                    {...field}
+                    className="min-h-10 border-[#C4C4C4] border rounded-md w-full"
+                    placeholder="Select customer type"
+                    variant="filled"
+                    status={errors?.CustomerTypeId ? "error" : ""}
+                    loading={isCustomerTypesLoading || isCustomerTypesFetching}
+                    options={customerTypes?.data?.map((customerType) => ({
+                      value: customerType.id,
+                      label:
+                        lang === "ar" ? customerType.arName : customerType.name,
+                    }))}
+                  />
+                )}
+              />
+              {errors?.CustomerTypeId && (
+                <p>{errors?.CustomerTypeId?.message}</p>
+              )}
             </div>
           </section>
 

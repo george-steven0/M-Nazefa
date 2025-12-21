@@ -24,7 +24,7 @@ import { useAddEmployeeMutation } from "../../../components/APIs/EmployeesQuery/
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import imageCompression from "browser-image-compression";
-import { options } from "../../../components/Utilities/consts";
+import { DOMAIN, options } from "../../../components/Utilities/consts";
 
 const AddEmployee = () => {
   const { t } = useTranslation();
@@ -85,6 +85,9 @@ const AddEmployee = () => {
       ...data,
       DateOfBirth: dayjs(data.DateOfBirth)?.toISOString(),
       StartingDate: dayjs(data.StartingDate)?.toISOString(),
+      Email: data?.Email
+        ? `${data.Email.trim().replace(/@.*/, "")}${DOMAIN}`
+        : undefined,
     };
 
     const formData = new FormData();
@@ -107,12 +110,8 @@ const AddEmployee = () => {
       navigate("/employees");
     } catch (error) {
       const err = error as APIErrorProps;
-      if (
-        err?.data?.validationErrors &&
-        err?.data?.validationErrors.length > 0
-      ) {
-        const errs = err?.data?.validationErrors.join("\n");
-        toast.error(errs);
+      if (err?.data?.errorMessages && err?.data?.errorMessages.length > 0) {
+        err?.data?.errorMessages?.map((err) => toast.error(err));
       } else {
         toast.error("Failed to add employee");
       }
@@ -142,12 +141,12 @@ const AddEmployee = () => {
               <Controller
                 control={control}
                 name="ImageFile"
-                rules={{
-                  required: {
-                    value: true,
-                    message: t("REQUIRED"),
-                  },
-                }}
+                // rules={{
+                //   required: {
+                //     value: true,
+                //     message: t("REQUIRED"),
+                //   },
+                // }}
                 render={({ field }) => (
                   <>
                     <ImgCrop rotationSlider>
@@ -321,7 +320,7 @@ const AddEmployee = () => {
                     message: t("REQUIRED"),
                   },
                   pattern: {
-                    value: /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
+                    value: /^[a-zA-Z0-9._%+-]+$/,
                     message: "Email is not valid",
                   },
                 }}
@@ -330,8 +329,17 @@ const AddEmployee = () => {
                     {...field}
                     variant="filled"
                     placeholder="Enter email"
-                    className="placeholder:capitalize"
+                    addonAfter={DOMAIN}
+                    className="placeholder:capitalize [&_.ant-input]:py-[6px] border border-[#C4C4C4] rounded-md"
                     status={errors?.Email ? "error" : ""}
+                    onKeyDown={(e) => {
+                      if (e.key === "@") {
+                        e.preventDefault();
+                      }
+                    }}
+                    onChange={(e) => {
+                      field.onChange(e.target.value.toLowerCase());
+                    }}
                   />
                 )}
               />
@@ -373,6 +381,15 @@ const AddEmployee = () => {
                   required: {
                     value: true,
                     message: t("REQUIRED"),
+                  },
+                  minLength: {
+                    value: 8,
+                    message: t("MIN_LENGTH", { length: 8 }),
+                  },
+                  pattern: {
+                    value:
+                      /(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>])/,
+                    message: t("PASSWORD_PATTERN_MESSAGE"),
                   },
                 }}
                 render={({ field }) => (
@@ -423,12 +440,12 @@ const AddEmployee = () => {
               <Controller
                 control={control}
                 name="Role"
-                rules={{
-                  required: {
-                    value: true,
-                    message: t("REQUIRED"),
-                  },
-                }}
+                // rules={{
+                //   required: {
+                //     value: true,
+                //     message: t("REQUIRED"),
+                //   },
+                // }}
                 render={({ field }) => (
                   <Select
                     {...field}
@@ -522,6 +539,18 @@ const AddEmployee = () => {
                     value: true,
                     message: t("REQUIRED"),
                   },
+                  pattern: {
+                    value: /^[0-9]*$/,
+                    message: t("ONLY_NUMBER"),
+                  },
+                  minLength: {
+                    value: 14,
+                    message: t("MIN_LENGTH", { length: 14 }),
+                  },
+                  maxLength: {
+                    value: 14,
+                    message: t("MAX_LENGTH", { length: 14 }),
+                  },
                 }}
                 render={({ field }) => (
                   <Input
@@ -530,6 +559,8 @@ const AddEmployee = () => {
                     placeholder="Enter id number"
                     className="placeholder:capitalize"
                     status={errors?.IdNumber ? "error" : ""}
+                    maxLength={14}
+                    minLength={14}
                   />
                 )}
               />
@@ -546,6 +577,10 @@ const AddEmployee = () => {
                   required: {
                     value: true,
                     message: t("REQUIRED"),
+                  },
+                  pattern: {
+                    value: /^[0-9]*$/,
+                    message: t("ONLY_NUMBER"),
                   },
                 }}
                 render={({ field }) => (

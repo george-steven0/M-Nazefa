@@ -6,7 +6,7 @@ import {
 } from "react-hook-form";
 import type { clientFormPropsType } from "../../../../components/Utilities/Types/types";
 import type { TFunction } from "i18next";
-import { Button, Select, DatePicker, Input } from "antd";
+import { Button, Select, Input } from "antd";
 import { FaTrashAlt } from "react-icons/fa";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc"; // Required for the 'Z' (UTC) output
@@ -19,7 +19,7 @@ import {
 import { skipToken } from "@reduxjs/toolkit/query";
 
 dayjs.extend(utc);
-const { RangePicker } = DatePicker;
+// const { RangePicker } = DatePicker;
 type AddressRowProps = {
   index: number;
   control: Control<clientFormPropsType>;
@@ -451,7 +451,7 @@ const AddressRow = ({
         </div>
 
         {/* INSECTS */}
-        <div>
+        {/* <div>
           <label>{t("INSECTS")}</label>
           <Controller
             control={control}
@@ -478,10 +478,10 @@ const AddressRow = ({
           {errors?.customerAddresses?.[index]?.insects && (
             <p>{errors.customerAddresses[index].insects.message}</p>
           )}
-        </div>
+        </div> */}
 
         {/* RODENTS */}
-        <div>
+        {/* <div>
           <label>{t("RODENTS")}</label>
           <Controller
             control={control}
@@ -508,10 +508,10 @@ const AddressRow = ({
           {errors?.customerAddresses?.[index]?.rodents && (
             <p>{errors.customerAddresses[index].rodents.message}</p>
           )}
-        </div>
+        </div> */}
 
         {/* TOOLS */}
-        <div>
+        {/* <div>
           <label>{t("TOOLS")}</label>
           <Controller
             control={control}
@@ -534,10 +534,10 @@ const AddressRow = ({
           {errors?.customerAddresses?.[index]?.tools && (
             <p>{errors.customerAddresses[index].tools.message}</p>
           )}
-        </div>
+        </div> */}
 
         {/* MATERIAL WEIGHT */}
-        <div>
+        {/* <div>
           <label>{t("MATERIAL_BY_GM")}</label>
           <Controller
             control={control}
@@ -566,7 +566,7 @@ const AddressRow = ({
           {errors?.customerAddresses?.[index]?.materialWeight && (
             <p>{errors.customerAddresses[index].materialWeight.message}</p>
           )}
-        </div>
+        </div> */}
 
         {/* WINDOWS */}
         <div>
@@ -601,7 +601,7 @@ const AddressRow = ({
         </div>
 
         {/* WORKERS */}
-        <div>
+        {/* <div>
           <label>{t("NO_WORKERS")}</label>
           <Controller
             control={control}
@@ -630,10 +630,10 @@ const AddressRow = ({
           {errors?.customerAddresses?.[index]?.numberOfWorkers && (
             <p>{errors.customerAddresses[index].numberOfWorkers.message}</p>
           )}
-        </div>
+        </div> */}
 
         {/* BRIDE CLEAN */}
-        <div>
+        {/* <div>
           <label>{t("BRIDE_CLEANS")}</label>
           <Controller
             control={control}
@@ -662,10 +662,10 @@ const AddressRow = ({
           {errors?.customerAddresses?.[index]?.brideCleansUp && (
             <p>{errors.customerAddresses[index].brideCleansUp.message}</p>
           )}
-        </div>
+        </div> */}
 
         {/* VISIT DURATION */}
-        <div>
+        {/* <div>
           <label>{t("VISIT_DURATION")}</label>
           <Controller
             name={`customerAddresses.${index}.duration`}
@@ -703,7 +703,7 @@ const AddressRow = ({
           {errors?.customerAddresses?.[index]?.duration && (
             <p>{errors.customerAddresses[index].duration.message}</p>
           )}
-        </div>
+        </div> */}
       </section>
     </>
   );

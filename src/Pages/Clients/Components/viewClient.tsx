@@ -12,7 +12,6 @@ import { FiPhoneCall } from "react-icons/fi";
 import { HiOutlineIdentification } from "react-icons/hi2";
 import { PiWarningCircleLight } from "react-icons/pi";
 import { Button, Skeleton } from "antd";
-import dayjs from "dayjs";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
@@ -56,8 +55,8 @@ const ViewClient = () => {
           </header>
 
           <main className="mt-6">
-            <div className="flex items-start gap-5">
-              <section className="basis-full md:basis-[40%] flex flex-col gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-1 lg:grid-cols-2 gap-5">
+              <section className="flex flex-col gap-3">
                 <div className="bg-[#f4f4f4] p-5 rounded-md shadow-sm flex flex-col gap-2 items-center">
                   <div>
                     <FaRegCircleUser size={35} className="text-[#094769]" />
@@ -154,7 +153,7 @@ const ViewClient = () => {
                 </Button>
               </section>
 
-              <section className="address-wrapper basis-full md:basis-[60%] bg-[#f4f4f4] p-5 rounded-md shadow-sm flex flex-col gap-2 max-h-[600px] overflow-y-auto">
+              <section className="address-wrapper bg-[#f4f4f4] p-5 rounded-md shadow-sm flex flex-col gap-2 max-h-[600px] overflow-y-auto">
                 {data?.data?.address?.map((address, index) => (
                   <div
                     key={index}
@@ -179,7 +178,7 @@ const ViewClient = () => {
                       <span>{t("FLOOR")}</span>:{" "}
                       {address?.floor ? address?.floor : "----"}
                     </p>
-                    <p>
+                    {/* <p>
                       <span>{t("BRIDE_CLEANS")}</span>:{" "}
                       {address?.brideCleansUp ? "Yes" : "No"}
                     </p>
@@ -194,14 +193,14 @@ const ViewClient = () => {
                     <p>
                       <span>{t("TOOLS")}</span>:{" "}
                       {address?.tools ? address?.tools : "----"}
-                    </p>
+                    </p> */}
                     <p>
                       <span>{t("NUMBER_OF_WINDOWS")}</span>:{" "}
                       {address?.numberOfWindows
                         ? address?.numberOfWindows
                         : "----"}
                     </p>
-                    <p>
+                    {/* <p>
                       <span>{t("NO_WORKERS")}</span>:{" "}
                       {address?.numberOfWorkers
                         ? address?.numberOfWorkers
@@ -212,14 +211,14 @@ const ViewClient = () => {
                       {address?.materialWeight
                         ? address?.materialWeight + " GM"
                         : "----"}
-                    </p>
+                    </p> */}
                     <p>
                       <span>{t("DESCRIPTION")}</span>:{" "}
                       {address?.fullDescription
                         ? address?.fullDescription
                         : "----"}
                     </p>
-                    <p>
+                    {/* <p>
                       <span>{t("VISIT_DURATION")}</span>:{" "}
                       {address?.visitStart && address?.visitEnd ? (
                         <span>
@@ -232,7 +231,7 @@ const ViewClient = () => {
                       ) : (
                         "----"
                       )}
-                    </p>
+                    </p> */}
                   </div>
                 ))}
               </section>

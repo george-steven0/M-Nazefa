@@ -27,7 +27,7 @@
     "EMPLOYEE_ROLE": "دور الموظف",
     "WORK_ID": "معرف العمل",
     "STARTING_DATE": "تاريخ البدء",
-    "ID_NUMBER": "رقم الهوية",
+    "ID_NUMBER": "الرقم القومى",
     "POSTAL_CODE": "الرمز البريدي",
     "ADDRESS": "العنوان",
     "CITY": "المدينة",
@@ -132,5 +132,7 @@
     "DEACTIVATE_SUCCESS": "تم إلغاء التفعيل بنجاح.",
     "DEACTIVATE_ERROR": "حدث خطأ غير متوقع.",
     "ACTIVE": "نشط",
-    "CUSTOMER": "عميل"
+    "CUSTOMER": "عميل",
+    "PASSWORD_PATTERN_MESSAGE": "كلمه المرور يجب ان تحتوى علي الاقل علي حرف واحد كابيتال وعلي الاقل حرف صغير وعلي الاقل رمز خاص",
+    "CUSTOMER_TYPE": "نوع العميل"
 }

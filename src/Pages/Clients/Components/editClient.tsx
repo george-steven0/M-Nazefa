@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import Title from "../../../components/Common/Title/title";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
-import { Button, Input, Skeleton } from "antd";
+import { Button, Input, Select, Skeleton } from "antd";
 import type {
   APIErrorProps,
   clientFormPropsType,
@@ -18,6 +18,7 @@ import AddressRow from "./AddressRow/addressRow";
 import { useAppSelector } from "../../../components/APIs/store";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useEffect } from "react";
+import { useGetCustomerTypesQuery } from "../../../components/APIs/Seeders/SEEDERS_RTK_QUERY";
 dayjs.extend(utc);
 
 const EditClient = () => {
@@ -42,6 +43,12 @@ const EditClient = () => {
     }
   );
 
+  const {
+    data: customerTypes,
+    isLoading: isCustomerTypesLoading,
+    isFetching: isCustomerTypesFetching,
+  } = useGetCustomerTypesQuery();
+
   const defaultValues = {
     firstName: data?.data.firstName ?? "",
     middleName: data?.data.middleName ?? "",
@@ -49,6 +56,7 @@ const EditClient = () => {
     email: data?.data.email ?? "",
     phoneNumber: data?.data.phoneNumber ?? "",
     idNumber: data?.data.idNumber ?? "",
+    CustomerTypeId: data?.data.customerTypeId ?? "",
     customerAddresses: data?.data?.address?.map((address) => ({
       cityId: address?.cityId ?? "",
       AreaId: address?.areaId ?? "",
@@ -61,16 +69,16 @@ const EditClient = () => {
       space: address?.space ?? "",
       BuildingTypeId: address?.buildingTypeId ?? "",
       LandTypeId: address?.landTypeId ?? "",
-      insects: address?.insects?.toString() ?? "false",
-      rodents: address?.rodents?.toString() ?? "false",
-      tools: address?.tools ?? "",
-      materialWeight: address?.materialWeight ?? "",
+      // insects: address?.insects?.toString() ?? "false",
+      // rodents: address?.rodents?.toString() ?? "false",
+      // tools: address?.tools ?? "",
+      // materialWeight: address?.materialWeight ?? "",
       numberOfWindows: address?.numberOfWindows ?? "",
-      numberOfWorkers: address?.numberOfWorkers ?? "",
-      brideCleansUp: address?.brideCleansUp?.toString() ?? "false",
-      duration: [address?.visitStart, address?.visitEnd],
-      visitStart: address?.visitStart ?? "",
-      visitEnd: address?.visitEnd ?? "",
+      // numberOfWorkers: address?.numberOfWorkers ?? "",
+      // brideCleansUp: address?.brideCleansUp?.toString() ?? "false",
+      // duration: [address?.visitStart, address?.visitEnd],
+      // visitStart: address?.visitStart ?? "",
+      // visitEnd: address?.visitEnd ?? "",
     })),
   };
   const {
@@ -123,16 +131,16 @@ const EditClient = () => {
       BuildingTypeId: "",
       // state: "",
       LandTypeId: "",
-      insects: "",
-      rodents: "",
-      tools: "",
-      materialWeight: "",
+      // insects: "",
+      // rodents: "",
+      // tools: "",
+      // materialWeight: "",
       numberOfWindows: "",
-      numberOfWorkers: "",
-      brideCleansUp: "",
-      duration: ["", ""],
-      visitStart: "",
-      visitEnd: "",
+      // numberOfWorkers: "",
+      // brideCleansUp: "",
+      // duration: ["", ""],
+      // visitStart: "",
+      // visitEnd: "",
     });
   };
 
@@ -155,12 +163,12 @@ const EditClient = () => {
       customerAddresses: data.customerAddresses.map((address, index) => ({
         id: index + 1,
         ...address,
-        visitStart: address?.duration?.[0] || "",
-        visitEnd: address?.duration?.[1] || "",
-        rodents: address.rodents === "true",
-        insects: address.insects === "true",
-        brideCleansUp: address.brideCleansUp === "true",
-        duration: undefined,
+        // visitStart: address?.duration?.[0] || "",
+        // visitEnd: address?.duration?.[1] || "",
+        // rodents: address.rodents === "true",
+        // insects: address.insects === "true",
+        // brideCleansUp: address.brideCleansUp === "true",
+        // duration: undefined,
       })),
     };
 
@@ -294,9 +302,13 @@ const EditClient = () => {
                         value: true,
                         message: t("REQUIRED"),
                       },
+                      pattern: {
+                        value: /^[0-9]*$/,
+                        message: t("ONLY_NUMBER"),
+                      },
                       minLength: {
-                        value: 7,
-                        message: t("MIN_LENGTH", { length: 7 }),
+                        value: 14,
+                        message: t("MIN_LENGTH", { length: 14 }),
                       },
                       maxLength: {
                         value: 14,
@@ -310,6 +322,8 @@ const EditClient = () => {
                         placeholder="Enter id number"
                         className="placeholder:capitalize"
                         status={errors?.idNumber ? "error" : ""}
+                        maxLength={14}
+                        minLength={14}
                       />
                     )}
                   />
@@ -375,6 +389,38 @@ const EditClient = () => {
                   />
 
                   {errors?.email ? <p>{errors?.email?.message}</p> : null}
+                </div>
+                <div>
+                  <label>{t("CUSTOMER_TYPE")}</label>
+                  <Controller
+                    control={control}
+                    name={`CustomerTypeId`}
+                    rules={{
+                      required: { value: true, message: t("REQUIRED") },
+                    }}
+                    render={({ field }) => (
+                      <Select
+                        {...field}
+                        className="min-h-10 border-[#C4C4C4] border rounded-md w-full"
+                        placeholder="Select customer type"
+                        variant="filled"
+                        status={errors?.CustomerTypeId ? "error" : ""}
+                        loading={
+                          isCustomerTypesLoading || isCustomerTypesFetching
+                        }
+                        options={customerTypes?.data?.map((customerType) => ({
+                          value: customerType.id,
+                          label:
+                            lang === "ar"
+                              ? customerType.arName
+                              : customerType.name,
+                        }))}
+                      />
+                    )}
+                  />
+                  {errors?.CustomerTypeId && (
+                    <p>{errors?.CustomerTypeId?.message}</p>
+                  )}
                 </div>
               </section>
 

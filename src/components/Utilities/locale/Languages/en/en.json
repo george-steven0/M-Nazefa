@@ -27,7 +27,7 @@
     "EMPLOYEE_ROLE": "employee role",
     "WORK_ID": "work id",
     "STARTING_DATE": "starting date",
-    "ID_NUMBER": "id number",
+    "ID_NUMBER": "national id number",
     "POSTAL_CODE": "postal code",
     "ADDRESS": "address",
     "CITY": "city",
@@ -132,5 +132,7 @@
     "DEACTIVATE_SUCCESS": "Employee deactivated successfully.",
     "DEACTIVATE_ERROR": "An unexpected error occurred.",
     "ACTIVE": "Active",
-    "CUSTOMER": "Customer"
+    "CUSTOMER": "Customer",
+    "PASSWORD_PATTERN_MESSAGE": "Password must contain at least one uppercase and one lowercase letter and one special character",
+    "CUSTOMER_TYPE": "Customer type"
 }

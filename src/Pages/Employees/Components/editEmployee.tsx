@@ -27,7 +27,7 @@ import {
 } from "../../../components/APIs/EmployeesQuery/EMPLOYEES_QUERY";
 import { toast } from "react-toastify";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { options } from "../../../components/Utilities/consts";
+import { DOMAIN, options } from "../../../components/Utilities/consts";
 import imageCompression from "browser-image-compression";
 import ChangePassword from "./changePassword";
 
@@ -265,9 +265,9 @@ const EditEmployee = () => {
                 <Controller
                   control={control}
                   name="File"
-                  rules={{
-                    validate: () => fileList.length > 0 || t("REQUIRED"),
-                  }}
+                  // rules={{
+                  //   validate: () => fileList.length > 0 || t("REQUIRED"),
+                  // }}
                   render={({ field }) => (
                     <>
                       <ImgCrop rotationSlider>
@@ -442,7 +442,7 @@ const EditEmployee = () => {
                       message: t("REQUIRED"),
                     },
                     pattern: {
-                      value: /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
+                      value: /^[a-zA-Z0-9._%+-]+$/,
                       message: "Email is not valid",
                     },
                   }}
@@ -451,7 +451,8 @@ const EditEmployee = () => {
                       {...field}
                       variant="filled"
                       placeholder="Enter email"
-                      className="placeholder:capitalize"
+                      addonAfter={DOMAIN}
+                      className="placeholder:capitalize [&_.ant-input]:py-[6px] border border-[#C4C4C4] rounded-md"
                       status={errors?.Email ? "error" : ""}
                     />
                   )}
@@ -544,12 +545,12 @@ const EditEmployee = () => {
                 <Controller
                   control={control}
                   name="Roles"
-                  rules={{
-                    required: {
-                      value: true,
-                      message: t("REQUIRED"),
-                    },
-                  }}
+                  // rules={{
+                  //   required: {
+                  //     value: true,
+                  //     message: t("REQUIRED"),
+                  //   },
+                  // }}
                   render={({ field }) => (
                     <Select
                       {...field}
@@ -643,6 +644,18 @@ const EditEmployee = () => {
                       value: true,
                       message: t("REQUIRED"),
                     },
+                    pattern: {
+                      value: /^[0-9]*$/,
+                      message: t("ONLY_NUMBER"),
+                    },
+                    minLength: {
+                      value: 14,
+                      message: t("MIN_LENGTH", { length: 14 }),
+                    },
+                    maxLength: {
+                      value: 14,
+                      message: t("MAX_LENGTH", { length: 14 }),
+                    },
                   }}
                   render={({ field }) => (
                     <Input
@@ -667,6 +680,10 @@ const EditEmployee = () => {
                     required: {
                       value: true,
                       message: t("REQUIRED"),
+                    },
+                    pattern: {
+                      value: /^[0-9]*$/,
+                      message: t("ONLY_NUMBER"),
                     },
                   }}
                   render={({ field }) => (
