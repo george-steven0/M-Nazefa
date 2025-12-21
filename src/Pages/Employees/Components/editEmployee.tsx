@@ -8,6 +8,7 @@ import {
   Input,
   Select,
   Skeleton,
+  Space,
   Upload,
   type UploadFile,
 } from "antd";
@@ -69,7 +70,8 @@ const EditEmployee = () => {
     Gender: employeeData?.data?.gender,
     DateOfBirth: employeeData?.data?.dateOfBirth,
     PhoneNumber: employeeData?.data?.phoneNumber,
-    Email: employeeData?.data?.email,
+    // Email: employeeData?.data?.email?.split("@")[0],
+    Email: employeeData?.data?.email?.replace(DOMAIN, ""),
     Address: employeeData?.data?.address,
     PostalCode: employeeData?.data?.postalCode,
     IdNumber: employeeData?.data?.idNumber,
@@ -446,14 +448,26 @@ const EditEmployee = () => {
                     },
                   }}
                   render={({ field }) => (
-                    <Input
-                      {...field}
-                      variant="filled"
-                      placeholder="Enter email"
-                      addonAfter={DOMAIN}
-                      className="placeholder:capitalize [&_.ant-input]:py-[6px] border border-[#C4C4C4] rounded-md"
-                      status={errors?.Email ? "error" : ""}
-                    />
+                    // <Input
+                    //   {...field}
+                    //   variant="filled"
+                    //   placeholder="Enter email"
+                    //   addonAfter={DOMAIN}
+                    //   className="placeholder:capitalize [&_.ant-input]:py-[6px] border border-[#C4C4C4] rounded-md"
+                    //   status={errors?.Email ? "error" : ""}
+                    // />
+                    <Space.Compact className="w-full">
+                      <Input
+                        {...field}
+                        variant="filled"
+                        placeholder="Enter email"
+                        status={errors?.Email ? "error" : ""}
+                        className="placeholder:capitalize [&_.ant-input]:py-[6px] border border-[#C4C4C4] rounded-l-md"
+                      />
+                      <span className="px-1 flex items-center bg-[#f5f5f5] border border-l-0 border-[#C4C4C4] rounded-r-md text-sm">
+                        {DOMAIN}
+                      </span>
+                    </Space.Compact>
                   )}
                 />
 
