@@ -197,12 +197,8 @@ const EditEmployee = () => {
       setIsImageChanged(false);
     } catch (error) {
       const err = error as APIErrorProps;
-      if (
-        err?.data?.validationErrors &&
-        err?.data?.validationErrors.length > 0
-      ) {
-        const errs = err?.data?.validationErrors.join("\n");
-        toast.error(errs);
+      if (err?.data?.errorMessages && err?.data?.errorMessages.length > 0) {
+        err?.data?.errorMessages?.map((err) => toast.error(err));
       } else {
         toast.error("Failed to update employee");
       }
