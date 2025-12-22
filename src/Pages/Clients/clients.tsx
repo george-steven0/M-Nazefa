@@ -1,12 +1,21 @@
 import { AiOutlineEye } from "react-icons/ai";
 import { BiEdit } from "react-icons/bi";
-import { Button, Table, type TableProps } from "antd";
+import {
+  Button,
+  Dropdown,
+  type MenuProps,
+  type TablePaginationConfig,
+  type TableProps,
+} from "antd";
 import type { clientFormPropsType } from "../../components/Utilities/Types/types";
 import Title from "../../components/Common/Title/title";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useSearchBox } from "../../components/Common/Search/searchInput";
 import { useGetAllCustomersQuery } from "../../components/APIs/ClientQuery/CLIENTS_QUERY";
 import { useTranslation } from "react-i18next";
+import useCustomDataTable from "../../components/Common/Datatable/dataTable";
+import { useState } from "react";
+import { MdFilterAlt } from "react-icons/md";
 
 const Actions = ({ data }: { data: clientFormPropsType }) => {
   const navigate = useNavigate();
@@ -35,10 +44,28 @@ const Clients = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { pathname } = useLocation();
+  const [sort, setSort] = useState("true");
 
-  const { data: customers, isLoading, isFetching } = useGetAllCustomersQuery();
+  const [pagination, setPagination] = useState({
+    current: 1,
+    pageSize: 10,
+  });
 
-  // console.log(customers?.data);
+  const { SearchBox, debounceValue } = useSearchBox({
+    placeholder: "Search Clients",
+  });
+  const {
+    data: customers,
+    isLoading,
+    isFetching,
+  } = useGetAllCustomersQuery({
+    page: pagination.current,
+    size: pagination.pageSize,
+    search: debounceValue,
+    DescendingOrder: sort,
+  });
+
+  // console.log(customers);
 
   const columns: TableProps<clientFormPropsType>["columns"] = [
     {
@@ -91,6 +118,44 @@ const Clients = () => {
 
   const data: clientFormPropsType[] = customers?.data ? customers?.data : [];
 
+  const handleTableChange = (newPagination: TablePaginationConfig) => {
+    // console.log(pagination);
+
+    setPagination({
+      current: newPagination.current ?? 1,
+      pageSize: newPagination.pageSize ?? 10,
+    });
+  };
+
+  const { renderDataTable } = useCustomDataTable({
+    cols: columns,
+    data: data ?? [],
+    isLoading: isLoading || isFetching,
+    total: customers?.paginationHeader?.totalItems ?? 0,
+    pagination,
+    onChange: handleTableChange,
+  });
+
+  const items: MenuProps["items"] = [
+    {
+      label: t("NEW_TO_OLD"),
+      key: "true",
+    },
+    {
+      label: t("OLD_TO_NEW"),
+      key: "false",
+    },
+  ];
+  const handleMenuClick: MenuProps["onClick"] = (info) => {
+    // console.log("Clicked item key:", info.key);
+    // You can map key to a value or use it directly
+    if (info.key === "true") {
+      setSort("true");
+    } else if (info.key === "false") {
+      setSort("false");
+    }
+  };
+
   const handleAddButton = () => {
     return (
       <div className="flex items-center gap-2 md:gap-4">
@@ -103,10 +168,6 @@ const Clients = () => {
       </div>
     );
   };
-
-  const { SearchBox } = useSearchBox({
-    placeholder: "Search Clients",
-  });
   //   console.log(debounceValue);
 
   //   const handleNavigateView = (index: number) => {
@@ -138,12 +199,34 @@ const Clients = () => {
         <Title title={t("CLIENTS")} component={handleAddButton} />
       </section>
 
-      <section className="my-8 max-w-[80%] lg:max-w-[40%]">
-        {SearchBox()}
+      <section className="my-8 flex items-center justify-between">
+        <div className="w-fit md:min-w-[400px]">{SearchBox()}</div>
+
+        <div>
+          <Dropdown
+            menu={{ items, onClick: handleMenuClick, selectedKeys: [sort] }}
+            trigger={["click"]}
+            popupRender={(menu) => (
+              <div className="bg-white rounded-xl shadow-md p-2 min-w-[220px]">
+                {menu}
+              </div>
+            )}
+          >
+            <a onClick={(e) => e.preventDefault()}>
+              <Button
+                shape="circle"
+                size="large"
+                icon={
+                  <MdFilterAlt className="text-[#343434] size-5 md:size-5" />
+                }
+              />
+            </a>
+          </Dropdown>
+        </div>
       </section>
 
-      <section className="mt-8">
-        <Table<clientFormPropsType>
+      <section className="mt-8 overflow-x-auto">
+        {/* <Table<clientFormPropsType>
           id="clients-table"
           rowKey={(record) => record?.id || ""}
           columns={columns}
@@ -155,7 +238,8 @@ const Clients = () => {
           //     cursor: "pointer",
           //   },
           // })}
-        />
+        /> */}
+        {renderDataTable()}
       </section>
     </div>
   );

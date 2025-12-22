@@ -17,7 +17,7 @@ const Employees = () => {
     CurrentPage: 1,
     NumberOfItemsPerPage: 15,
   });
-  const [sort, setSort] = useState("false");
+  const [sort, setSort] = useState("true");
 
   const { SearchBox, debounceValue } = useSearchBox();
 
@@ -32,11 +32,11 @@ const Employees = () => {
 
   const items: MenuProps["items"] = [
     {
-      label: "New to old",
+      label: t("NEW_TO_OLD"),
       key: "true",
     },
     {
-      label: "Old to new",
+      label: t("OLD_TO_NEW"),
       key: "false",
     },
     // {
@@ -54,7 +54,7 @@ const Employees = () => {
   ];
 
   const handleMenuClick: MenuProps["onClick"] = (info) => {
-    console.log("Clicked item key:", info.key);
+    // console.log("Clicked item key:", info.key);
     // You can map key to a value or use it directly
     if (info.key === "true") {
       setSort("true");

@@ -143,5 +143,7 @@
     "DIRECT": "Direct",
     "REFERRAL": "Referral",
     "SOCIAL_MEDIA": "Social Media",
-    "MONTHLY_DATA": "Monthly Data"
+    "MONTHLY_DATA": "Monthly Data",
+    "NEW_TO_OLD": "New to old",
+    "OLD_TO_NEW": "Old to new"
 }

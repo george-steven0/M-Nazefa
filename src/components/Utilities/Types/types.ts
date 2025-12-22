@@ -40,6 +40,11 @@ export type APIParams = {
   search?: string;
 };
 
+export type GlobalSort = {
+  field: string;
+  order: "asc" | "desc";
+};
+
 export type APIError = {
   status: number;
   data?: {

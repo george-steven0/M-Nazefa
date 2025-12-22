@@ -1,4 +1,5 @@
 import type {
+  APIParams,
   APIResponse,
   clientFormPropsType,
   SingleAPIResponse,
@@ -7,11 +8,22 @@ import { API } from "../apiSlice";
 
 const clients = API.injectEndpoints({
   endpoints: (build) => ({
-    getAllCustomers: build.query<APIResponse<clientFormPropsType>, void>({
-      query: () => ({
-        url: `/Customer/GetAllCustomers`,
-        method: "GET",
-      }),
+    getAllCustomers: build.query<APIResponse<clientFormPropsType>, APIParams>({
+      query: ({ page, size, search, DescendingOrder }) => {
+        const myPage = page ? String(page) : "1";
+        const mySize = size ? String(size) : "10";
+
+        return {
+          url: `/Customer/GetAllCustomers`,
+          method: "GET",
+          headers: {
+            CurrentPage: myPage,
+            NumberOfItemsPerPage: mySize,
+            SearchTerm: search,
+            DescendingOrder: DescendingOrder!.toString(),
+          },
+        };
+      },
       providesTags: [{ type: "clients", id: "LIST" }],
     }),
 
