@@ -544,6 +544,17 @@ const EditClient = () => {
                         <Controller
                           control={control}
                           name={`phoneNumbers.${index}.phoneNumber`}
+                          rules={{
+                            required: { value: true, message: t("REQUIRED") },
+                            pattern: {
+                              value: /^\d{1,14}$/,
+                              message: t("ONLY_NUMBER"),
+                            },
+                            minLength: {
+                              value: 11,
+                              message: t("MIN_LENGTH", { length: 11 }),
+                            },
+                          }}
                           render={({ field }) => (
                             <Space.Compact className="items-stretch w-full">
                               <Input
