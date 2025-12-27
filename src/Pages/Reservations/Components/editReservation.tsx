@@ -200,7 +200,7 @@ const EditReservation = () => {
                 {errors?.idNumber ? <p>{errors?.idNumber?.message}</p> : null}
               </div>
 
-              <div>
+              {/* <div>
                 <label>{t("PHONE_NUMBER")}</label>
                 <Controller
                   control={control}
@@ -225,7 +225,7 @@ const EditReservation = () => {
                 {errors?.phoneNumber ? (
                   <p>{errors?.phoneNumber?.message}</p>
                 ) : null}
-              </div>
+              </div> */}
 
               <div>
                 <label>{t("EMAIL")}</label>

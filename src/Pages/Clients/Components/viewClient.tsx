@@ -83,7 +83,7 @@ const ViewClient = () => {
                       </p>
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-start gap-5">
                       <div className="flex items-center gap-1">
                         <span className=" text-gray-500">
                           <FiPhoneCall size={20} />
@@ -92,9 +92,11 @@ const ViewClient = () => {
                           Phone:
                         </span>
                       </div>
-                      <p className="text-sm text-gray-600">
-                        {data?.data?.phoneNumber}
-                      </p>
+                      <ul className="text-sm text-gray-600 list-disc list-outside flex flex-col gap-1">
+                        {data?.data?.phoneNumbers?.map((item) => (
+                          <li>{item?.phoneNumber}</li>
+                        ))}
+                      </ul>
                     </div>
 
                     <div className="flex items-center gap-2">
