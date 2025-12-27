@@ -84,7 +84,12 @@ const Clients = () => {
     },
     {
       title: t("PHONE_NUMBER"),
-      dataIndex: "phoneNumber",
+      dataIndex: "phoneNumbers",
+      render: (_, data) => (
+        <p>
+          {data?.phoneNumbers ? data?.phoneNumbers[0]?.phoneNumber : t("N/A")}
+        </p>
+      ),
       key: "phoneNumber",
     },
     {

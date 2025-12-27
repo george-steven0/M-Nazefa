@@ -145,5 +145,16 @@
     "SOCIAL_MEDIA": "وسائل التواصل الاجتماعي",
     "MONTHLY_DATA": "البيانات الشهرية",
     "NEW_TO_OLD": "جديد إلى قديم",
-    "OLD_TO_NEW": "قديم إلى جديد"
+    "OLD_TO_NEW": "قديم إلى جديد",
+    "HAS_MEMBERSHIP": "لديه عضوية؟",
+    "NO_MEMBERSHIP": "بدون عضوية",
+    "MEMBERSHIP_ID": "رقم العضوية",
+    "GENERAL_NOTES": "وصف عام",
+    "NUMBER_OF_KITCHENS": "عدد المطبخ",
+    "NUMBER_OF_BEDROOMS": "عدد غرف النوم",
+    "NUMBER_OF_BATHROOMS": "عدد الحمامات",
+    "NUMBER_OF_LIVINGROOMS": "عدد غرف المعيشه",
+    "NUMBER_OF_RECIPTIONROOMS": "عدد قطع الريسيشن",
+    "PETS": "يمتلك حيوان اليف",
+    "LANDLINE": "هاتف ثابت"
 }

@@ -6,7 +6,7 @@ import {
 } from "react-hook-form";
 import type { clientFormPropsType } from "../../../../components/Utilities/Types/types";
 import type { TFunction } from "i18next";
-import { Button, Select, Input } from "antd";
+import { Button, Select, Input, Checkbox } from "antd";
 import { FaTrashAlt } from "react-icons/fa";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc"; // Required for the 'Z' (UTC) output
@@ -17,6 +17,7 @@ import {
   useGetLandTypesQuery,
 } from "../../../../components/APIs/Seeders/SEEDERS_RTK_QUERY";
 import { skipToken } from "@reduxjs/toolkit/query";
+import Astrisk from "../../../../components/Common/Astrisk/astrisk";
 
 dayjs.extend(utc);
 // const { RangePicker } = DatePicker;
@@ -90,7 +91,11 @@ const AddressRow = ({
 
         {/* CITY */}
         <div>
-          <label>{t("CITY")}</label>
+          <label>
+            {t("CITY")}
+            <Astrisk />
+          </label>
+
           <Controller
             control={control}
             name={`customerAddresses.${index}.cityId`}
@@ -121,7 +126,10 @@ const AddressRow = ({
 
         {/* AREA */}
         <div>
-          <label>{t("AREA")}</label>
+          <label>
+            {t("AREA")}
+            <Astrisk />
+          </label>
           <Controller
             control={control}
             name={`customerAddresses.${index}.AreaId`}
@@ -153,7 +161,10 @@ const AddressRow = ({
 
         {/* STREET */}
         <div>
-          <label>{t("STREET")}</label>
+          <label>
+            {t("STREET")}
+            <Astrisk />
+          </label>
           <Controller
             control={control}
             name={`customerAddresses.${index}.street`}
@@ -179,7 +190,10 @@ const AddressRow = ({
 
         {/* APARTMENT */}
         <div>
-          <label>{t("APARTMENT")}</label>
+          <label>
+            {t("APARTMENT")}
+            <Astrisk />
+          </label>
           <Controller
             control={control}
             name={`customerAddresses.${index}.apartment`}
@@ -205,7 +219,10 @@ const AddressRow = ({
 
         {/* FLOOR */}
         <div>
-          <label>{t("FLOOR")}</label>
+          <label>
+            {t("FLOOR")}
+            <Astrisk />
+          </label>
           <Controller
             control={control}
             name={`customerAddresses.${index}.floor`}
@@ -240,7 +257,7 @@ const AddressRow = ({
             control={control}
             name={`customerAddresses.${index}.postalCode`}
             rules={{
-              required: { value: true, message: t("REQUIRED") },
+              // required: { value: true, message: t("REQUIRED") },
               pattern: {
                 value: /^[0-9]+$/,
                 message: t("ONLY_NUMBER"),
@@ -265,7 +282,10 @@ const AddressRow = ({
 
         {/* LANDMARK */}
         <div>
-          <label>{t("LANDMARK")}</label>
+          <label>
+            {t("LANDMARK")}
+            <Astrisk />
+          </label>
           <Controller
             control={control}
             name={`customerAddresses.${index}.landmark`}
@@ -329,7 +349,10 @@ const AddressRow = ({
 
         {/* SPACE */}
         <div>
-          <label>{t("SPACE")}</label>
+          <label>
+            {t("SPACE")}
+            <Astrisk />
+          </label>
           <Controller
             control={control}
             name={`customerAddresses.${index}.space`}
@@ -355,7 +378,10 @@ const AddressRow = ({
 
         {/* BUILDING TYPE */}
         <div>
-          <label>{t("BUILDING_TYPE")}</label>
+          <label>
+            {t("BUILDING_TYPE")}
+            <Astrisk />
+          </label>
           <Controller
             control={control}
             name={`customerAddresses.${index}.BuildingTypeId`}
@@ -386,42 +412,12 @@ const AddressRow = ({
           )}
         </div>
 
-        {/* STATE */}
-        {/* <div>
-                      <label>{t("STATE")}</label>
-                      <Controller
-                        control={control}
-                        name={`customerAddresses.${index}.state`}
-                        rules={{
-                          required: { value: true, message: t("REQUIRED") },
-                        }}
-                        render={({ field }) => (
-                          <Select
-                            {...field}
-                            className="min-h-10 border-[#C4C4C4] border rounded-md capitalize w-full"
-                            placeholder="Select state"
-                            variant="filled"
-                            status={
-                              errors?.customerAddresses?.[index]?.state
-                                ? "error"
-                                : ""
-                            }
-                            options={[
-                              { value: "1", label: "Alexandria" },
-                              { value: "2", label: "Gharbia" },
-                              { value: "3", label: "Cairo" },
-                            ]}
-                          />
-                        )}
-                      />
-                      {errors?.customerAddresses?.[index]?.state && (
-                        <p>{errors.customerAddresses[index].state.message}</p>
-                      )}
-                    </div> */}
-
         {/* LAND TYPE */}
         <div>
-          <label>{t("LAND_TYPE")}</label>
+          <label>
+            {t("LAND_TYPE")}
+            <Astrisk />
+          </label>
           <Controller
             control={control}
             name={`customerAddresses.${index}.LandTypeId`}
@@ -570,7 +566,10 @@ const AddressRow = ({
 
         {/* WINDOWS */}
         <div>
-          <label>{t("NUMBER_OF_WINDOWS")}</label>
+          <label>
+            {t("NUMBER_OF_WINDOWS")}
+            <Astrisk />
+          </label>
           <Controller
             control={control}
             name={`customerAddresses.${index}.numberOfWindows`}
@@ -598,6 +597,263 @@ const AddressRow = ({
           {errors?.customerAddresses?.[index]?.numberOfWindows && (
             <p>{errors.customerAddresses[index].numberOfWindows.message}</p>
           )}
+        </div>
+
+        {/* Bed Rooms */}
+        <div>
+          <label>
+            {t("NUMBER_OF_BEDROOMS")}
+            <Astrisk />
+          </label>
+          <Controller
+            control={control}
+            name={`customerAddresses.${index}.numberOfBedrooms`}
+            rules={{
+              required: { value: true, message: t("REQUIRED") },
+            }}
+            render={({ field }) => (
+              <Select
+                {...field}
+                className="min-h-10 border-[#C4C4C4] border rounded-md w-full"
+                placeholder="Number of bedrooms"
+                variant="filled"
+                status={
+                  errors?.customerAddresses?.[index]?.numberOfBedrooms
+                    ? "error"
+                    : ""
+                }
+                options={Array.from({ length: 20 })?.map((_, index) => ({
+                  label: index + 1,
+                  value: index + 1,
+                }))}
+              />
+            )}
+          />
+          {errors?.customerAddresses?.[index]?.numberOfBedrooms && (
+            <p>{errors.customerAddresses[index].numberOfBedrooms.message}</p>
+          )}
+        </div>
+
+        {/* Bath Rooms */}
+        <div>
+          <label>
+            {t("NUMBER_OF_BATHROOMS")}
+            <Astrisk />
+          </label>
+          <Controller
+            control={control}
+            name={`customerAddresses.${index}.numberOfBathrooms`}
+            rules={{
+              required: { value: true, message: t("REQUIRED") },
+            }}
+            render={({ field }) => (
+              <Select
+                {...field}
+                className="min-h-10 border-[#C4C4C4] border rounded-md w-full"
+                placeholder="Number of bathrooms"
+                variant="filled"
+                status={
+                  errors?.customerAddresses?.[index]?.numberOfBathrooms
+                    ? "error"
+                    : ""
+                }
+                options={Array.from({ length: 20 })?.map((_, index) => ({
+                  label: index + 1,
+                  value: index + 1,
+                }))}
+              />
+            )}
+          />
+          {errors?.customerAddresses?.[index]?.numberOfBathrooms && (
+            <p>{errors.customerAddresses[index].numberOfBathrooms.message}</p>
+          )}
+        </div>
+
+        {/* Kitchen */}
+        <div>
+          <label>
+            {t("NUMBER_OF_KITCHENS")}
+            <Astrisk />
+          </label>
+          <Controller
+            control={control}
+            name={`customerAddresses.${index}.numberOfKitchens`}
+            rules={{
+              required: { value: true, message: t("REQUIRED") },
+            }}
+            render={({ field }) => (
+              <Select
+                {...field}
+                className="min-h-10 border-[#C4C4C4] border rounded-md w-full"
+                placeholder="Number of bathrooms"
+                variant="filled"
+                status={
+                  errors?.customerAddresses?.[index]?.numberOfKitchens
+                    ? "error"
+                    : ""
+                }
+                options={Array.from({ length: 20 })?.map((_, index) => ({
+                  label: index + 1,
+                  value: index + 1,
+                }))}
+              />
+            )}
+          />
+          {errors?.customerAddresses?.[index]?.numberOfKitchens && (
+            <p>{errors.customerAddresses[index].numberOfKitchens.message}</p>
+          )}
+        </div>
+
+        {/* Livingroom */}
+        <div>
+          <label>
+            {t("NUMBER_OF_LIVINGROOMS")}
+            <Astrisk />
+          </label>
+          <Controller
+            control={control}
+            name={`customerAddresses.${index}.numberOfLivingRooms`}
+            rules={{
+              required: { value: true, message: t("REQUIRED") },
+            }}
+            render={({ field }) => (
+              <Select
+                {...field}
+                className="min-h-10 border-[#C4C4C4] border rounded-md w-full"
+                placeholder="Number of livingrooms"
+                variant="filled"
+                status={
+                  errors?.customerAddresses?.[index]?.numberOfLivingRooms
+                    ? "error"
+                    : ""
+                }
+                options={Array.from({ length: 20 })?.map((_, index) => ({
+                  label: index + 1,
+                  value: index + 1,
+                }))}
+              />
+            )}
+          />
+          {errors?.customerAddresses?.[index]?.numberOfLivingRooms && (
+            <p>{errors.customerAddresses[index].numberOfLivingRooms.message}</p>
+          )}
+        </div>
+
+        {/* Receptions */}
+        <div>
+          <label>
+            {t("NUMBER_OF_RECIPTIONROOMS")}
+            <Astrisk />
+          </label>
+          <Controller
+            control={control}
+            name={`customerAddresses.${index}.numberOfReceptionrooms`}
+            rules={{
+              required: { value: true, message: t("REQUIRED") },
+            }}
+            render={({ field }) => (
+              <Select
+                {...field}
+                className="min-h-10 border-[#C4C4C4] border rounded-md w-full"
+                placeholder="Number of receptions"
+                variant="filled"
+                status={
+                  errors?.customerAddresses?.[index]?.numberOfReceptionrooms
+                    ? "error"
+                    : ""
+                }
+                options={Array.from({ length: 20 })?.map((_, index) => ({
+                  label: index + 1,
+                  value: index + 1,
+                }))}
+              />
+            )}
+          />
+          {errors?.customerAddresses?.[index]?.numberOfReceptionrooms && (
+            <p>
+              {errors.customerAddresses[index].numberOfReceptionrooms.message}
+            </p>
+          )}
+        </div>
+
+        {/* Landline */}
+        <div>
+          <label>{t("LANDLINE")}</label>
+          <Controller
+            control={control}
+            name={`customerAddresses.${index}.landLine`}
+            rules={{
+              // required: { value: true, message: t("REQUIRED") },
+              pattern: {
+                value: /^[0-9]+$/,
+                message: t("ONLY_NUMBER"),
+              },
+              minLength: { value: 7, message: t("MIN_LENGTH", { length: 7 }) },
+            }}
+            render={({ field }) => (
+              <Input
+                {...field}
+                variant="filled"
+                placeholder="Enter landline"
+                className="placeholder:capitalize"
+                status={
+                  errors?.customerAddresses?.[index]?.landLine ? "error" : ""
+                }
+              />
+            )}
+          />
+          {errors?.customerAddresses?.[index]?.landLine && (
+            <p>{errors.customerAddresses[index].landLine.message}</p>
+          )}
+        </div>
+
+        {/* Description */}
+        {/* <div className="lg:col-span-2">
+          <label>{t("DESCRIPTION")}</label>
+          <Controller
+            control={control}
+            name={`customerAddresses.${index}.description`}
+            rules={{
+              required: { value: true, message: t("REQUIRED") },
+            }}
+            render={({ field }) => (
+              <Input
+                {...field}
+                variant="filled"
+                placeholder="Enter description"
+                className="placeholder:capitalize"
+                status={
+                  errors?.customerAddresses?.[index]?.description ? "error" : ""
+                }
+              />
+            )}
+          />
+          {errors?.customerAddresses?.[index]?.description && (
+            <p>{errors.customerAddresses[index].description.message}</p>
+          )}
+        </div> */}
+
+        {/* PETS */}
+        <div className="">
+          <div className="flex flex-col w-fit items-start gap-2">
+            <label className="cursor-pointer w-fit" htmlFor="pets">
+              {t("PETS")}
+            </label>
+
+            <Controller
+              control={control}
+              name={`customerAddresses.${index}.hasPets`}
+              render={({ field }) => (
+                <Checkbox
+                  id="pets"
+                  checked={!!field?.value}
+                  {...field}
+                  className="h-auto scale-150"
+                  onChange={(e) => field.onChange(e.target.checked)}
+                />
+              )}
+            />
+          </div>
         </div>
 
         {/* WORKERS */}

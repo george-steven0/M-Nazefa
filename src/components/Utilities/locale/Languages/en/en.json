@@ -145,5 +145,16 @@
     "SOCIAL_MEDIA": "Social Media",
     "MONTHLY_DATA": "Monthly Data",
     "NEW_TO_OLD": "New to old",
-    "OLD_TO_NEW": "Old to new"
+    "OLD_TO_NEW": "Old to new",
+    "HAS_MEMBERSHIP": "Has membership?",
+    "NO_MEMBERSHIP": "No membership",
+    "MEMBERSHIP_ID": "Membership ID",
+    "GENERAL_NOTES": "General notes",
+    "NUMBER_OF_KITCHENS": "Number of kitchens",
+    "NUMBER_OF_BEDROOMS": "Number of bedrooms",
+    "NUMBER_OF_BATHROOMS": "Number of bathrooms",
+    "NUMBER_OF_LIVINGROOMS": "Number of livingrooms",
+    "NUMBER_OF_RECIPTIONROOMS": "Number of reciptionrooms",
+    "PETS": "Have pets?",
+    "LANDLINE": "Landline"
 }

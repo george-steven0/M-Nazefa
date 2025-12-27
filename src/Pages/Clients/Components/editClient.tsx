@@ -1,13 +1,21 @@
 import { useTranslation } from "react-i18next";
 import Title from "../../../components/Common/Title/title";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
-import { Button, Input, Select, Skeleton } from "antd";
+import {
+  Button,
+  Checkbox,
+  Input,
+  Select,
+  Skeleton,
+  Space,
+  type CheckboxProps,
+} from "antd";
 import type {
   APIErrorProps,
   clientFormPropsType,
 } from "../../../components/Utilities/Types/types";
 import dayjs from "dayjs";
-import { FaPlus } from "react-icons/fa";
+import { FaMinus, FaPlus } from "react-icons/fa";
 import {
   useEditClientMutation,
   useGetCustomerByIdQuery,
@@ -17,8 +25,10 @@ import utc from "dayjs/plugin/utc"; // Required for the 'Z' (UTC) output
 import AddressRow from "./AddressRow/addressRow";
 import { useAppSelector } from "../../../components/APIs/store";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useGetCustomerTypesQuery } from "../../../components/APIs/Seeders/SEEDERS_RTK_QUERY";
+import TextArea from "antd/es/input/TextArea";
+import Astrisk from "../../../components/Common/Astrisk/astrisk";
 dayjs.extend(utc);
 
 const EditClient = () => {
@@ -26,11 +36,8 @@ const EditClient = () => {
   const [editClient, { isLoading }] = useEditClientMutation();
   const { lang } = useAppSelector((state) => state?.lang);
   const navigate = useNavigate();
-
   const [params] = useSearchParams();
   const id = params.get("id");
-
-  // console.log(id);
 
   const {
     data,
@@ -43,6 +50,12 @@ const EditClient = () => {
     }
   );
 
+  const [isMembership, setIsMembership] = useState(
+    data?.data?.hasMembership ?? false
+  );
+
+  // console.log(id);
+
   const {
     data: customerTypes,
     isLoading: isCustomerTypesLoading,
@@ -54,9 +67,11 @@ const EditClient = () => {
     middleName: data?.data.middleName ?? "",
     lastName: data?.data.lastName ?? "",
     email: data?.data.email ?? "",
-    phoneNumber: data?.data.phoneNumber ?? "",
     idNumber: data?.data.idNumber ?? "",
-    CustomeTypeId: data?.data.customerTypeId ?? "",
+    hasMembership: data?.data.hasMembership ?? false,
+    generalNotes: data?.data.generalNotes ?? "",
+    membership: data?.data.membership ?? "",
+    customerTypeId: data?.data.customerTypeId ?? "",
     customerAddresses: data?.data?.address?.map((address) => ({
       id: address?.id,
       cityId: address?.cityId ?? "",
@@ -70,17 +85,16 @@ const EditClient = () => {
       space: address?.space ?? "",
       BuildingTypeId: address?.buildingTypeId ?? "",
       LandTypeId: address?.landTypeId ?? "",
-      // insects: address?.insects?.toString() ?? "false",
-      // rodents: address?.rodents?.toString() ?? "false",
-      // tools: address?.tools ?? "",
-      // materialWeight: address?.materialWeight ?? "",
       numberOfWindows: address?.numberOfWindows ?? "",
-      // numberOfWorkers: address?.numberOfWorkers ?? "",
-      // brideCleansUp: address?.brideCleansUp?.toString() ?? "false",
-      // duration: [address?.visitStart, address?.visitEnd],
-      // visitStart: address?.visitStart ?? "",
-      // visitEnd: address?.visitEnd ?? "",
+      numberOfKitchens: address?.numberOfKitchens ?? "",
+      numberOfBedrooms: address?.numberOfBedrooms ?? "",
+      numberOfBathrooms: address?.numberOfBathrooms ?? "",
+      numberOfLivingRooms: address?.numberOfLivingRooms ?? "",
+      numberOfReceptionrooms: address?.numberOfReceptionrooms ?? "",
+      hasPets: address?.hasPets ?? "",
+      landLine: address?.landLine ?? "",
     })),
+    phoneNumbers: data?.data?.phoneNumbers ?? [],
   };
 
   // console.log("defaultValues", defaultValues);
@@ -89,7 +103,7 @@ const EditClient = () => {
     control,
     handleSubmit,
     reset,
-    // getValues,
+    setValue,
     formState: { errors },
   } = useForm<clientFormPropsType>({
     defaultValues: {
@@ -103,6 +117,13 @@ const EditClient = () => {
   useEffect(() => {
     if (data?.data) {
       reset(defaultValues);
+      if (data?.data?.hasMembership) {
+        setIsMembership(true);
+        setValue("membership", data?.data?.membership);
+      } else {
+        setIsMembership(false);
+        setValue("membership", "");
+      }
     }
   }, [data, reset]);
 
@@ -133,19 +154,41 @@ const EditClient = () => {
       fullDescription: "",
       space: "",
       BuildingTypeId: "",
-      // state: "",
       LandTypeId: "",
-      // insects: "",
-      // rodents: "",
-      // tools: "",
-      // materialWeight: "",
       numberOfWindows: "",
-      // numberOfWorkers: "",
-      // brideCleansUp: "",
-      // duration: ["", ""],
-      // visitStart: "",
-      // visitEnd: "",
+      numberOfBathrooms: "",
+      numberOfBedrooms: "",
+      numberOfKitchens: "",
+      numberOfLivingRooms: "",
+      numberOfReceptionrooms: "",
+      hasPets: false,
+      landLine: "",
     });
+  };
+
+  const {
+    fields: phones,
+    append: addPhone,
+    remove: removePhone,
+  } = useFieldArray({
+    name: "phoneNumbers",
+    control: control,
+    rules: {
+      required: {
+        value: true,
+        message: t("REQUIRED"),
+      },
+    },
+  });
+
+  const handleAddPhone = () => {
+    addPhone({
+      phoneNumber: "",
+    });
+  };
+
+  const handleRemovePhone = (index: number) => {
+    removePhone(index);
   };
 
   const handleFormSubmit = async (data: clientFormPropsType) => {
@@ -195,6 +238,14 @@ const EditClient = () => {
   const resetForm = () => {
     reset(defaultValues);
   };
+
+  const membershipChange: CheckboxProps["onChange"] = (e) => {
+    setIsMembership(e.target.checked);
+    // console.log(e.target.checked);
+    if (!e.target.checked) {
+      setValue("membership", "");
+    }
+  };
   return (
     <>
       {isGetLoading || isFetching ? (
@@ -217,7 +268,10 @@ const EditClient = () => {
                 </article>
 
                 <div>
-                  <label>{t("FIRST_NAME")}</label>
+                  <label>
+                    {t("FIRST_NAME")}
+                    <Astrisk />
+                  </label>
                   <Controller
                     control={control}
                     name="firstName"
@@ -244,7 +298,10 @@ const EditClient = () => {
                 </div>
 
                 <div>
-                  <label>{t("MIDDLE_NAME")}</label>
+                  <label>
+                    {t("MIDDLE_NAME")}
+                    <Astrisk />
+                  </label>
                   <Controller
                     control={control}
                     name="middleName"
@@ -271,7 +328,10 @@ const EditClient = () => {
                 </div>
 
                 <div>
-                  <label>{t("LAST_NAME")}</label>
+                  <label>
+                    {t("LAST_NAME")}
+                    <Astrisk />
+                  </label>
                   <Controller
                     control={control}
                     name="lastName"
@@ -296,7 +356,10 @@ const EditClient = () => {
                 </div>
 
                 <div>
-                  <label>{t("ID_NUMBER")}</label>
+                  <label>
+                    {t("ID_NUMBER")}
+                    <Astrisk />
+                  </label>
                   <Controller
                     control={control}
                     name="idNumber"
@@ -335,38 +398,10 @@ const EditClient = () => {
                 </div>
 
                 <div>
-                  <label>{t("PHONE_NUMBER")}</label>
-                  <Controller
-                    control={control}
-                    name="phoneNumber"
-                    rules={{
-                      required: {
-                        value: true,
-                        message: t("REQUIRED"),
-                      },
-                      pattern: {
-                        value: /^[0-9]+$/,
-                        message: t("ONLY_NUMBER"),
-                      },
-                    }}
-                    render={({ field }) => (
-                      <Input
-                        {...field}
-                        variant="filled"
-                        placeholder="Enter phone number"
-                        className="placeholder:capitalize"
-                        status={errors?.phoneNumber ? "error" : ""}
-                      />
-                    )}
-                  />
-
-                  {errors?.phoneNumber ? (
-                    <p>{errors?.phoneNumber?.message}</p>
-                  ) : null}
-                </div>
-
-                <div>
-                  <label>{t("EMAIL")}</label>
+                  <label>
+                    {t("EMAIL")}
+                    <Astrisk />
+                  </label>
                   <Controller
                     control={control}
                     name="email"
@@ -393,11 +428,15 @@ const EditClient = () => {
 
                   {errors?.email ? <p>{errors?.email?.message}</p> : null}
                 </div>
+
                 <div>
-                  <label>{t("CUSTOMER_TYPE")}</label>
+                  <label>
+                    {t("CUSTOMER_TYPE")}
+                    <Astrisk />
+                  </label>
                   <Controller
                     control={control}
-                    name={`CustomeTypeId`}
+                    name={`customerTypeId`}
                     rules={{
                       required: { value: true, message: t("REQUIRED") },
                     }}
@@ -421,8 +460,146 @@ const EditClient = () => {
                       />
                     )}
                   />
-                  {errors?.CustomerTypeId && (
-                    <p>{errors?.CustomerTypeId?.message}</p>
+                  {errors?.customerTypeId && (
+                    <p>{errors?.customerTypeId?.message}</p>
+                  )}
+                </div>
+
+                <div className="col-span-full grid grid-cols-1 lg:grid-cols-3 gap-5 lg:gap-10 justify-start">
+                  <div className="flex flex-col w-fit">
+                    <label
+                      className="cursor-pointer w-fit"
+                      htmlFor="hasMembership"
+                    >
+                      {t("HAS_MEMBERSHIP")}
+                    </label>
+
+                    <Controller
+                      control={control}
+                      name="hasMembership"
+                      render={({ field }) => (
+                        <Checkbox
+                          id="hasMembership"
+                          checked={!!field.value}
+                          {...field}
+                          className="size-fit"
+                          onChange={(e) => {
+                            field.onChange(e.target.checked);
+                            membershipChange(e);
+                          }}
+                        />
+                      )}
+                    />
+                  </div>
+
+                  {isMembership ? (
+                    <div className="flex flex-col col-span-2">
+                      <label
+                        className="w-fit"
+                        // htmlFor="hasMembership"
+                      >
+                        {t("MEMBERSHIP_ID")}
+                        <Astrisk />
+                      </label>
+
+                      <Controller
+                        control={control}
+                        name="membership"
+                        render={({ field }) => (
+                          <Input
+                            {...field}
+                            variant="filled"
+                            placeholder="Enter membership id"
+                            className="placeholder:capitalize border-[#C4C4C4] border rounded-md py-2 min-w-[250px]"
+                            status={errors?.membership ? "error" : ""}
+                          />
+                        )}
+                      />
+                      {errors?.membership && (
+                        <p className="text-red-500 text-xs mt-1 capitalize">
+                          {errors?.membership?.message}
+                        </p>
+                      )}
+                    </div>
+                  ) : null}
+                </div>
+
+                <div className="col-span-full flex flex-col gap-2">
+                  <div className="flex items-center gap-2 capitalize">
+                    <label>
+                      {t("PHONE_NUMBER")}
+                      <Astrisk />
+                    </label>
+                    <Button
+                      shape="circle"
+                      size="small"
+                      className="bg-green-600/20 text-green-600 border-none"
+                      icon={<FaPlus size={12} />}
+                      onClick={handleAddPhone}
+                    />
+                  </div>
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                    {phones?.map((phone, index) => (
+                      <div key={phone?.id}>
+                        <Controller
+                          control={control}
+                          name={`phoneNumbers.${index}.phoneNumber`}
+                          render={({ field }) => (
+                            <Space.Compact className="items-stretch w-full">
+                              <Input
+                                {...field}
+                                variant="filled"
+                                placeholder="Enter phone number"
+                                className={`placeholder:capitalize border-[#C4C4C4] border ${
+                                  phones?.length > 1
+                                    ? "rounded-s-md"
+                                    : "rounded-md"
+                                } py-2 min-w-[250px]`}
+                                status={
+                                  errors?.phoneNumbers?.[index]?.phoneNumber
+                                    ? "error"
+                                    : ""
+                                }
+                              />
+
+                              <span>
+                                {phones?.length > 1 ? (
+                                  <Button
+                                    icon={<FaMinus className="text-sm" />}
+                                    onClick={() => handleRemovePhone(index)}
+                                    className="bg-red-500 text-white border-none size-full min-w-[30px] rounded-e-md"
+                                    shape="default"
+                                  />
+                                ) : null}
+                              </span>
+                            </Space.Compact>
+                          )}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="col-span-full">
+                  <label>{t("GENERAL_NOTES")}</label>
+                  <Controller
+                    control={control}
+                    name={`generalNotes`}
+                    // rules={{
+                    //   required: { value: true, message: t("REQUIRED") },
+                    // }}
+                    render={({ field }) => (
+                      <TextArea
+                        {...field}
+                        variant="filled"
+                        placeholder="Enter general notes"
+                        className="placeholder:capitalize border-[#C4C4C4] border rounded-md py-2 min-h-[70px] resize-none"
+                        status={errors?.generalNotes ? "error" : ""}
+                      />
+                    )}
+                  />
+                  {errors?.generalNotes && (
+                    <p>{errors?.generalNotes?.message}</p>
                   )}
                 </div>
               </section>
