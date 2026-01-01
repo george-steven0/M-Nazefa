@@ -289,16 +289,16 @@ const AddClient = () => {
             <div>
               <label>
                 {t("ID_NUMBER")}
-                <Astrisk />
+                {/* <Astrisk /> */}
               </label>
               <Controller
                 control={control}
                 name="idNumber"
                 rules={{
-                  required: {
-                    value: true,
-                    message: t("REQUIRED"),
-                  },
+                  // required: {
+                  //   value: true,
+                  //   message: t("REQUIRED"),
+                  // },
                   pattern: {
                     value: /^[0-9]*$/,
                     message: t("ONLY_NUMBER"),
@@ -331,16 +331,16 @@ const AddClient = () => {
             <div>
               <label>
                 {t("EMAIL")}
-                <Astrisk />
+                {/* <Astrisk /> */}
               </label>
               <Controller
                 control={control}
                 name="email"
                 rules={{
-                  required: {
-                    value: true,
-                    message: t("REQUIRED"),
-                  },
+                  // required: {
+                  //   value: true,
+                  //   message: t("REQUIRED"),
+                  // },
                   pattern: {
                     value: /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
                     message: "Email is not valid",

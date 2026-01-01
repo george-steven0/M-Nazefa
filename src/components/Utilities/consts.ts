@@ -6,4 +6,4 @@ export const options = {
   initialQuality: 0.8,
 };
 
-export const DOMAIN = "@madamnazifa.com";
+export const DOMAIN = "@madamenazifa.com";
