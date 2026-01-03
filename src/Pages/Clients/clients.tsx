@@ -87,7 +87,9 @@ const Clients = () => {
       dataIndex: "phoneNumbers",
       render: (_, data) => (
         <p>
-          {data?.phoneNumbers ? data?.phoneNumbers[0]?.phoneNumber : t("N/A")}
+          {data?.phoneNumbers && data?.phoneNumbers.length > 0
+            ? data?.phoneNumbers[0]?.phoneNumber
+            : t("N/A")}
         </p>
       ),
       key: "phoneNumber",

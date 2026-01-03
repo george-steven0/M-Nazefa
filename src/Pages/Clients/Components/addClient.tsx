@@ -482,7 +482,7 @@ const AddClient = () => {
                       rules={{
                         required: { value: true, message: t("REQUIRED") },
                         pattern: {
-                          value: /^\d{1,14}$/,
+                          value: /^\d+$/,
                           message: t("ONLY_NUMBER"),
                         },
                         minLength: {
