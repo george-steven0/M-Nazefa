@@ -50,6 +50,7 @@ const AddClient = () => {
     formState: { errors },
   } = useForm<clientFormPropsType>({
     defaultValues: {
+      hasMembership: false,
       customerAddresses: [
         {
           cityId: "",
@@ -60,6 +61,7 @@ const AddClient = () => {
           postalCode: "",
           landmark: "",
           fullDescription: "",
+          hasPets: false,
         },
       ],
       phoneNumbers: [
@@ -411,7 +413,7 @@ const AddClient = () => {
                       {...field}
                       className="size-fit scale-125"
                       // status={errors?.hasMembership ? "error" : ""}
-                      checked={!!field.value}
+                      checked={Boolean(field.value)}
                       onChange={(e) => {
                         field.onChange(e.target.checked);
                         membershipChange(e);
