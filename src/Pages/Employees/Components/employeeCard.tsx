@@ -14,7 +14,7 @@ const EmployeeCard = ({ employee }: employeeCardProps) => {
       <div className="">
         <img
           src={employee?.imagePath ? employee?.imagePath : avatar}
-          alt="employee"
+          alt={employee?.fullName + "'s photo"}
           className="size-24 rounded-full"
         />
       </div>
@@ -22,7 +22,7 @@ const EmployeeCard = ({ employee }: employeeCardProps) => {
       <div>
         <p
           className="line-clamp-1 text-[#1D1B1B] capitalize font-medium"
-          title="Employee name"
+          title={employee?.fullName + "'s name"}
         >
           {employee?.fullName}
         </p>

@@ -31,6 +31,7 @@ import AuthRule from "./Rules/authRole";
 import GuestRule from "./Rules/guestRole";
 import Roles from "../../Pages/Roles/roles";
 import ViewClient from "../../Pages/Clients/Components/viewClient";
+import Areas from "../../Pages/Area/area";
 
 export const routes = createBrowserRouter([
   {
@@ -90,6 +91,11 @@ export const routes = createBrowserRouter([
             id: "roles",
             path: "/roles",
             element: <Roles />,
+          },
+          {
+            id: "areas",
+            path: "/areas",
+            element: <Areas />,
           },
           {
             id: "workers",

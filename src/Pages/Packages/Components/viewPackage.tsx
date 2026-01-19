@@ -15,12 +15,17 @@ const ViewPackage = () => {
       navigate(`/packages/edit-package?id=${id}`);
     };
     return (
-      <Button
-        onClick={handleNavigate}
-        className="bg-mainColor text-white py-5 min-w-[160px] capitalize"
-      >
-        {t("EDIT_PACKAGE")}
-      </Button>
+      <div className="flex flex-col gap-1">
+        <Button
+          onClick={handleNavigate}
+          className="bg-mainColor text-white py-5 min-w-[160px] capitalize"
+        >
+          {t("EDIT_PACKAGE")}
+        </Button>
+        <Button className="flex items-center gap-2 font-medium transition-colors duration-500 bg-mainRed/70 hover:bg-mainRed border-none text-white py-5 min-w-[160px] capitalize">
+          <span>{t("DELETE_PACKAGE")}</span>
+        </Button>
+      </div>
     );
   };
   return (

@@ -25,6 +25,7 @@ import { useGetCustomerTypesQuery } from "../../../components/APIs/Seeders/SEEDE
 import { useState } from "react";
 import TextArea from "antd/es/input/TextArea";
 import Astrisk from "../../../components/Common/Astrisk/astrisk";
+import { cleanDeep } from "../../../components/Utilities/helper";
 dayjs.extend(utc);
 
 const AddClient = () => {
@@ -58,7 +59,7 @@ const AddClient = () => {
           street: "",
           apartment: "",
           floor: "",
-          postalCode: "",
+          // postalCode: "",
           landmark: "",
           fullDescription: "",
           hasPets: false,
@@ -90,7 +91,7 @@ const AddClient = () => {
       street: "",
       apartment: "",
       floor: "",
-      postalCode: "",
+      // postalCode: "",
       landmark: "",
       fullDescription: "",
       space: "",
@@ -160,10 +161,13 @@ const AddClient = () => {
       })),
     };
 
+    const cleanData = cleanDeep(formattedData);
+    // console.log(cleanData);
+
     // console.log(formattedData);
 
     try {
-      await addNewClient(formattedData).unwrap();
+      await addNewClient(cleanData).unwrap();
       toast.success("Customer added successfully");
       navigate("/clients");
     } catch (error) {

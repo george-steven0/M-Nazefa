@@ -29,6 +29,7 @@ import { useEffect, useState } from "react";
 import { useGetCustomerTypesQuery } from "../../../components/APIs/Seeders/SEEDERS_RTK_QUERY";
 import TextArea from "antd/es/input/TextArea";
 import Astrisk from "../../../components/Common/Astrisk/astrisk";
+import { cleanDeep } from "../../../components/Utilities/helper";
 dayjs.extend(utc);
 
 const EditClient = () => {
@@ -220,10 +221,11 @@ const EditClient = () => {
       })),
     };
 
-    // console.log("formattedData", formattedData);
+    const cleanData = cleanDeep(formattedData);
+    // console.log(cleanData);
 
     try {
-      await editClient(formattedData).unwrap();
+      await editClient(cleanData).unwrap();
       toast.success("Customer updated successfully");
       navigate("/clients");
     } catch (error) {

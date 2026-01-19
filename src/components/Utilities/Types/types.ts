@@ -84,7 +84,7 @@ export type employeeFormProps = {
   WorkId?: string;
   StartingDate: string;
   IdNumber: string | number;
-  PostalCode: string;
+  PostalCode?: string;
   Address: string;
   ImageFile: string | File;
   ImagePath: string | File;
@@ -123,7 +123,7 @@ export type singleEmployeeProps = {
   imagePath: string;
   ImageFile: string;
   phoneNumber: string;
-  postalCode: string;
+  postalCode?: string;
   roles: string[];
   startingDate: string;
   workId: string;
@@ -137,7 +137,7 @@ type addressProps = {
   street: string;
   apartment: string;
   floor: string | number;
-  postalCode: string;
+  postalCode?: string;
   landmark: string;
   landMark?: string;
   fullDescription: string;
@@ -148,6 +148,7 @@ export type clientFormPropsType = {
   middleName: string;
   lastName: string;
   idNumber: string | number;
+  phoneNumber?: string | number;
   phoneNumbers: { id?: string | number; phoneNumber: string | number }[];
   email: string;
   generalNotes: string;
@@ -200,6 +201,8 @@ export type packageFormProps = {
   supplies: string;
   rules: string | number;
   terms: UploadFile | null;
+  extra_details: { noOfRooms: string; noOfWorkers: string; price: string }[];
+  transportaion: { fees: string; country: string }[];
 };
 
 export type appointmentProps = {
@@ -216,6 +219,7 @@ export type extraServiceProps = {
 
 export type reservationFormProps = {
   customerId: string | number;
+  addressId: string | number;
   duration: string[];
 } & clientFormPropsType &
   appointmentProps &
@@ -251,6 +255,12 @@ export type rolesFormProps = {
   id?: string;
   name: string;
   description?: string;
+};
+export type areaFormProps = {
+  id?: string;
+  cityId: string;
+  name: string;
+  arName: string;
 };
 
 export type seedersProps = {

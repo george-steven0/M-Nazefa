@@ -74,6 +74,7 @@ export const API = createApi({
     "buildingTypes",
     "landTypes",
     "states",
+    "newAreas",
   ],
   endpoints: () => ({}),
 });

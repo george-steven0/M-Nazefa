@@ -251,7 +251,7 @@ const AddressRow = ({
         </div>
 
         {/* POSTAL CODE */}
-        <div>
+        {/* <div>
           <label>{t("POSTAL_CODE")}</label>
           <Controller
             control={control}
@@ -278,7 +278,7 @@ const AddressRow = ({
           {errors?.customerAddresses?.[index]?.postalCode && (
             <p>{errors.customerAddresses[index].postalCode.message}</p>
           )}
-        </div>
+        </div> */}
 
         {/* LANDMARK */}
         <div>

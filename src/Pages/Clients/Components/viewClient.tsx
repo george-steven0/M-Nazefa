@@ -79,7 +79,7 @@ const ViewClient = () => {
                         </span>
                       </div>
                       <p className="text-sm text-gray-600">
-                        {data?.data?.email}
+                        {data?.data?.email ? data?.data?.email : t("NA")}
                       </p>
                     </div>
 
@@ -94,7 +94,9 @@ const ViewClient = () => {
                       </div>
                       <ul className="text-sm text-gray-600 list-disc list-outside flex flex-col gap-1">
                         {data?.data?.phoneNumbers?.map((item) => (
-                          <li>{item?.phoneNumber}</li>
+                          <li>
+                            {item?.phoneNumber ? item?.phoneNumber : t("NA")}
+                          </li>
                         ))}
                       </ul>
                     </div>
@@ -109,7 +111,7 @@ const ViewClient = () => {
                         </span>
                       </div>
                       <p className="text-sm text-gray-600">
-                        {data?.data?.idNumber}
+                        {data?.data?.idNumber ? data?.data?.idNumber : t("NA")}
                       </p>
                     </div>
 
@@ -166,19 +168,19 @@ const ViewClient = () => {
                     </h2>
                     <p>
                       <span>{t("STREET")}</span>:{" "}
-                      {address?.street ? address?.street : "----"}
+                      {address?.street ? address?.street : t("NA")}
                     </p>
                     <p>
                       <span>{t("LANDMARK")}</span>:{" "}
-                      {address?.landMark ? address?.landMark : "----"}
+                      {address?.landMark ? address?.landMark : t("NA")}
                     </p>
                     <p>
                       <span>{t("APARTMENT")}</span>:{" "}
-                      {address?.apartment ? address?.apartment : "----"}
+                      {address?.apartment ? address?.apartment : t("NA")}
                     </p>
                     <p>
                       <span>{t("FLOOR")}</span>:{" "}
-                      {address?.floor ? address?.floor : "----"}
+                      {address?.floor ? address?.floor : t("NA")}
                     </p>
                     {/* <p>
                       <span>{t("BRIDE_CLEANS")}</span>:{" "}
@@ -200,7 +202,7 @@ const ViewClient = () => {
                       <span>{t("NUMBER_OF_WINDOWS")}</span>:{" "}
                       {address?.numberOfWindows
                         ? address?.numberOfWindows
-                        : "----"}
+                        : t("NA")}
                     </p>
                     {/* <p>
                       <span>{t("NO_WORKERS")}</span>:{" "}
@@ -218,7 +220,7 @@ const ViewClient = () => {
                       <span>{t("DESCRIPTION")}</span>:{" "}
                       {address?.fullDescription
                         ? address?.fullDescription
-                        : "----"}
+                        : t("NA")}
                     </p>
                     {/* <p>
                       <span>{t("VISIT_DURATION")}</span>:{" "}

@@ -3,7 +3,7 @@ import { Controller, useForm } from "react-hook-form";
 import Title from "../../../components/Common/Title/title";
 import { useTranslation } from "react-i18next";
 import type { reservationFormProps } from "../../../components/Utilities/Types/types";
-import { Button, DatePicker, Input, Radio, Select, TimePicker } from "antd";
+import { Button, Input, Radio, Select } from "antd";
 import dayjs from "dayjs";
 import { useState } from "react";
 
@@ -90,6 +90,46 @@ const AddReservation = () => {
 
                 {errors?.customerId ? (
                   <p className="font-light">{errors?.customerId?.message}</p>
+                ) : null}
+              </div>
+
+              <div className="col-span-2 lg:col-span-1 text-xl text-[#1D1B1B]">
+                <label className="font-semibold">{t("SELECT_ADDRESS")}</label>
+
+                <Controller
+                  control={control}
+                  name="addressId"
+                  rules={{
+                    required: {
+                      value: true,
+                      message: t("REQUIRED"),
+                    },
+                  }}
+                  render={({ field }) => (
+                    <Select
+                      {...field}
+                      className="min-h-10 border-[#C4C4C4] border rounded-md capitalize [&>.ant-select-selector]:capitalize"
+                      variant="filled"
+                      status={errors?.addressId ? "error" : ""}
+                      // defaultValue="male"
+                      placeholder="Select Address"
+                      style={{ width: "100%" }}
+                      onChange={(e) => {
+                        field.onChange(e);
+                        //   handleChange(e);
+                      }}
+                      options={[
+                        { value: "1", label: "John Doe" },
+                        { value: "2", label: "Nancy Williams" },
+                        // { value: 'Yiminghe', label: 'yiminghe' },
+                        // { value: 'disabled', label: 'Disabled', disabled: true },
+                      ]}
+                    />
+                  )}
+                />
+
+                {errors?.addressId ? (
+                  <p className="font-light">{errors?.addressId?.message}</p>
                 ) : null}
               </div>
             </section>
@@ -201,7 +241,7 @@ const AddReservation = () => {
                 {errors?.idNumber ? <p>{errors?.idNumber?.message}</p> : null}
               </div>
 
-              {/* <div>
+              <div>
                 <label>{t("PHONE_NUMBER")}</label>
                 <Controller
                   control={control}
@@ -226,7 +266,7 @@ const AddReservation = () => {
                 {errors?.phoneNumber ? (
                   <p>{errors?.phoneNumber?.message}</p>
                 ) : null}
-              </div> */}
+              </div>
 
               <div>
                 <label>{t("EMAIL")}</label>
@@ -257,6 +297,8 @@ const AddReservation = () => {
                 {errors?.email ? <p>{errors?.email?.message}</p> : null}
               </div>
             </section>
+
+            <section className="address-wrapper"></section>
 
             {/* <section className="address-info-section">
               <div className="address-title capitalize col-span-full text-xl text-[#1D1B1B] font-semibold ">
@@ -468,7 +510,7 @@ const AddReservation = () => {
               </div>
             </section> */}
 
-            <section className="appintment-info-wrapper">
+            {/* <section className="appintment-info-wrapper">
               <div className="capitalize col-span-full text-xl text-[#1D1B1B] font-semibold">
                 {t("ADD_APPOINTMENT")}
               </div>
@@ -553,7 +595,7 @@ const AddReservation = () => {
                 />
                 {errors?.endTime ? <p>{errors?.endTime?.message}</p> : null}
               </div>
-            </section>
+            </section> */}
 
             {/* <section className="bulding-info-wrapper">
               <div className="capitalize col-span-full text-xl text-[#1D1B1B] font-semibold">

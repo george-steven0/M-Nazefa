@@ -13,6 +13,7 @@ import { Button } from "antd";
 import { useTranslation } from "react-i18next";
 import { FaSignOutAlt } from "react-icons/fa";
 import { MdOutlinePermContactCalendar } from "react-icons/md";
+import { FaMapLocation } from "react-icons/fa6";
 
 const Navbar = ({
   setToggle,
@@ -47,6 +48,13 @@ const Navbar = ({
       name: t("ROLES"),
       path: "/roles",
       icon: <MdOutlinePermContactCalendar />,
+      iconType: "fontIcon",
+    },
+    {
+      id: "area",
+      name: t("AREA"),
+      path: "/areas",
+      icon: <FaMapLocation />,
       iconType: "fontIcon",
     },
     {
