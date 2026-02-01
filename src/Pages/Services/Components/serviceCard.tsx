@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import packageIcon from "../../../assets/imgs/packageIconDark.svg";
 import { ConfigProvider, Switch } from "antd";
 
-const ServiceCard = ({ id }: { id: number }) => {
+const ServiceCard = ({ id }: { id: number | string }) => {
   console.log(id);
 
   const navigate = useNavigate();
@@ -10,7 +10,10 @@ const ServiceCard = ({ id }: { id: number }) => {
     navigate(`view-service?id=${id}`);
   };
   return (
-    <div className="border bg-[#F5F4F4] border-[#c4c4c4] p-4 rounded-lg shadow-sm">
+    <div
+      className="border bg-[#F5F4F4] border-[#c4c4c4] p-4 rounded-lg shadow-sm cursor-pointer"
+      onClick={handleNavigateView}
+    >
       <div className="w-full flex flex-col gap-4 relative max-h-[350px] overflow-hidden">
         <div className="package-title flex items-center gap-2">
           <span>

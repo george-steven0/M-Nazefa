@@ -1,3 +1,4 @@
+import dayjs from "dayjs";
 import type {
   APIParams,
   APIResponse,
@@ -45,14 +46,32 @@ const clients = API.injectEndpoints({
       SingleAPIResponse<clientFormPropsType>,
       clientFormPropsType
     >({
-      query: (data) => ({
-        url: `/Customer/AddCustomer`,
-        method: "POST",
-        body: data,
-        // headers: {
-        //   "Content-Type": "multipart/form-data",
-        // },
-      }),
+      query: (data) => {
+        const formattedData = {
+          ...data,
+          customerAddresses: data.customerAddresses.map((address) => ({
+            ...address,
+          })),
+          favoriteList: data?.favoriteList
+            ?.map((item) => (typeof item === "object" ? item?.value : item))
+            ?.join("_"),
+          NotRecommendedWorkerList: data?.NotRecommendedWorkerList?.map(
+            (item) => (typeof item === "object" ? item?.value : item),
+          ).join("_"),
+          entryDate: dayjs(data?.entryDate).format("YYYY-MM-DDTHH:mm:ss"),
+        };
+
+        // console.log(formattedData);
+
+        return {
+          url: `/Customer/AddCustomer`,
+          method: "POST",
+          body: formattedData,
+          // headers: {
+          //   "Content-Type": "multipart/form-data",
+          // },
+        };
+      },
       invalidatesTags: [{ type: "clients", id: "LIST" }],
     }),
 
@@ -60,14 +79,31 @@ const clients = API.injectEndpoints({
       SingleAPIResponse<clientFormPropsType>,
       clientFormPropsType
     >({
-      query: (data) => ({
-        url: `/Customer/EditCustomer`,
-        method: "POST",
-        body: data,
-        // headers: {
-        //   "Content-Type": "multipart/form-data",
-        // },
-      }),
+      query: (data) => {
+        const formattedData = {
+          ...data,
+          customerAddresses: data.customerAddresses.map((address) => ({
+            ...address,
+          })),
+          favoriteList: data?.favoriteList
+            ?.map((item) => (typeof item === "object" ? item?.value : item))
+            ?.join("_"),
+          NotRecommendedWorkerList: data?.NotRecommendedWorkerList?.map(
+            (item) => (typeof item === "object" ? item?.value : item),
+          ).join("_"),
+          entryDate: dayjs(data?.entryDate).format("YYYY-MM-DDTHH:mm:ss"),
+        };
+        // console.log(formattedData);
+
+        return {
+          url: `/Customer/EditCustomer`,
+          method: "POST",
+          body: formattedData,
+          // headers: {
+          //   "Content-Type": "multipart/form-data",
+          // },
+        };
+      },
       invalidatesTags: (_res, _err, { id }) => [
         { type: "clients", id },
         { type: "clients", id: "LIST" },

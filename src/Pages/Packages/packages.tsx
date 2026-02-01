@@ -1,13 +1,18 @@
 import { useTranslation } from "react-i18next";
 import Title from "../../components/Common/Title/title";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
-import { Button } from "antd";
+import { Button, Skeleton } from "antd";
 import PackageCard from "./Components/packageCard";
+import { useGetAllPackagesQuery } from "../../components/APIs/Packages/PACKAGES_QUERY";
 
 const Packages = () => {
   const { t } = useTranslation();
   const { pathname } = useLocation();
   const navigate = useNavigate();
+
+  const { data: packages, isLoading, isFetching } = useGetAllPackagesQuery();
+
+  // console.log(packages);
 
   const handleAddButton = () => {
     return (
@@ -43,9 +48,13 @@ const Packages = () => {
       </section>
 
       <section className="packages-card-wrapper max-h-[70vh] overflow-y-auto mt-8 grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-5">
-        {[...Array(8)]?.map((_, index) => (
-          <PackageCard key={index} id={index} />
-        ))}
+        {isLoading || isFetching ? (
+          <Skeleton active paragraph={{ rows: 3 }} />
+        ) : (
+          packages?.data?.map((item, index) => (
+            <PackageCard key={index} id={item.id} data={item} />
+          ))
+        )}
       </section>
     </div>
   );

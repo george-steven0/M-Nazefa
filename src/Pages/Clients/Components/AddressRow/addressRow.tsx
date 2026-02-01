@@ -1,16 +1,18 @@
 import {
   Controller,
+  useFieldArray,
   useWatch,
   type Control,
   type FieldErrors,
 } from "react-hook-form";
 import type { clientFormPropsType } from "../../../../components/Utilities/Types/types";
 import type { TFunction } from "i18next";
-import { Button, Select, Input, Checkbox } from "antd";
-import { FaTrashAlt } from "react-icons/fa";
+import { Button, Select, Input, Checkbox, Space } from "antd";
+import { FaMinus, FaPlus, FaTrashAlt } from "react-icons/fa";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc"; // Required for the 'Z' (UTC) output
 import {
+  useGetAddressTypesQuery,
   useGetAreasQuery,
   useGetBuildingTypesQuery,
   useGetCitiesQuery,
@@ -50,7 +52,12 @@ const AddressRow = ({
     name: `customerAddresses.${index}.cityId`,
   });
 
-  //   console.log(cityId);
+  const addressTypeId = useWatch({
+    control,
+    name: `customerAddresses.${index}.addressTypeId`,
+  });
+
+  // console.log(addressTypeId);
 
   const {
     data: areas,
@@ -62,7 +69,7 @@ const AddressRow = ({
     data: buildingType,
     isFetching: isBuildingTypeFetching,
     isLoading: isBuildingTypeLoading,
-  } = useGetBuildingTypesQuery();
+  } = useGetBuildingTypesQuery({ id: addressTypeId });
 
   const {
     data: landType,
@@ -70,7 +77,29 @@ const AddressRow = ({
     isLoading: isLandTypeLoading,
   } = useGetLandTypesQuery();
 
-  //   console.log(cityId);
+  const {
+    data: addressTypes,
+    isLoading: isAddressTypesLoading,
+    isFetching: isAddressTypesFetching,
+  } = useGetAddressTypesQuery();
+
+  const {
+    fields: favListFields,
+    append: appendFavList,
+    remove: removeFavList,
+  } = useFieldArray({
+    control,
+    name: "favoriteList",
+  });
+
+  const {
+    fields: notRecommendedListFields,
+    append: appendNotRecommendedList,
+    remove: removeNotRecommendedList,
+  } = useFieldArray({
+    control,
+    name: "NotRecommendedWorkerList",
+  });
 
   return (
     <>
@@ -116,6 +145,11 @@ const AddressRow = ({
                   value: city.id,
                   label: lang === "ar" ? city.arName : city.name,
                 }))}
+                showSearch
+                optionFilterProp="label"
+                // notFoundContent={
+                //   <p className="text-red-500">{t("NOT_FOUND")}</p>
+                // }
               />
             )}
           />
@@ -151,6 +185,8 @@ const AddressRow = ({
                   value: area.id,
                   label: lang === "ar" ? area.arName : area.name,
                 }))}
+                showSearch
+                optionFilterProp="label"
               />
             )}
           />
@@ -310,8 +346,10 @@ const AddressRow = ({
         </div>
 
         {/* DESCRIPTION */}
-        <div className="col-span-full lg:col-span-2">
-          <label>{t("DESCRIPTION")}</label>
+        <div className="md:col-span-full ">
+          <label>
+            {t("DESCRIPTION")} <Astrisk />
+          </label>
           <Controller
             control={control}
             name={`customerAddresses.${index}.fullDescription`}
@@ -376,6 +414,51 @@ const AddressRow = ({
           )}
         </div>
 
+        {/* ADDRESS TYPE */}
+        <div>
+          <label>
+            {t("ADDRESS_TYPE")}
+            <Astrisk />
+          </label>
+          <Controller
+            control={control}
+            name={`customerAddresses.${index}.addressTypeId`}
+            rules={{
+              required: { value: true, message: t("REQUIRED") },
+            }}
+            render={({ field }) => (
+              <Select
+                {...field}
+                className="min-h-10 border-[#C4C4C4] border rounded-md capitalize w-full"
+                placeholder="Select address type"
+                variant="filled"
+                status={
+                  errors?.customerAddresses?.[index]?.addressTypeId
+                    ? "error"
+                    : ""
+                }
+                loading={isAddressTypesLoading || isAddressTypesFetching}
+                options={addressTypes?.data?.map((area) => ({
+                  value: area.id,
+                  label: lang === "ar" ? area.arName : area.name,
+                }))}
+
+                // onChange={(_e, option) => {
+                //   if (option && !Array.isArray(option)) {
+                //     setBuildType({
+                //       value: option.value as string,
+                //       label: option.label,
+                //     });
+                //   }
+                // }}
+              />
+            )}
+          />
+          {errors?.customerAddresses?.[index]?.addressTypeId && (
+            <p>{errors.customerAddresses[index].addressTypeId.message}</p>
+          )}
+        </div>
+
         {/* BUILDING TYPE */}
         <div>
           <label>
@@ -399,16 +482,60 @@ const AddressRow = ({
                     ? "error"
                     : ""
                 }
+                disabled={!addressTypeId}
                 loading={isBuildingTypeLoading || isBuildingTypeFetching}
                 options={buildingType?.data?.map((area) => ({
                   value: area.id,
                   label: lang === "ar" ? area.arName : area.name,
                 }))}
+                // onChange={(_e, option) => {
+                //   if (option && !Array.isArray(option)) {
+                //     setBuildType({
+                //       value: option.value as string,
+                //       label: option.label,
+                //     });
+                //   }
+                // }}
               />
             )}
           />
           {errors?.customerAddresses?.[index]?.BuildingTypeId && (
             <p>{errors.customerAddresses[index].BuildingTypeId.message}</p>
+          )}
+        </div>
+
+        {/* Villa Floors */}
+        <div>
+          <label>
+            {t("NUMBER_OF_FLOORS")}
+            <Astrisk />
+          </label>
+          <Controller
+            control={control}
+            name={`customerAddresses.${index}.noOfFloors`}
+            defaultValue={0}
+            rules={{
+              required: { value: true, message: t("REQUIRED") },
+            }}
+            render={({ field }) => (
+              <Select
+                {...field}
+                className="min-h-10 border-[#C4C4C4] border rounded-md w-full"
+                placeholder="Number of floors"
+                variant="filled"
+                status={
+                  errors?.customerAddresses?.[index]?.noOfFloors ? "error" : ""
+                }
+                defaultValue={0}
+                options={Array.from({ length: 15 })?.map((_, index) => ({
+                  label: index,
+                  value: index,
+                }))}
+              />
+            )}
+          />
+          {errors?.customerAddresses?.[index]?.noOfFloors && (
+            <p>{errors.customerAddresses[index].noOfFloors.message}</p>
           )}
         </div>
 
@@ -438,6 +565,8 @@ const AddressRow = ({
                   value: area.id,
                   label: lang === "ar" ? area.arName : area.name,
                 }))}
+                showSearch
+                optionFilterProp="label"
               />
             )}
           />
@@ -573,6 +702,7 @@ const AddressRow = ({
           <Controller
             control={control}
             name={`customerAddresses.${index}.numberOfWindows`}
+            defaultValue={0}
             rules={{
               required: { value: true, message: t("REQUIRED") },
             }}
@@ -587,9 +717,10 @@ const AddressRow = ({
                     ? "error"
                     : ""
                 }
-                options={Array.from({ length: 20 })?.map((_, index) => ({
-                  label: index + 1,
-                  value: index + 1,
+                defaultValue={0}
+                options={Array.from({ length: 21 })?.map((_, index) => ({
+                  label: index,
+                  value: index,
                 }))}
               />
             )}
@@ -608,6 +739,7 @@ const AddressRow = ({
           <Controller
             control={control}
             name={`customerAddresses.${index}.numberOfBedrooms`}
+            defaultValue={0}
             rules={{
               required: { value: true, message: t("REQUIRED") },
             }}
@@ -622,9 +754,10 @@ const AddressRow = ({
                     ? "error"
                     : ""
                 }
-                options={Array.from({ length: 20 })?.map((_, index) => ({
-                  label: index + 1,
-                  value: index + 1,
+                defaultValue={0}
+                options={Array.from({ length: 21 })?.map((_, index) => ({
+                  label: index,
+                  value: index,
                 }))}
               />
             )}
@@ -643,6 +776,7 @@ const AddressRow = ({
           <Controller
             control={control}
             name={`customerAddresses.${index}.numberOfBathrooms`}
+            defaultValue={0}
             rules={{
               required: { value: true, message: t("REQUIRED") },
             }}
@@ -657,9 +791,10 @@ const AddressRow = ({
                     ? "error"
                     : ""
                 }
-                options={Array.from({ length: 20 })?.map((_, index) => ({
-                  label: index + 1,
-                  value: index + 1,
+                defaultValue={0}
+                options={Array.from({ length: 21 })?.map((_, index) => ({
+                  label: index,
+                  value: index,
                 }))}
               />
             )}
@@ -678,6 +813,7 @@ const AddressRow = ({
           <Controller
             control={control}
             name={`customerAddresses.${index}.numberOfKitchens`}
+            defaultValue={0}
             rules={{
               required: { value: true, message: t("REQUIRED") },
             }}
@@ -685,16 +821,17 @@ const AddressRow = ({
               <Select
                 {...field}
                 className="min-h-10 border-[#C4C4C4] border rounded-md w-full"
-                placeholder="Number of bathrooms"
+                placeholder="Number of kitchens"
                 variant="filled"
                 status={
                   errors?.customerAddresses?.[index]?.numberOfKitchens
                     ? "error"
                     : ""
                 }
-                options={Array.from({ length: 20 })?.map((_, index) => ({
-                  label: index + 1,
-                  value: index + 1,
+                defaultValue={0}
+                options={Array.from({ length: 21 })?.map((_, index) => ({
+                  label: index,
+                  value: index,
                 }))}
               />
             )}
@@ -713,6 +850,7 @@ const AddressRow = ({
           <Controller
             control={control}
             name={`customerAddresses.${index}.numberOfLivingRooms`}
+            defaultValue={0}
             rules={{
               required: { value: true, message: t("REQUIRED") },
             }}
@@ -727,9 +865,10 @@ const AddressRow = ({
                     ? "error"
                     : ""
                 }
-                options={Array.from({ length: 20 })?.map((_, index) => ({
-                  label: index + 1,
-                  value: index + 1,
+                defaultValue={0}
+                options={Array.from({ length: 21 })?.map((_, index) => ({
+                  label: index,
+                  value: index,
                 }))}
               />
             )}
@@ -748,6 +887,7 @@ const AddressRow = ({
           <Controller
             control={control}
             name={`customerAddresses.${index}.numberOfReceptionrooms`}
+            defaultValue={0}
             rules={{
               required: { value: true, message: t("REQUIRED") },
             }}
@@ -762,9 +902,10 @@ const AddressRow = ({
                     ? "error"
                     : ""
                 }
-                options={Array.from({ length: 20 })?.map((_, index) => ({
-                  label: index + 1,
-                  value: index + 1,
+                defaultValue={0}
+                options={Array.from({ length: 21 })?.map((_, index) => ({
+                  label: index,
+                  value: index,
                 }))}
               />
             )}
@@ -960,6 +1101,178 @@ const AddressRow = ({
             <p>{errors.customerAddresses[index].duration.message}</p>
           )}
         </div> */}
+      </section>
+
+      {/* --------------------------------------- */}
+      {/* Favourite List */}
+      {/* --------------------------------------- */}
+      <section className="fav-list-wrapper">
+        <article className="col-span-full flex flex-col gap-2 capitalize text-xl text-[#1D1B1B] font-semibold">
+          <div className="flex items-center gap-2 capitalize">
+            <label>{t("FAVORITE_LIST")}</label>
+            {/* <Astrisk /> */}
+            <Button
+              shape="circle"
+              size="small"
+              className="bg-green-600/20 text-green-600 border-none"
+              icon={<FaPlus size={12} />}
+              onClick={() => appendFavList({ value: "" })}
+            />
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            {favListFields?.map((field, index) => (
+              <div key={field?.id}>
+                <Controller
+                  control={control}
+                  name={`favoriteList.${index}.value`}
+                  // rules={{
+                  //   required: { value: true, message: t("REQUIRED") },
+                  // }}
+                  render={({ field }) => (
+                    <Space.Compact className="items-stretch w-full">
+                      <Input
+                        {...field}
+                        variant="filled"
+                        placeholder="Enter Key word"
+                        className={`placeholder:capitalize border-[#C4C4C4] border ${
+                          favListFields?.length > 1
+                            ? "rounded-s-md"
+                            : "rounded-md"
+                        } py-2 min-w-[250px]`}
+                        status={
+                          (
+                            errors?.favoriteList?.[index] as unknown as {
+                              value: string;
+                            }
+                          )?.value
+                            ? "error"
+                            : ""
+                        }
+                      />
+                      <span>
+                        {favListFields?.length > 1 ? (
+                          <Button
+                            icon={<FaMinus className="text-sm" />}
+                            onClick={() => removeFavList(index)}
+                            className="bg-red-500 text-white border-none size-full min-w-[30px] rounded-e-md"
+                            shape="default"
+                          />
+                        ) : null}
+                      </span>
+                    </Space.Compact>
+                  )}
+                />
+                {(
+                  errors?.favoriteList?.[index] as unknown as {
+                    value: {
+                      message: string;
+                    };
+                  }
+                )?.value?.message && (
+                  <p className="text-red-500 text-xs mt-1 capitalize font-normal">
+                    {
+                      (
+                        errors?.favoriteList?.[index] as unknown as {
+                          value: {
+                            message: string;
+                          };
+                        }
+                      )?.value?.message
+                    }
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+        </article>
+      </section>
+
+      {/* --------------------------------------- */}
+      {/* Not Recommended Workers */}
+      {/* --------------------------------------- */}
+
+      <section className="not-recommeded-workers-wrapper">
+        <article className="col-span-full flex flex-col gap-2 capitalize text-xl text-[#1D1B1B] font-semibold">
+          <div className="flex items-center gap-2 capitalize">
+            <label>{t("NOT_RECOMMENDED_WORKERS")}</label>
+            {/* <Astrisk /> */}
+            <Button
+              shape="circle"
+              size="small"
+              className="bg-green-600/20 text-green-600 border-none"
+              icon={<FaPlus size={12} />}
+              onClick={() => appendNotRecommendedList({ value: "" })}
+            />
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            {notRecommendedListFields?.map((field, index) => (
+              <div key={field?.id}>
+                <Controller
+                  control={control}
+                  name={`NotRecommendedWorkerList.${index}.value`}
+                  // rules={{
+                  //   required: { value: true, message: t("REQUIRED") },
+                  // }}
+                  render={({ field }) => (
+                    <Space.Compact className="items-stretch w-full">
+                      <Input
+                        {...field}
+                        variant="filled"
+                        placeholder="Enter not recommended worker"
+                        className={`placeholder:capitalize border-[#C4C4C4] border ${
+                          notRecommendedListFields?.length > 1
+                            ? "rounded-s-md"
+                            : "rounded-md"
+                        } py-2 min-w-[250px]`}
+                        status={
+                          (
+                            errors?.NotRecommendedWorkerList?.[
+                              index
+                            ] as unknown as {
+                              value: string;
+                            }
+                          )?.value
+                            ? "error"
+                            : ""
+                        }
+                      />
+
+                      <span>
+                        {notRecommendedListFields?.length > 1 ? (
+                          <Button
+                            icon={<FaMinus className="text-sm" />}
+                            onClick={() => removeNotRecommendedList(index)}
+                            className="bg-red-500 text-white border-none size-full min-w-[30px] rounded-e-md"
+                            shape="default"
+                          />
+                        ) : null}
+                      </span>
+                    </Space.Compact>
+                  )}
+                />
+                {(
+                  errors?.NotRecommendedWorkerList?.[index] as unknown as {
+                    value: string;
+                  }
+                )?.value && (
+                  <p className="text-red-500 text-xs mt-1 capitalize font-normal">
+                    {
+                      (
+                        errors?.NotRecommendedWorkerList?.[
+                          index
+                        ] as unknown as {
+                          value: string;
+                        }
+                      )?.value
+                    }
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+        </article>
       </section>
     </>
   );

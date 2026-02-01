@@ -11,6 +11,7 @@ export type APIErrorProps = {
     errorMessage?: string[];
     errorMessages?: string[];
     validationErrors?: string[];
+    isSuccess?: boolean;
   };
 };
 
@@ -157,23 +158,45 @@ export type clientFormPropsType = {
   CustomerTypeId?: string | number;
   customerTypeId?: string | number;
   hasMembership?: boolean;
-  membership?: string | number;
+  isOld: boolean;
+  whatsAppNumber?: string | number;
+  membershipId?: string | number;
+  entryDate: string;
   customerAddresses: (addressProps & buildingProps)[];
   address?: (addressProps & buildingProps)[];
+  favoriteList?:
+    | {
+        value: string;
+      }[]
+    | string[];
+  NotRecommendedWorkerList?:
+    | {
+        value: string;
+      }[]
+    | string[];
+  notRecommendedWorkerList?:
+    | {
+        value: string;
+      }[]
+    | string[];
 };
+
 export type buildingProps = {
   space: string;
   BuildingTypeId: string;
   buildingTypeId?: string;
+  addressTypeId: string;
   state?: string;
   LandTypeId: string;
   landTypeId?: string;
-  numberOfWindows: string;
-  numberOfKitchens: string;
-  numberOfBedrooms: string;
-  numberOfBathrooms: string;
-  numberOfLivingRooms: string;
-  numberOfReceptionrooms: string;
+  numberOfFloors?: string | number;
+  noOfFloors?: string | number;
+  numberOfWindows: string | number;
+  numberOfKitchens: string | number;
+  numberOfBedrooms: string | number;
+  numberOfBathrooms: string | number;
+  numberOfLivingRooms: string | number;
+  numberOfReceptionrooms: string | number;
   hasPets: boolean;
   landLine: string;
   description?: string;
@@ -189,20 +212,63 @@ export type buildingProps = {
 };
 
 export type packageFormProps = {
-  title: string;
-  description: string;
-  image: string | File;
-  subTitle: string;
-  numberOfWorkers: string | number;
+  Title: string;
+  ArTitle: string;
+  SubTitle: string;
+  ArSubTitle: string;
+  Description: string;
+  WhatYouWillHaveOnIt: string;
+  WhatYouwouldntHaveOnIt: string;
+  Tools: string;
+  Supplies: string;
+  Rules: string | number;
+  TermsAndConditions: UploadFile | null;
+  Logo: string | File;
   workingHours: string;
-  haveOn: string;
-  notHav: string;
-  tool: string;
+  PackageDetails: {
+    NumberofRooms: string;
+    NumberofWorkers: string;
+    Price: string;
+  }[];
+  TransportationFees: { Fee: string; CityId: string }[];
+};
+
+// this type for card only
+export type packageCard = {
+  id: string | number;
+  title: string;
+  arTitle: string;
+  subTitle: string;
+  arSubTitle: string;
+  description: string;
+  whatYouWillHaveOnIt: string;
+  whatYouWouldntHaveOnIt: string;
+  whatYouwouldntHaveOnIt?: string;
+  tools: string;
   supplies: string;
   rules: string | number;
-  terms: UploadFile | null;
-  extra_details: { noOfRooms: string; noOfWorkers: string; price: string }[];
-  transportaion: { fees: string; country: string }[];
+  termsAndConditions:
+    | UploadFile
+    | null
+    | {
+        uid: string;
+        name: string;
+        status: string;
+        url: string;
+        percent: number;
+      };
+  logo: string;
+  isActive: boolean;
+  workingHours: string;
+  packageDetails: {
+    id?: string | number;
+    numberofRooms: string;
+    numberOfRooms?: string;
+    numberofWorkers: string;
+    numberOfWorkers?: string;
+    price: string;
+  }[];
+  transportationFees: { id?: string; fee: string; cityId: string }[];
 };
 
 export type appointmentProps = {
@@ -229,10 +295,17 @@ export type reservationFormProps = {
 export type serviceFormProps = {
   id?: string | number;
   title?: string;
+  arTitle?: string;
   description?: string;
   package?: string;
-  extraId?: (string | number)[];
-  extraDescription?: string;
+  extraServices?:
+    | {
+        extraServiceId: string | number;
+      }[]
+    | null;
+  packages?: {
+    packageId: string | number;
+  }[];
 };
 
 export type messagesProps = {
@@ -267,4 +340,13 @@ export type seedersProps = {
   id?: string;
   name: string;
   arName: string;
+};
+
+export type membershipFormProps = {
+  id?: string;
+  name: string;
+  code: string;
+  startDate: string;
+  endDate: string;
+  noOfVisits: string | number;
 };

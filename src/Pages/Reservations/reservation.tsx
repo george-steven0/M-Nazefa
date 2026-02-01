@@ -78,10 +78,10 @@ export const Reservations = () => {
             data === "VIP"
               ? "text-[#027A48] bg-[#027A48]/20"
               : data === "Stable"
-              ? "text-[#493971] bg-[#493971]/20"
-              : data === "Refunded"
-              ? "text-[#1D1B1B] bg-[#1D1B1B]/20"
-              : ""
+                ? "text-[#493971] bg-[#493971]/20"
+                : data === "Refunded"
+                  ? "text-[#1D1B1B] bg-[#1D1B1B]/20"
+                  : ""
           }`}
         >
           {data}
@@ -98,20 +98,29 @@ export const Reservations = () => {
     {
       id: "1",
       package: "John Brown",
-      extraId: ["1", "2", "3"],
-      extraDescription: "John Brown",
+      extraServices: [
+        {
+          extraServiceId: "1",
+        },
+      ],
     },
     {
       id: "2",
       package: "Mike thunder",
-      extraId: ["1", "2", "3"],
-      extraDescription: "John Brown",
+      extraServices: [
+        {
+          extraServiceId: "1",
+        },
+      ],
     },
     {
       id: "3",
       package: "John Brown",
-      extraId: ["1", "2", "3"],
-      extraDescription: "John Brown",
+      extraServices: [
+        {
+          extraServiceId: "1",
+        },
+      ],
     },
   ];
 

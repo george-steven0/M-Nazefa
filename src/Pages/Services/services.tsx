@@ -2,13 +2,18 @@ import { useTranslation } from "react-i18next";
 import Title from "../../components/Common/Title/title";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Outlet } from "react-router-dom";
-import { Button } from "antd";
+import { Button, Skeleton } from "antd";
 import ServiceCard from "./Components/serviceCard";
+import { useGetAllServicesQuery } from "../../components/APIs/Services/SERVICES_QUERY";
 
 const Services = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { pathname } = useLocation();
+
+  const { data: services, isLoading, isFetching } = useGetAllServicesQuery();
+
+  // console.log(services?.data);
 
   const handleNavigateAdd = () => {
     navigate("add-service");
@@ -43,9 +48,13 @@ const Services = () => {
       </header>
 
       <section className="services-card-wrapper max-h-[70vh] overflow-y-auto mt-8 grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-5">
-        {[...Array(12)]?.map((_, index) => (
-          <ServiceCard key={index} id={index} />
-        ))}
+        {isLoading || isFetching
+          ? [...Array(12)]?.map((_, index) => (
+              <Skeleton key={index} active className="w-full h-full" />
+            ))
+          : services?.data?.map((service) => (
+              <ServiceCard key={service?.id} id={service?.id || ""} />
+            ))}
       </section>
     </main>
   );

@@ -23,7 +23,7 @@ const ViewEmployee = () => {
     { id: id! },
     {
       skip: !id,
-    }
+    },
   );
   const [deactivateEmployee, { isLoading: isDeactivateLoading }] =
     useDeactivateEmployeeMutation();
@@ -100,7 +100,7 @@ const ViewEmployee = () => {
       </header>
 
       <main className="view-employee-container mt-8">
-        <section className="[&>div>span:first-child]:capitalize max-w-[90%] md:max-w-[80%] lg:max-w-[70%] xl:max-w-[50%] grid grid-cols-1 gap-y-4 [&>div]:grid [&>div]:grid-cols-2 [&>div]:gap-x-3 [&>div]:pb-2 [&>div:last-child]:border-none [&>div]:border-b [&>div]:border-dashed [&>div]:border-[#A2A2A2] [&>div>span]:font-normal [&>div>span]:text-[18px] [&>div>span:first-child]:text-[#1D1B1B] [&>div>span:last-child]:text-[#646363] ">
+        <section className=" [&>div>span:first-child]:capitalize max-w-[90%] md:max-w-[80%] lg:max-w-[70%] xl:max-w-[60%] grid grid-cols-1 gap-y-4 [&>div]:grid [&>div]:grid-cols-3 [&>div>span:first-child]:col-span-1 [&>div>span:last-child]:col-span-2 [&>div]:gap-x-3 [&>div]:pb-2 [&>div:last-child]:border-none [&>div]:border-b [&>div]:border-dashed [&>div]:border-[#A2A2A2] [&>div>span]:font-normal [&>div>span]:text-[18px] [&>div>span:first-child]:text-[#1D1B1B] [&>div>span:last-child]:text-[#646363] ">
           <div>
             <span>{t("FULL_NAME")}</span>
             <span className="capitalize">

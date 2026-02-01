@@ -4,6 +4,7 @@ import { Controller, useFieldArray, useForm } from "react-hook-form";
 import {
   Button,
   Checkbox,
+  DatePicker,
   Input,
   Select,
   Space,
@@ -17,16 +18,15 @@ import dayjs from "dayjs";
 import { FaMinus, FaPlus } from "react-icons/fa";
 import { useAddNewClientMutation } from "../../../components/APIs/ClientQuery/CLIENTS_QUERY";
 import { toast } from "react-toastify";
-import utc from "dayjs/plugin/utc"; // Required for the 'Z' (UTC) output
 import AddressRow from "./AddressRow/addressRow";
 import { useAppSelector } from "../../../components/APIs/store";
 import { useNavigate } from "react-router-dom";
 import { useGetCustomerTypesQuery } from "../../../components/APIs/Seeders/SEEDERS_RTK_QUERY";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import TextArea from "antd/es/input/TextArea";
 import Astrisk from "../../../components/Common/Astrisk/astrisk";
 import { cleanDeep } from "../../../components/Utilities/helper";
-dayjs.extend(utc);
+import { useGetAllMembershipsQuery } from "../../../components/APIs/Membership/MEMBERSHIP_QUERY";
 
 const AddClient = () => {
   const { t } = useTranslation();
@@ -34,6 +34,11 @@ const AddClient = () => {
   const { lang } = useAppSelector((state) => state?.lang);
   const navigate = useNavigate();
   const [isMembership, setIsMembership] = useState(false);
+  const {
+    data: memberships,
+    isLoading: isMembershipLoading,
+    isFetching: isMembershipFetching,
+  } = useGetAllMembershipsQuery({});
 
   const {
     data: customerTypes,
@@ -70,6 +75,16 @@ const AddClient = () => {
           phoneNumber: "",
         },
       ],
+      favoriteList: [
+        {
+          value: "",
+        },
+      ],
+      NotRecommendedWorkerList: [
+        {
+          value: "",
+        },
+      ],
     },
   });
 
@@ -96,6 +111,7 @@ const AddClient = () => {
       fullDescription: "",
       space: "",
       BuildingTypeId: "",
+      addressTypeId: "",
       LandTypeId: "",
       numberOfWindows: "",
       numberOfBathrooms: "",
@@ -103,6 +119,7 @@ const AddClient = () => {
       numberOfKitchens: "",
       numberOfLivingRooms: "",
       numberOfReceptionrooms: "",
+      noOfFloors: "",
       hasPets: false,
       landLine: "",
     });
@@ -152,19 +169,19 @@ const AddClient = () => {
       ...data,
       customerAddresses: data.customerAddresses.map((address) => ({
         ...address,
-        // visitStart: address?.duration?.[0] || "",
-        // visitEnd: address?.duration?.[1] || "",
-        // rodents: address.rodents === "true",
-        // insects: address.insects === "true",
-        // brideCleansUp: address.brideCleansUp === "true",
-        // duration: undefined,
       })),
+      favoriteList: data?.favoriteList?.map((item) =>
+        typeof item === "object" ? item?.value : item,
+      ),
+      notRecommendedWorkers: data?.NotRecommendedWorkerList?.map((item) =>
+        typeof item === "object" ? item?.value : item,
+      ),
+      entryDate: dayjs(data?.entryDate).format("YYYY-MM-DDTHH:mm:ss"),
     };
 
     const cleanData = cleanDeep(formattedData);
-    // console.log(cleanData);
 
-    // console.log(formattedData);
+    // console.log(cleanData);
 
     try {
       await addNewClient(cleanData).unwrap();
@@ -187,8 +204,26 @@ const AddClient = () => {
     setIsMembership(e.target.checked);
     // console.log(e.target.checked);
     if (!e.target.checked) {
-      setValue("membership", "");
+      setValue("membershipId", "");
     }
+  };
+
+  const oldCustomerChange: CheckboxProps["onChange"] = (e) => {
+    // console.log(e.target.checked);
+    if (!e.target.checked) {
+      setValue("isOld", false);
+    }
+  };
+
+  const searchTimeout = useRef<ReturnType<typeof setTimeout>>(0);
+  const onMembershipSearch = (value: string) => {
+    // console.log("search:", value);
+    if (searchTimeout.current) {
+      clearTimeout(searchTimeout.current);
+    }
+    searchTimeout.current = setTimeout(() => {
+      console.log("search:", value);
+    }, 800);
   };
 
   return (
@@ -400,6 +435,39 @@ const AddClient = () => {
 
             <div className="col-span-full grid grid-cols-1 lg:grid-cols-3 gap-5 lg:gap-10 justify-start">
               <div className="flex flex-col w-fit">
+                <label className="cursor-pointer w-fit" htmlFor="isOld">
+                  {t("OLD_CUSTOMER")}
+                  {/* <Astrisk /> */}
+                </label>
+
+                <Controller
+                  control={control}
+                  name="isOld"
+                  // rules={{
+                  //   required: { value: true, message: t("REQUIRED") },
+                  // }}
+                  render={({ field }) => (
+                    <Checkbox
+                      id="isOld"
+                      {...field}
+                      className="size-fit scale-125"
+                      // status={errors?.hasMembership ? "error" : ""}
+                      checked={Boolean(field.value)}
+                      onChange={(e) => {
+                        field.onChange(e.target.checked);
+                        oldCustomerChange(e);
+                      }}
+                    />
+                  )}
+                />
+                {errors?.isOld && (
+                  <p className="text-red-500 text-xs mt-1 capitalize">
+                    {errors?.isOld?.message}
+                  </p>
+                )}
+              </div>
+
+              <div className="flex flex-col w-fit">
                 <label className="cursor-pointer w-fit" htmlFor="hasMembership">
                   {t("HAS_MEMBERSHIP")}
                   {/* <Astrisk /> */}
@@ -433,7 +501,7 @@ const AddClient = () => {
               </div>
 
               {isMembership ? (
-                <div className="flex flex-col col-span-2">
+                <div className="flex flex-col">
                   <label
                     className="w-fit"
                     // htmlFor="hasMembership"
@@ -444,23 +512,37 @@ const AddClient = () => {
 
                   <Controller
                     control={control}
-                    name="membership"
+                    name="membershipId"
                     rules={{
                       required: { value: isMembership, message: t("REQUIRED") },
                     }}
                     render={({ field }) => (
-                      <Input
+                      <Select
                         {...field}
+                        className="min-h-10 border-[#C4C4C4] border rounded-md w-full"
+                        placeholder="Select membership"
                         variant="filled"
-                        placeholder="Enter membership id"
-                        className="placeholder:capitalize border-[#C4C4C4] border rounded-md py-2 min-w-[250px]"
-                        status={errors?.membership ? "error" : ""}
+                        status={errors?.membershipId ? "error" : ""}
+                        showSearch={true}
+                        optionFilterProp="label"
+                        onSearch={onMembershipSearch}
+                        loading={isMembershipLoading || isMembershipFetching}
+                        // filterOption={(input, option) =>
+                        //   (option?.label ?? "")
+                        //     .toLowerCase()
+                        //     .includes(input.toLowerCase())
+                        // }
+                        // loading={isCustomerTypesLoading || isCustomerTypesFetching}
+                        options={memberships?.data?.map((membership) => ({
+                          value: membership.id,
+                          label: membership?.code,
+                        }))}
                       />
                     )}
                   />
-                  {errors?.membership && (
+                  {errors?.membershipId && (
                     <p className="text-red-500 text-xs mt-1 capitalize">
-                      {errors?.membership?.message}
+                      {errors?.membershipId?.message}
                     </p>
                   )}
                 </div>
@@ -479,63 +561,139 @@ const AddClient = () => {
                   onClick={handleAddPhone}
                 />
               </div>
+
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                 {phones?.map((phone, index) => (
                   <div key={phone?.id}>
-                    <Controller
-                      control={control}
-                      name={`phoneNumbers.${index}.phoneNumber`}
-                      rules={{
-                        required: { value: true, message: t("REQUIRED") },
-                        pattern: {
-                          value: /^\d+$/,
-                          message: t("ONLY_NUMBER"),
-                        },
-                        minLength: {
-                          value: 11,
-                          message: t("MIN_LENGTH", { length: 11 }),
-                        },
-                      }}
-                      render={({ field }) => (
-                        <Space.Compact className="items-stretch w-full">
-                          <Input
-                            {...field}
-                            variant="filled"
-                            placeholder="Enter phone number"
-                            className={`placeholder:capitalize border-[#C4C4C4] border ${
-                              phones?.length > 1 ? "rounded-s-md" : "rounded-md"
-                            } py-2 min-w-[250px]`}
-                            status={
-                              errors?.phoneNumbers?.[index]?.phoneNumber
-                                ? "error"
-                                : ""
-                            }
-                          />
+                    <label>
+                      {t("PHONE")} #{index + 1}
+                    </label>
+                    <div className="input-wrapper">
+                      <Controller
+                        control={control}
+                        name={`phoneNumbers.${index}.phoneNumber`}
+                        rules={{
+                          required: { value: true, message: t("REQUIRED") },
+                          pattern: {
+                            value: /^\d+$/,
+                            message: t("ONLY_NUMBER"),
+                          },
+                          minLength: {
+                            value: 11,
+                            message: t("MIN_LENGTH", { length: 11 }),
+                          },
+                        }}
+                        render={({ field }) => (
+                          <Space.Compact className="items-stretch w-full">
+                            <Input
+                              {...field}
+                              variant="filled"
+                              placeholder="Enter phone number"
+                              className={`placeholder:capitalize border-[#C4C4C4] border ${
+                                phones?.length > 1
+                                  ? "rounded-s-md"
+                                  : "rounded-md"
+                              } py-2 min-w-[250px]`}
+                              status={
+                                errors?.phoneNumbers?.[index]?.phoneNumber
+                                  ? "error"
+                                  : ""
+                              }
+                            />
 
-                          <span>
-                            {phones?.length > 1 ? (
-                              <Button
-                                icon={<FaMinus className="text-sm" />}
-                                onClick={() => handleRemovePhone(index)}
-                                className="bg-red-500 text-white border-none size-full min-w-[30px] rounded-e-md"
-                                shape="default"
-                              />
-                            ) : null}
-                          </span>
-                        </Space.Compact>
+                            <span>
+                              {phones?.length > 1 ? (
+                                <Button
+                                  icon={<FaMinus className="text-sm" />}
+                                  onClick={() => handleRemovePhone(index)}
+                                  className="bg-red-500 text-white border-none size-full min-w-[30px] rounded-e-md"
+                                  shape="default"
+                                />
+                              ) : null}
+                            </span>
+                          </Space.Compact>
+                        )}
+                      />
+                      {errors?.phoneNumbers?.[index]?.phoneNumber && (
+                        <p className="text-red-500 text-xs mt-1 capitalize">
+                          {errors?.phoneNumbers?.[index]?.phoneNumber?.message}
+                        </p>
                       )}
-                    />
-                    {errors?.phoneNumbers?.[index]?.phoneNumber && (
-                      <p className="text-red-500 text-xs mt-1 capitalize">
-                        {errors?.phoneNumbers?.[index]?.phoneNumber?.message}
-                      </p>
-                    )}
+                    </div>
                   </div>
                 ))}
+
+                <div className="whats-app-number-wrapper -mt-2">
+                  <label className="capitalize mb-2 block">
+                    {t("WHATS_APP_NUMBER")} <Astrisk />
+                  </label>
+                  <Controller
+                    control={control}
+                    name={`whatsAppNumber`}
+                    rules={{
+                      required: { value: true, message: t("REQUIRED") },
+                      pattern: {
+                        value: /^\d+$/,
+                        message: t("ONLY_NUMBER"),
+                      },
+                      minLength: {
+                        value: 11,
+                        message: t("MIN_LENGTH", { length: 11 }),
+                      },
+                    }}
+                    render={({ field }) => (
+                      <Input
+                        {...field}
+                        variant="filled"
+                        placeholder="Enter whats app number"
+                        className={`placeholder:capitalize border-[#C4C4C4] border rounded-md py-2 min-w-[250px]`}
+                        status={errors?.whatsAppNumber ? "error" : ""}
+                      />
+                    )}
+                  />
+                  {errors?.whatsAppNumber && (
+                    <p className="text-red-500 text-xs mt-1 capitalize">
+                      {errors?.whatsAppNumber?.message}
+                    </p>
+                  )}
+                </div>
+
+                <div className="joining_date -mt-2">
+                  <label className="capitalize mb-2 block">
+                    {t("JOINING_DATE")} <Astrisk />
+                  </label>
+                  <Controller
+                    control={control}
+                    name="entryDate"
+                    rules={{
+                      required: {
+                        value: true,
+                        message: t("REQUIRED"),
+                      },
+                    }}
+                    render={({ field }) => (
+                      <DatePicker
+                        className="min-h-10 w-full border-[#C4C4C4] border rounded-md capitalize [&>.ant-select-selector]:capitalize"
+                        {...field}
+                        variant="filled"
+                        status={errors?.entryDate ? "error" : ""}
+                        value={field.value ? dayjs(field.value) : null}
+                        onChange={(e) => {
+                          field.onChange(dayjs(e));
+                        }}
+                      />
+                    )}
+                  />
+                  {errors?.entryDate ? (
+                    <p className="text-red-500 text-xs mt-1 capitalize">
+                      {errors?.entryDate?.message}
+                    </p>
+                  ) : null}
+                </div>
               </div>
             </div>
 
-            <div className="col-span-full">
+            <div className="md:col-span-full">
               <label>{t("GENERAL_NOTES")}</label>
               <Controller
                 control={control}

@@ -56,13 +56,13 @@ const Roles = () => {
     // },
     {
       key: "name",
-      title: "Name",
+      title: t("NAME"),
       dataIndex: "name",
       render: (text) => <span>{text}</span>,
     },
     {
       key: "actions",
-      title: "Actions",
+      title: t("ACTIONS"),
       render: (data) => <Actions data={data} t={t} />,
     },
   ];
@@ -98,6 +98,7 @@ const Roles = () => {
 
       <section className="mt-8">
         <Table<rolesFormProps>
+          rowKey={"id"}
           columns={columns}
           dataSource={data || []}
           loading={isLoading || isFetching}

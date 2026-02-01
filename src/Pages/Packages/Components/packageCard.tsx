@@ -1,9 +1,43 @@
 import { useNavigate } from "react-router-dom";
-import img from "../../../assets/imgs/test.jpg";
 import packageIcon from "../../../assets/imgs/packageIconDark.svg";
 import { ConfigProvider, Switch } from "antd";
+import type {
+  APIErrorProps,
+  packageCard,
+} from "../../../components/Utilities/Types/types";
+import { useAppSelector } from "../../../components/APIs/store";
+import defImg from "../../../assets/imgs/logo.svg";
+import { t } from "i18next";
+import { useTogglePackageMutation } from "../../../components/APIs/Packages/PACKAGES_QUERY";
+import { toast } from "react-toastify";
+type packageCardProps = {
+  id: number | string;
+  data: packageCard;
+};
+const PackageCard = ({ id, data }: packageCardProps) => {
+  const { lang } = useAppSelector((state) => state.lang);
 
-const PackageCard = ({ id }: { id: number }) => {
+  const [togglePackage, { isLoading }] = useTogglePackageMutation();
+  // console.log(data);
+
+  const handleTogglePackage = async (status: boolean) => {
+    const data = {
+      packageId: id,
+      isActive: status,
+    };
+
+    try {
+      await togglePackage(data).unwrap();
+      toast.success("Package status updated successfully");
+    } catch (error) {
+      const err = error as APIErrorProps;
+      console.error(err);
+      toast.error(`Failed to set package status`);
+    }
+  };
+
+  const { title, arTitle, logo, isActive, description } = data;
+
   const navigate = useNavigate();
   const handleNavigateView = () => {
     navigate(`view-package?id=${id}`);
@@ -16,7 +50,7 @@ const PackageCard = ({ id }: { id: number }) => {
           onClick={handleNavigateView}
         >
           <img
-            src={img}
+            src={logo || defImg}
             className="size-full object-cover  transition-all duration-300 hover:scale-110"
           />
         </div>
@@ -26,7 +60,7 @@ const PackageCard = ({ id }: { id: number }) => {
             <img src={packageIcon} className="size-6" />
           </span>
           <p className="capitalize text-lg text-mainColor font-semibold">
-            package name
+            {title || arTitle ? (lang === "ar" ? arTitle : title) : t("NA")}
           </p>
         </div>
 
@@ -39,28 +73,29 @@ const PackageCard = ({ id }: { id: number }) => {
             }}
           >
             <Switch
-              loading={false}
-              onClick={(_checked, e) => e?.stopPropagation()}
+              defaultChecked={isActive}
+              loading={isLoading}
+              onClick={(checked, e) => {
+                handleTogglePackage(checked);
+                e?.stopPropagation();
+              }}
             />
           </ConfigProvider>
         </div>
 
         <div className="card-description">
           <p title="" className="line-clamp-3 text-[#646363] text-sm">
-            Lorem ipsum dolor sit, amet consectetur adipisicing elit.
-            Laboriosam, rerum consequuntur voluptate expedita, non omnis
-            reiciendis id consequatur necessitatibus doloremque, nulla facilis
-            accusamus error corporis pariatur ab beatae sit molestias?
+            {description || t("NA")}
           </p>
         </div>
 
-        {id % 2 === 0 ? (
+        {/* {id % 2 === 0 ? (
           <div className="card-discount-label">
             <span className="min-w-[60px] min-h-[25px] flex items-center justify-center bg-red-600 text-white text-sm rounded-sm absolute top-2 right-2 ">
               10%
             </span>
           </div>
-        ) : null}
+        ) : null} */}
       </div>
     </div>
   );

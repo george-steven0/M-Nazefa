@@ -4,6 +4,7 @@ import { Controller, useFieldArray, useForm } from "react-hook-form";
 import {
   Button,
   Checkbox,
+  DatePicker,
   Input,
   Select,
   Skeleton,
@@ -25,11 +26,12 @@ import utc from "dayjs/plugin/utc"; // Required for the 'Z' (UTC) output
 import AddressRow from "./AddressRow/addressRow";
 import { useAppSelector } from "../../../components/APIs/store";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useGetCustomerTypesQuery } from "../../../components/APIs/Seeders/SEEDERS_RTK_QUERY";
 import TextArea from "antd/es/input/TextArea";
 import Astrisk from "../../../components/Common/Astrisk/astrisk";
 import { cleanDeep } from "../../../components/Utilities/helper";
+import { useGetAllMembershipsQuery } from "../../../components/APIs/Membership/MEMBERSHIP_QUERY";
 dayjs.extend(utc);
 
 const EditClient = () => {
@@ -48,12 +50,18 @@ const EditClient = () => {
     { id: id! },
     {
       skip: !id,
-    }
+    },
   );
 
   const [isMembership, setIsMembership] = useState(
-    data?.data?.hasMembership ?? false
+    data?.data?.hasMembership ?? false,
   );
+
+  const {
+    data: memberships,
+    isLoading: isMembershipLoading,
+    isFetching: isMembershipFetching,
+  } = useGetAllMembershipsQuery({});
 
   // console.log(id);
 
@@ -71,8 +79,11 @@ const EditClient = () => {
     idNumber: data?.data.idNumber ?? "",
     hasMembership: data?.data.hasMembership ?? false,
     generalNotes: data?.data.generalNotes ?? "",
-    membership: data?.data.membership ?? "",
+    membershipId: data?.data.membershipId ?? "",
     customerTypeId: data?.data.customerTypeId ?? "",
+    isOld: data?.data?.isOld ?? false,
+    whatsAppNumber: data?.data?.whatsAppNumber ?? "",
+    entryDate: data?.data?.entryDate ?? undefined,
     customerAddresses: data?.data?.address?.map((address) => ({
       id: address?.id,
       cityId: address?.cityId ?? "",
@@ -92,13 +103,40 @@ const EditClient = () => {
       numberOfBathrooms: address?.numberOfBathrooms ?? "",
       numberOfLivingRooms: address?.numberOfLivingRooms ?? "",
       numberOfReceptionrooms: address?.numberOfReceptionrooms ?? "",
+      noOfFloors: address?.noOfFloors ?? "",
+      addressTypeId: address?.addressTypeId ?? "",
       hasPets: address?.hasPets ?? "",
       landLine: address?.landLine ?? "",
     })),
     phoneNumbers: data?.data?.phoneNumbers ?? [],
+    favoriteList:
+      (data?.data?.favoriteList as unknown as string)
+        ?.split("_")
+        ?.map((val) => {
+          return {
+            value: val,
+          };
+        }) ?? [],
+    NotRecommendedWorkerList:
+      (data?.data?.notRecommendedWorkerList as unknown as string)
+        ?.split("_")
+        ?.map((val) => {
+          return {
+            value: val,
+          };
+        }) ?? [],
   };
 
-  // console.log("defaultValues", defaultValues);
+  // console.log(
+  //   "fav",
+  //   (data?.data?.notRecommendedWorkerList as unknown as string)
+  //     ?.split("_")
+  //     ?.map((val) => {
+  //       return {
+  //         value: val,
+  //       };
+  //     }),
+  // );
 
   const {
     control,
@@ -109,6 +147,16 @@ const EditClient = () => {
   } = useForm<clientFormPropsType>({
     defaultValues: {
       customerAddresses: [],
+      favoriteList: [
+        {
+          value: "",
+        },
+      ],
+      NotRecommendedWorkerList: [
+        {
+          value: "",
+        },
+      ],
     },
   });
 
@@ -120,13 +168,13 @@ const EditClient = () => {
       reset(defaultValues);
       if (data?.data?.hasMembership) {
         setIsMembership(true);
-        setValue("membership", data?.data?.membership);
+        setValue("membershipId", data?.data?.membershipId);
       } else {
         setIsMembership(false);
-        setValue("membership", "");
+        setValue("membershipId", "");
       }
     }
-  }, [data, reset]);
+  }, [data, reset, setValue]);
 
   const { fields, append, remove } = useFieldArray({
     name: "customerAddresses",
@@ -150,11 +198,12 @@ const EditClient = () => {
       street: "",
       apartment: "",
       floor: "",
-      postalCode: "",
+      // postalCode: "",
       landmark: "",
       fullDescription: "",
       space: "",
       BuildingTypeId: "",
+      addressTypeId: "",
       LandTypeId: "",
       numberOfWindows: "",
       numberOfBathrooms: "",
@@ -162,6 +211,7 @@ const EditClient = () => {
       numberOfKitchens: "",
       numberOfLivingRooms: "",
       numberOfReceptionrooms: "",
+      noOfFloors: "",
       hasPets: false,
       landLine: "",
     });
@@ -212,13 +262,14 @@ const EditClient = () => {
       customerAddresses: data.customerAddresses.map((address) => ({
         id: address?.id || 0,
         ...address,
-        // visitStart: address?.duration?.[0] || "",
-        // visitEnd: address?.duration?.[1] || "",
-        // rodents: address.rodents === "true",
-        // insects: address.insects === "true",
-        // brideCleansUp: address.brideCleansUp === "true",
-        // duration: undefined,
       })),
+      favoriteList: data?.favoriteList?.map((item) =>
+        typeof item === "object" ? item?.value : item,
+      ),
+      notRecommendedWorkers: data?.NotRecommendedWorkerList?.map((item) =>
+        typeof item === "object" ? item?.value : item,
+      ),
+      entryDate: dayjs(data?.entryDate).format("YYYY-MM-DDTHH:mm:ss"),
     };
 
     const cleanData = cleanDeep(formattedData);
@@ -245,8 +296,26 @@ const EditClient = () => {
     setIsMembership(e.target.checked);
     // console.log(e.target.checked);
     if (!e.target.checked) {
-      setValue("membership", "");
+      setValue("membershipId", "");
     }
+  };
+
+  const oldCustomerChange: CheckboxProps["onChange"] = (e) => {
+    // console.log(e.target.checked);
+    if (!e.target.checked) {
+      setValue("isOld", false);
+    }
+  };
+
+  const searchTimeout = useRef<ReturnType<typeof setTimeout>>(0);
+  const onMembershipSearch = (value: string) => {
+    // console.log("search:", value);
+    if (searchTimeout.current) {
+      clearTimeout(searchTimeout.current);
+    }
+    searchTimeout.current = setTimeout(() => {
+      console.log("search:", value);
+    }, 800);
   };
   return (
     <>
@@ -469,6 +538,39 @@ const EditClient = () => {
 
                 <div className="col-span-full grid grid-cols-1 lg:grid-cols-3 gap-5 lg:gap-10 justify-start">
                   <div className="flex flex-col w-fit">
+                    <label className="cursor-pointer w-fit" htmlFor="isOld">
+                      {t("OLD_CUSTOMER")}
+                      {/* <Astrisk /> */}
+                    </label>
+
+                    <Controller
+                      control={control}
+                      name="isOld"
+                      // rules={{
+                      //   required: { value: true, message: t("REQUIRED") },
+                      // }}
+                      render={({ field }) => (
+                        <Checkbox
+                          id="isOld"
+                          {...field}
+                          className="size-fit scale-125"
+                          // status={errors?.hasMembership ? "error" : ""}
+                          checked={Boolean(field.value)}
+                          onChange={(e) => {
+                            field.onChange(e.target.checked);
+                            oldCustomerChange(e);
+                          }}
+                        />
+                      )}
+                    />
+                    {errors?.isOld && (
+                      <p className="text-red-500 text-xs mt-1 capitalize">
+                        {errors?.isOld?.message}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="flex flex-col w-fit">
                     <label
                       className="cursor-pointer w-fit"
                       htmlFor="hasMembership"
@@ -495,7 +597,7 @@ const EditClient = () => {
                   </div>
 
                   {isMembership ? (
-                    <div className="flex flex-col col-span-2">
+                    <div className="flex flex-col">
                       <label
                         className="w-fit"
                         // htmlFor="hasMembership"
@@ -506,20 +608,35 @@ const EditClient = () => {
 
                       <Controller
                         control={control}
-                        name="membership"
+                        name="membershipId"
                         render={({ field }) => (
-                          <Input
+                          <Select
                             {...field}
+                            className="min-h-10 border-[#C4C4C4] border rounded-md w-full"
+                            placeholder="Select membership"
                             variant="filled"
-                            placeholder="Enter membership id"
-                            className="placeholder:capitalize border-[#C4C4C4] border rounded-md py-2 min-w-[250px]"
-                            status={errors?.membership ? "error" : ""}
+                            status={errors?.membershipId ? "error" : ""}
+                            showSearch={true}
+                            optionFilterProp="label"
+                            onSearch={onMembershipSearch}
+                            // filterOption={(input, option) =>
+                            //   (option?.label ?? "")
+                            //     .toLowerCase()
+                            //     .includes(input.toLowerCase())
+                            // }
+                            loading={
+                              isMembershipLoading || isMembershipFetching
+                            }
+                            options={memberships?.data?.map((membership) => ({
+                              value: membership.id,
+                              label: membership?.code,
+                            }))}
                           />
                         )}
                       />
-                      {errors?.membership && (
+                      {errors?.membershipId && (
                         <p className="text-red-500 text-xs mt-1 capitalize">
-                          {errors?.membership?.message}
+                          {errors?.membershipId?.message}
                         </p>
                       )}
                     </div>
@@ -528,10 +645,8 @@ const EditClient = () => {
 
                 <div className="col-span-full flex flex-col gap-2">
                   <div className="flex items-center gap-2 capitalize">
-                    <label>
-                      {t("PHONE_NUMBER")}
-                      <Astrisk />
-                    </label>
+                    <label>{t("PHONE_NUMBER")}</label>
+                    <Astrisk />
                     <Button
                       shape="circle"
                       size="small"
@@ -540,56 +655,138 @@ const EditClient = () => {
                       onClick={handleAddPhone}
                     />
                   </div>
+
                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                     {phones?.map((phone, index) => (
                       <div key={phone?.id}>
-                        <Controller
-                          control={control}
-                          name={`phoneNumbers.${index}.phoneNumber`}
-                          rules={{
-                            required: { value: true, message: t("REQUIRED") },
-                            pattern: {
-                              value: /^\d+$/,
-                              message: t("ONLY_NUMBER"),
-                            },
-                            minLength: {
-                              value: 11,
-                              message: t("MIN_LENGTH", { length: 11 }),
-                            },
-                          }}
-                          render={({ field }) => (
-                            <Space.Compact className="items-stretch w-full">
-                              <Input
-                                {...field}
-                                variant="filled"
-                                placeholder="Enter phone number"
-                                className={`placeholder:capitalize border-[#C4C4C4] border ${
-                                  phones?.length > 1
-                                    ? "rounded-s-md"
-                                    : "rounded-md"
-                                } py-2 min-w-[250px]`}
-                                status={
-                                  errors?.phoneNumbers?.[index]?.phoneNumber
-                                    ? "error"
-                                    : ""
-                                }
-                              />
+                        <label className="block mb-2">
+                          {t("PHONE")} #{index + 1}
+                        </label>
+                        <div className="input-wrapper">
+                          <Controller
+                            control={control}
+                            name={`phoneNumbers.${index}.phoneNumber`}
+                            rules={{
+                              required: { value: true, message: t("REQUIRED") },
+                              pattern: {
+                                value: /^\d+$/,
+                                message: t("ONLY_NUMBER"),
+                              },
+                              minLength: {
+                                value: 11,
+                                message: t("MIN_LENGTH", { length: 11 }),
+                              },
+                            }}
+                            render={({ field }) => (
+                              <Space.Compact className="items-stretch w-full">
+                                <Input
+                                  {...field}
+                                  variant="filled"
+                                  placeholder="Enter phone number"
+                                  className={`placeholder:capitalize border-[#C4C4C4] border ${
+                                    phones?.length > 1
+                                      ? "rounded-s-md"
+                                      : "rounded-md"
+                                  } py-2 min-w-[250px]`}
+                                  status={
+                                    errors?.phoneNumbers?.[index]?.phoneNumber
+                                      ? "error"
+                                      : ""
+                                  }
+                                />
 
-                              <span>
-                                {phones?.length > 1 ? (
-                                  <Button
-                                    icon={<FaMinus className="text-sm" />}
-                                    onClick={() => handleRemovePhone(index)}
-                                    className="bg-red-500 text-white border-none size-full min-w-[30px] rounded-e-md"
-                                    shape="default"
-                                  />
-                                ) : null}
-                              </span>
-                            </Space.Compact>
+                                <span>
+                                  {phones?.length > 1 ? (
+                                    <Button
+                                      icon={<FaMinus className="text-sm" />}
+                                      onClick={() => handleRemovePhone(index)}
+                                      className="bg-red-500 text-white border-none size-full min-w-[30px] rounded-e-md"
+                                      shape="default"
+                                    />
+                                  ) : null}
+                                </span>
+                              </Space.Compact>
+                            )}
+                          />
+                          {errors?.phoneNumbers?.[index]?.phoneNumber && (
+                            <p className="text-red-500 text-xs mt-1 capitalize">
+                              {
+                                errors?.phoneNumbers?.[index]?.phoneNumber
+                                  ?.message
+                              }
+                            </p>
                           )}
-                        />
+                        </div>
                       </div>
                     ))}
+
+                    <div className="whats-app-number-wrapper">
+                      <label className="capitalize mb-2 block">
+                        {t("WHATS_APP_NUMBER")} <Astrisk />
+                      </label>
+                      <Controller
+                        control={control}
+                        name={`whatsAppNumber`}
+                        rules={{
+                          required: { value: true, message: t("REQUIRED") },
+                          pattern: {
+                            value: /^\d+$/,
+                            message: t("ONLY_NUMBER"),
+                          },
+                          minLength: {
+                            value: 11,
+                            message: t("MIN_LENGTH", { length: 11 }),
+                          },
+                        }}
+                        render={({ field }) => (
+                          <Input
+                            {...field}
+                            variant="filled"
+                            placeholder="Enter whats app number"
+                            className={`placeholder:capitalize border-[#C4C4C4] border rounded-md py-2 min-w-[250px]`}
+                            status={errors?.whatsAppNumber ? "error" : ""}
+                          />
+                        )}
+                      />
+                      {errors?.whatsAppNumber && (
+                        <p className="text-red-500 text-xs mt-1 capitalize">
+                          {errors?.whatsAppNumber?.message}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="joining_date">
+                      <label className="capitalize mb-2 block">
+                        {t("JOINING_DATE")} <Astrisk />
+                      </label>
+                      <Controller
+                        control={control}
+                        name="entryDate"
+                        rules={{
+                          required: {
+                            value: true,
+                            message: t("REQUIRED"),
+                          },
+                        }}
+                        render={({ field }) => (
+                          <DatePicker
+                            className="min-h-10 w-full border-[#C4C4C4] border rounded-md capitalize [&>.ant-select-selector]:capitalize"
+                            {...field}
+                            variant="filled"
+                            status={errors?.entryDate ? "error" : ""}
+                            value={field.value ? dayjs(field.value) : null}
+                            onChange={(e) => {
+                              field.onChange(dayjs(e));
+                            }}
+                          />
+                        )}
+                      />
+                      {errors?.entryDate ? (
+                        <p className="text-red-500 text-xs mt-1 capitalize">
+                          {errors?.entryDate?.message}
+                        </p>
+                      ) : null}
+                    </div>
                   </div>
                 </div>
 

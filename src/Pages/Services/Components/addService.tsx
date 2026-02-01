@@ -3,6 +3,9 @@ import type { serviceFormProps } from "../../../components/Utilities/Types/types
 import Title from "../../../components/Common/Title/title";
 import { useTranslation } from "react-i18next";
 import { Button, Checkbox, Input, Select } from "antd";
+import { useAddServiceMutation } from "../../../components/APIs/Services/SERVICES_QUERY";
+import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 
 const extraOptions = [
   "CLEANING_RESIDENTIAL",
@@ -16,6 +19,8 @@ const extraOptions = [
 
 const AddService = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
+  const [addService, { isLoading, isSuccess }] = useAddServiceMutation();
 
   const {
     control,
@@ -24,8 +29,19 @@ const AddService = () => {
     setValue,
   } = useForm<serviceFormProps>();
 
-  const handleFormSubmit = (data: serviceFormProps) => {
-    console.log(data);
+  const handleFormSubmit = async (data: serviceFormProps) => {
+    // console.log(data);
+
+    try {
+      await addService(data).unwrap();
+      if (isSuccess) {
+        toast.success("Service added successfully");
+        navigate("/services");
+      }
+    } catch (err) {
+      console.log(err);
+      toast.error("Failed to add service");
+    }
   };
   return (
     <main>
@@ -51,7 +67,7 @@ const AddService = () => {
                   <Input
                     {...field}
                     variant="filled"
-                    placeholder="Enter title"
+                    placeholder="Enter title (EN)"
                     className="placeholder:capitalize"
                     status={errors?.title ? "error" : ""}
                   />
@@ -61,10 +77,34 @@ const AddService = () => {
             </div>
 
             <div>
+              <label>{t("AR_TITLE")}</label>
+              <Controller
+                name="arTitle"
+                control={control}
+                rules={{
+                  required: {
+                    value: true,
+                    message: t("required"),
+                  },
+                }}
+                render={({ field }) => (
+                  <Input
+                    {...field}
+                    variant="filled"
+                    placeholder="Enter title (AR)"
+                    className="placeholder:capitalize"
+                    status={errors?.arTitle ? "error" : ""}
+                  />
+                )}
+              />
+              {errors?.arTitle ? <p>{errors?.arTitle?.message}</p> : null}
+            </div>
+
+            <div className="md:col-span-full">
               <label>{t("SELECT_PACKAGE")}</label>
               <Controller
                 control={control}
-                name="package"
+                name="packages"
                 rules={{
                   required: {
                     value: true,
@@ -78,7 +118,7 @@ const AddService = () => {
                     size="large"
                     className=" max-h-10 border-[#C4C4C4] border rounded-md capitalize [&>.ant-select-selector]:capitalize"
                     variant="filled"
-                    status={errors?.package ? "error" : ""}
+                    status={errors?.packages ? "error" : ""}
                     // defaultValue="male"
                     style={{ width: "100%" }}
                     placeholder="Please Select package"
@@ -96,7 +136,7 @@ const AddService = () => {
                 )}
               />
 
-              {errors?.package ? <p>{errors?.package?.message}</p> : null}
+              {errors?.packages ? <p>{errors?.packages?.message}</p> : null}
             </div>
 
             <div className="col-span-full">
@@ -129,7 +169,7 @@ const AddService = () => {
               <label>{t("EXTRA_SERVICE")}</label>
 
               <Controller
-                name="extraId"
+                name="extraServices"
                 control={control}
                 defaultValue={[]}
                 rules={{
@@ -146,7 +186,7 @@ const AddService = () => {
                         field.onChange(checkedValues);
 
                         if (checkedValues.length === 0) {
-                          setValue("extraDescription", "");
+                          setValue("extraServices", null);
                         }
                       }}
                       className="flex flex-col gap-3 font-semibold"
@@ -162,7 +202,7 @@ const AddService = () => {
                       ))}
                     </Checkbox.Group>
 
-                    {field?.value && field?.value?.length > 0 && (
+                    {/* {field?.value && field?.value?.length > 0 && (
                       <Controller
                         name="extraDescription"
                         control={control}
@@ -182,12 +222,14 @@ const AddService = () => {
                           />
                         )}
                       />
-                    )}
+                    )} */}
                   </div>
                 )}
               />
 
-              {errors?.extraId ? <p>{errors?.extraId?.message}</p> : null}
+              {errors?.extraServices ? (
+                <p>{errors?.extraServices?.message}</p>
+              ) : null}
             </div>
           </section>
 
@@ -195,6 +237,7 @@ const AddService = () => {
             <Button
               htmlType="submit"
               className="bg-mainColor text-white py-5 min-w-[200px] capitalize"
+              loading={isLoading}
             >
               {t("SUBMIT")}
             </Button>

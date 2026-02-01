@@ -3,44 +3,122 @@ import { useTranslation } from "react-i18next";
 import Title from "../../../components/Common/Title/title";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
 import ImgCrop from "antd-img-crop";
-import { Button, Image, Input, Select, Upload, type UploadFile } from "antd";
-import { useState } from "react";
+import {
+  Button,
+  Image,
+  Input,
+  Select,
+  Skeleton,
+  Upload,
+  type UploadFile,
+} from "antd";
+import { useEffect, useState } from "react";
 import type {
+  APIErrorProps,
   FileType,
   packageFormProps,
 } from "../../../components/Utilities/Types/types";
 import { getBase64 } from "../../../components/Utilities/helper";
 import { FaMinus, FaPlus } from "react-icons/fa";
+import { useGetCitiesQuery } from "../../../components/APIs/Seeders/SEEDERS_RTK_QUERY";
+import { useAppSelector } from "../../../components/APIs/store";
+import {
+  useEditPackageMutation,
+  useGetPackageByIdQuery,
+} from "../../../components/APIs/Packages/PACKAGES_QUERY";
+import { toast } from "react-toastify";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { skipToken } from "@reduxjs/toolkit/query";
 
 const EditPackage = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
+  const { lang } = useAppSelector((state) => state?.lang);
+  const [termsFile, setTermsFile] = useState<UploadFile[]>([]);
 
+  const [editPackage, { isLoading: isEditPackageLoading }] =
+    useEditPackageMutation();
+
+  const [params] = useSearchParams();
+  const id = params.get("id");
+
+  const {
+    data: packageById,
+    isLoading,
+    isFetching,
+  } = useGetPackageByIdQuery(id ? { id } : skipToken);
+
+  // console.log(packageById?.data);
+
+  const {
+    data: cities,
+    isFetching: isCitiesFetching,
+    isLoading: isCitiesLoading,
+  } = useGetCitiesQuery();
+
+  const defaultValues = {
+    Title: packageById?.data?.title,
+    ArTitle: packageById?.data?.arTitle,
+    ArSubTitle: packageById?.data?.arSubTitle,
+    SubTitle: packageById?.data?.subTitle,
+    Description: packageById?.data?.description,
+    Logo: packageById?.data?.logo,
+    Rules: packageById?.data?.rules,
+    Supplies: packageById?.data?.supplies,
+    Tools: packageById?.data?.tools,
+    TermsAndConditions: packageById?.data?.termsAndConditions,
+    workingHours: packageById?.data?.workingHours,
+    WhatYouWillHaveOnIt: packageById?.data?.whatYouWillHaveOnIt,
+    WhatYouwouldntHaveOnIt: packageById?.data?.whatYouwouldntHaveOnIt,
+    PackageDetails: packageById?.data?.packageDetails?.map((pak) => ({
+      NumberofRooms: pak.numberOfRooms,
+      NumberofWorkers: pak.numberOfWorkers,
+      Price: pak.price,
+    })),
+    TransportationFees: packageById?.data?.transportationFees?.map((trans) => ({
+      Fee: trans.fee,
+      CityId: trans.cityId,
+    })),
+  } as unknown as packageFormProps;
   const {
     control,
     handleSubmit,
+    reset,
     formState: { errors },
   } = useForm<packageFormProps>({
-    defaultValues: {
-      extra_details: [
-        {
-          noOfRooms: "",
-          noOfWorkers: "",
-          price: "",
-        },
-      ],
-      transportaion: [
-        {
-          fees: "",
-          country: "",
-        },
-      ],
-    },
+    defaultValues: defaultValues,
   });
+
+  useEffect(() => {
+    if (id && packageById?.isSuccess && packageById?.data) {
+      reset(defaultValues);
+      setFileList([
+        {
+          uid: "-1", // unique id
+          name: "logo.png",
+          status: "done",
+          url: packageById?.data?.logo, // This shows the image in the UI
+        },
+      ]);
+
+      setTermsFile([
+        {
+          uid: "-1", // unique id
+          name: "terms and conditions",
+          status: "done",
+          url:
+            typeof packageById?.data?.termsAndConditions === "string"
+              ? packageById?.data?.termsAndConditions
+              : packageById?.data?.termsAndConditions?.url || "",
+        },
+      ]);
+    }
+  }, [reset, id, packageById?.isSuccess, packageById?.data]);
 
   /* File Input */
   const [fileList, setFileList] = useState<UploadFile[]>([]);
-  const [previewOpen, setPreviewOpen] = useState(false);
   const [previewImage, setPreviewImage] = useState("");
+  const [previewOpen, setPreviewOpen] = useState(false);
 
   const handlePreview = async (file: UploadFile) => {
     if (!file.url && !file.preview) {
@@ -57,7 +135,7 @@ const EditPackage = () => {
     append,
     remove,
   } = useFieldArray({
-    name: "extra_details",
+    name: "PackageDetails",
     control,
     rules: {
       required: {
@@ -69,9 +147,9 @@ const EditPackage = () => {
 
   const addMoreExtraDetails = () => {
     append({
-      noOfRooms: "",
-      noOfWorkers: "",
-      price: "",
+      NumberofRooms: "",
+      NumberofWorkers: "",
+      Price: "",
     });
   };
 
@@ -84,7 +162,7 @@ const EditPackage = () => {
     append: transportaionAppend,
     remove: transportaionRemove,
   } = useFieldArray({
-    name: "transportaion",
+    name: "TransportationFees",
     control,
     rules: {
       required: {
@@ -96,8 +174,8 @@ const EditPackage = () => {
 
   const addMoreTransportation = () => {
     transportaionAppend({
-      fees: "",
-      country: "",
+      Fee: "",
+      CityId: "",
     });
   };
 
@@ -105,591 +183,756 @@ const EditPackage = () => {
     transportaionRemove(index);
   };
 
-  const handleSubmitForm = (data: packageFormProps) => {
-    console.log(data);
+  const handleSubmitForm = async (data: packageFormProps) => {
+    // console.log(data);
+    const formattedData = new FormData();
+    formattedData.append("id", id as string);
+    Object.entries(data).forEach(([key, value]) => {
+      if (value === null || value === undefined) return;
+
+      if (Array.isArray(value)) {
+        // Handle Arrays (PackageDetails, TransportationFees)
+        value.forEach((item, index) => {
+          if (typeof item === "object" && !(item instanceof File)) {
+            // Loop through the sub-keys of the object
+            // Result: key[index].subKey -> PackageDetails[0].NumberofRooms
+            Object.entries(item).forEach(([subKey, subValue]) => {
+              formattedData.append(
+                `${key}[${index}].${subKey}`,
+                String(subValue),
+              );
+            });
+          } else {
+            // Handle arrays of primitives or files
+            formattedData.append(`${key}[${index}]`, item);
+          }
+        });
+      } else if (value instanceof File) {
+        formattedData.append(key, value);
+      } else if (typeof value === "object") {
+        // Handle single non-file objects if any exist
+        Object.entries(value).forEach(([subKey, subValue]) => {
+          formattedData.append(`${key}.${subKey}`, String(subValue));
+        });
+      } else {
+        // Handle primitives
+        formattedData.append(key, String(value));
+      }
+    });
+
+    // console.log(Object.fromEntries(formattedData));
+
+    try {
+      await editPackage(formattedData).unwrap();
+      toast.success("Package updated successfully", {
+        toastId: "package-updated",
+      });
+      navigate("/packages");
+    } catch (error) {
+      const err = error as APIErrorProps;
+      err?.data?.errorMessages?.forEach((message) => {
+        toast.error(message, {
+          toastId: "package-error",
+        });
+      });
+      // console.log(err?.data);
+    }
   };
   return (
-    <div className="edit-package-wrapper">
-      <section className="packages-title-wrapper">
-        <Title title={t("EDIT_PACKAGE")} subTitle />
-      </section>
+    <>
+      {isLoading || isFetching ? (
+        <Skeleton active paragraph={{ rows: 15 }} />
+      ) : (
+        <div className="add-package-wrapper">
+          <section className="packages-title-wrapper">
+            <Title title={t("EDIT_PACKAGE")} subTitle />
+          </section>
 
-      <form
-        noValidate
-        onSubmit={handleSubmit(handleSubmitForm)}
-        className="mt-12"
-      >
-        <section className="grid grid-cols-1 md:grid-cols-2 gap-5 [&>div>label]:block [&>div>label]:mb-1 [&>div>label]:capitalize [&>div>label]:font-medium [&>div>input]:border-[#C4C4C4] [&>div>input]:py-2 [&>div>p]:mt-1 [&>div>p]:text-xs [&>div>p]:capitalize [&>div>p]:text-mainRed">
-          <div className="image col-span-full text-center w-full flex flex-col justify-center items-center gap-1">
-            <Controller
-              control={control}
-              name="image"
-              rules={{
-                required: {
-                  value: true,
-                  message: t("REQUIRED"),
-                },
-              }}
-              render={({ field }) => (
-                <>
-                  <ImgCrop rotationSlider>
-                    <Upload
+          <form
+            noValidate
+            onSubmit={handleSubmit(handleSubmitForm)}
+            className="mt-12"
+          >
+            <section className="grid grid-cols-1 md:grid-cols-2 gap-5 [&>div>label]:block [&>div>label]:mb-1 [&>div>label]:capitalize [&>div>label]:font-medium [&>div>input]:border-[#C4C4C4] [&>div>input]:py-2 [&>div>p]:mt-1 [&>div>p]:text-xs [&>div>p]:capitalize [&>div>p]:text-mainRed">
+              <div className="image col-span-full text-center w-full flex flex-col justify-center items-center gap-1">
+                <Controller
+                  control={control}
+                  name="Logo"
+                  rules={{
+                    required: {
+                      value: true,
+                      message: t("REQUIRED"),
+                    },
+                  }}
+                  render={({ field }) => (
+                    <>
+                      <ImgCrop rotationSlider>
+                        <Upload
+                          {...field}
+                          listType="picture-circle"
+                          fileList={fileList}
+                          onChange={({ file, fileList }) => {
+                            setFileList(fileList); // took fielist because it must take an array of files
+
+                            if (file) {
+                              field.onChange(file);
+                            }
+                          }}
+                          onPreview={handlePreview}
+                          beforeUpload={() => false}
+                          maxCount={1}
+                        >
+                          {fileList.length < 1 && "+ Upload"}
+                        </Upload>
+                      </ImgCrop>
+
+                      {previewImage && (
+                        <Image
+                          wrapperStyle={{ display: "none" }}
+                          preview={{
+                            visible: previewOpen,
+                            onVisibleChange: (visible) =>
+                              setPreviewOpen(visible),
+                            afterOpenChange: (visible) =>
+                              !visible && setPreviewImage(""),
+                          }}
+                          src={previewImage}
+                        />
+                      )}
+                    </>
+                  )}
+                />
+
+                {errors?.Logo ? <p>{errors?.Logo?.message}</p> : null}
+              </div>
+
+              <div>
+                <label>{t("TITLE")}</label>
+                <Controller
+                  control={control}
+                  name="Title"
+                  rules={{
+                    required: {
+                      value: true,
+                      message: t("REQUIRED"),
+                    },
+                    pattern: {
+                      value: /^[a-zA-Z0-9\s]+$/,
+                      message: t("ENGLISH_LETTER"),
+                    },
+                  }}
+                  render={({ field }) => (
+                    <Input
                       {...field}
-                      listType="picture-circle"
-                      fileList={fileList}
-                      onChange={({ file, fileList }) => {
-                        setFileList(fileList); // took fielist because it must take an array of files
-
-                        if (file) {
-                          field.onChange(file);
-                        }
-                      }}
-                      onPreview={handlePreview}
-                      beforeUpload={() => false}
-                      maxCount={1}
-                    >
-                      {fileList.length < 1 && "+ Upload"}
-                    </Upload>
-                  </ImgCrop>
-
-                  {previewImage && (
-                    <Image
-                      wrapperStyle={{ display: "none" }}
-                      preview={{
-                        visible: previewOpen,
-                        onVisibleChange: (visible) => setPreviewOpen(visible),
-                        afterOpenChange: (visible) =>
-                          !visible && setPreviewImage(""),
-                      }}
-                      src={previewImage}
+                      variant="filled"
+                      placeholder="Enter english title"
+                      className="placeholder:capitalize"
+                      status={errors?.Title ? "error" : ""}
                     />
                   )}
-                </>
-              )}
-            />
-
-            {errors?.image ? <p>{errors?.image?.message}</p> : null}
-          </div>
-
-          <div>
-            <label>{t("TITLE")}</label>
-            <Controller
-              control={control}
-              name="title"
-              rules={{
-                required: {
-                  value: true,
-                  message: t("REQUIRED"),
-                },
-              }}
-              render={({ field }) => (
-                <Input
-                  {...field}
-                  variant="filled"
-                  placeholder="Enter title"
-                  className="placeholder:capitalize"
-                  status={errors?.title ? "error" : ""}
                 />
-              )}
-            />
 
-            {errors?.title ? <p>{errors?.title?.message}</p> : null}
-          </div>
+                {errors?.Title ? <p>{errors?.Title?.message}</p> : null}
+              </div>
 
-          <div>
-            <label>{t("SUB_TITLE")}</label>
-            <Controller
-              control={control}
-              name="subTitle"
-              rules={{
-                required: {
-                  value: true,
-                  message: t("REQUIRED"),
-                },
-              }}
-              render={({ field }) => (
-                <Input
-                  {...field}
-                  variant="filled"
-                  placeholder="Enter sub title"
-                  className="placeholder:capitalize"
-                  status={errors?.subTitle ? "error" : ""}
-                />
-              )}
-            />
-
-            {errors?.subTitle ? <p>{errors?.subTitle?.message}</p> : null}
-          </div>
-
-          <div className="col-span-full">
-            <label>{t("DESCRIPTION")}</label>
-            <Controller
-              control={control}
-              name="description"
-              rules={{
-                required: {
-                  value: true,
-                  message: t("REQUIRED"),
-                },
-              }}
-              render={({ field }) => (
-                <Input
-                  {...field}
-                  variant="filled"
-                  placeholder="Enter description"
-                  className="placeholder:capitalize"
-                  status={errors?.description ? "error" : ""}
-                />
-              )}
-            />
-
-            {errors?.description ? <p>{errors?.description?.message}</p> : null}
-          </div>
-
-          <div className="extra-details-wrapper col-span-full">
-            <div className="col-span-full flex items-center gap-2">
-              <label className="font-medium text-lg">
-                {t("EXTRA_DETAILS")}
-              </label>
-              <Button
-                type="default"
-                onClick={addMoreExtraDetails}
-                className="bg-green-700 text-white capitalize rounded-full"
-                icon={<FaPlus size={13} />}
-                size="small"
-              />
-            </div>
-            {extraDetailsFields?.map((field, index) => (
-              <section
-                className="my-3 flex items-center gap-5 [&>div]:grow [&>div>label]:block [&>div>label]:mb-1 [&>div>label]:capitalize [&>div>label]:font-medium [&>div>input]:border-[#C4C4C4] [&>div>input]:py-2 [&>div>p]:mt-1 [&>div>p]:text-xs [&>div>p]:capitalize [&>div>p]:text-mainRed"
-                key={field?.id || index}
-              >
-                <div>
-                  <label>{t("NUMBER_OF_ROOMS")}</label>
-
-                  <Controller
-                    control={control}
-                    name={`extra_details.${index}.noOfRooms`}
-                    rules={{
-                      required: {
-                        value: true,
-                        message: t("REQUIRED"),
-                      },
-                    }}
-                    render={({ field }) => (
-                      <Select
-                        {...field}
-                        className="min-h-10 border-[#C4C4C4] border rounded-md w-full"
-                        placeholder="Number of rooms"
-                        variant="filled"
-                        status={
-                          errors?.extra_details?.[index]?.noOfRooms
-                            ? "error"
-                            : ""
-                        }
-                        options={Array.from({ length: 20 })?.map(
-                          (_, index) => ({
-                            label: index + 1,
-                            value: index + 1,
-                          })
-                        )}
-                      />
-                    )}
-                  />
-                  {errors?.extra_details?.[index]?.noOfRooms && (
-                    <p>{errors.extra_details[index].noOfRooms.message}</p>
-                  )}
-                </div>
-
-                <div>
-                  <label>{t("NO_WORKERS")}</label>
-
-                  <Controller
-                    control={control}
-                    name={`extra_details.${index}.noOfWorkers`}
-                    rules={{
-                      required: {
-                        value: true,
-                        message: t("REQUIRED"),
-                      },
-                    }}
-                    render={({ field }) => (
-                      <Select
-                        {...field}
-                        className="min-h-10 border-[#C4C4C4] border rounded-md w-full"
-                        placeholder="Number of workers"
-                        variant="filled"
-                        status={
-                          errors?.extra_details?.[index]?.noOfWorkers
-                            ? "error"
-                            : ""
-                        }
-                        options={Array.from({ length: 20 })?.map(
-                          (_, index) => ({
-                            label: index + 1,
-                            value: index + 1,
-                          })
-                        )}
-                      />
-                    )}
-                  />
-                  {errors?.extra_details?.[index]?.noOfWorkers && (
-                    <p>{errors.extra_details[index].noOfWorkers.message}</p>
-                  )}
-                </div>
-
-                <div>
-                  <label>{t("PRICE")}</label>
-
-                  <Controller
-                    control={control}
-                    name={`extra_details.${index}.price`}
-                    rules={{
-                      required: {
-                        value: true,
-                        message: t("REQUIRED"),
-                      },
-                      pattern: {
-                        value: /^\d+$/,
-                        message: t("ONLY_NUMBER"),
-                      },
-                    }}
-                    render={({ field }) => (
-                      <Input
-                        {...field}
-                        variant="filled"
-                        placeholder="Enter Price"
-                        className="placeholder:capitalize"
-                        status={
-                          errors?.extra_details?.[index]?.price ? "error" : ""
-                        }
-                      />
-                    )}
-                  />
-
-                  {errors?.extra_details?.[index]?.price ? (
-                    <p>{errors?.extra_details?.[index]?.price?.message}</p>
-                  ) : null}
-                </div>
-
-                <span className="mt-6">
-                  <Button
-                    type="default"
-                    onClick={() => removeExtraDetails(index)}
-                    className="bg-red-700 text-white capitalize rounded-full disabled:bg-red-700/30"
-                    icon={<FaMinus />}
-                    disabled={extraDetailsFields?.length === 1}
-                  />
-                </span>
-              </section>
-            ))}
-          </div>
-
-          <div className="transportation-fees-wrapper col-span-full">
-            <div className="col-span-full flex items-center gap-2">
-              <label className="font-medium text-lg">
-                {t("TRANSPORTATION_FEES")}
-              </label>
-              <Button
-                type="default"
-                onClick={addMoreTransportation}
-                className="bg-green-700 text-white capitalize rounded-full"
-                icon={<FaPlus size={13} />}
-                size="small"
-              />
-            </div>
-            {transportaionFields?.map((field, index) => (
-              <section
-                className="my-3 flex items-center gap-5 [&>div]:grow [&>div>label]:block [&>div>label]:mb-1 [&>div>label]:capitalize [&>div>label]:font-medium [&>div>input]:border-[#C4C4C4] [&>div>input]:py-2 [&>div>p]:mt-1 [&>div>p]:text-xs [&>div>p]:capitalize [&>div>p]:text-mainRed"
-                key={field?.id || index}
-              >
-                <div>
-                  <label>{t("COUNTRY")}</label>
-
-                  <Controller
-                    control={control}
-                    name={`transportaion.${index}.country`}
-                    rules={{
-                      required: {
-                        value: true,
-                        message: t("REQUIRED"),
-                      },
-                    }}
-                    render={({ field }) => (
-                      <Select
-                        {...field}
-                        className="min-h-10 border-[#C4C4C4] border rounded-md w-full"
-                        placeholder="Select Country"
-                        variant="filled"
-                        status={
-                          errors?.transportaion?.[index]?.country ? "error" : ""
-                        }
-                        options={Array.from({ length: 20 })?.map(
-                          (_, index) => ({
-                            label: index + 1,
-                            value: index + 1,
-                          })
-                        )}
-                      />
-                    )}
-                  />
-                  {errors?.transportaion?.[index]?.country && (
-                    <p>{errors.transportaion[index].country.message}</p>
-                  )}
-                </div>
-
-                <div>
-                  <label>{t("FEES")}</label>
-
-                  <Controller
-                    control={control}
-                    name={`transportaion.${index}.fees`}
-                    rules={{
-                      required: {
-                        value: true,
-                        message: t("REQUIRED"),
-                      },
-                      pattern: {
-                        value: /^\d+$/,
-                        message: t("ONLY_NUMBER"),
-                      },
-                    }}
-                    render={({ field }) => (
-                      <Input
-                        {...field}
-                        variant="filled"
-                        placeholder="Enter Fees"
-                        className="placeholder:capitalize"
-                        status={
-                          errors?.transportaion?.[index]?.fees ? "error" : ""
-                        }
-                      />
-                    )}
-                  />
-
-                  {errors?.transportaion?.[index]?.fees ? (
-                    <p>{errors?.transportaion?.[index]?.fees?.message}</p>
-                  ) : null}
-                </div>
-
-                <span className="mt-6">
-                  <Button
-                    type="default"
-                    onClick={() => removeTransportation(index)}
-                    className="bg-red-700 text-white capitalize rounded-full disabled:bg-red-700/30"
-                    icon={<FaMinus />}
-                    disabled={transportaionFields?.length === 1}
-                  />
-                </span>
-              </section>
-            ))}
-          </div>
-
-          <div>
-            <label>{t("WORKING_HOURS")}</label>
-            <Controller
-              control={control}
-              name="workingHours"
-              rules={{
-                required: {
-                  value: true,
-                  message: t("REQUIRED"),
-                },
-              }}
-              render={({ field }) => (
-                <Select
-                  {...field}
-                  className="min-h-10 border-[#C4C4C4] border rounded-md capitalize [&>.ant-select-selector]:capitalize"
-                  variant="filled"
-                  status={errors?.workingHours ? "error" : ""}
-                  // defaultValue="male"
-                  style={{ width: "100%" }}
-                  onChange={(e) => {
-                    field.onChange(e);
-                    //   handleChange(e);
+              <div>
+                <label>{t("AR_TITLE")}</label>
+                <Controller
+                  control={control}
+                  name="ArTitle"
+                  rules={{
+                    required: {
+                      value: true,
+                      message: t("REQUIRED"),
+                    },
+                    pattern: {
+                      value: /^[\u0600-\u06FF0-9\s]+$/,
+                      message: t("ARABIC_LETTER"),
+                    },
                   }}
-                  options={[
-                    { value: "1-2", label: "1-2" },
-                    { value: "2-4", label: "2-4" },
-                    { value: "4+", label: "4+" },
-                  ]}
+                  render={({ field }) => (
+                    <Input
+                      {...field}
+                      variant="filled"
+                      placeholder="Enter arabic title"
+                      className="placeholder:capitalize"
+                      status={errors?.ArTitle ? "error" : ""}
+                    />
+                  )}
                 />
-              )}
-            />
 
-            {errors?.workingHours ? (
-              <p>{errors?.workingHours?.message}</p>
-            ) : null}
-          </div>
+                {errors?.ArTitle ? <p>{errors?.ArTitle?.message}</p> : null}
+              </div>
 
-          <div>
-            <label>{t("WHAT_HAVE")}</label>
-            <Controller
-              control={control}
-              name="haveOn"
-              rules={{
-                required: {
-                  value: true,
-                  message: t("REQUIRED"),
-                },
-              }}
-              render={({ field }) => (
-                <Input
-                  {...field}
-                  variant="filled"
-                  placeholder="Enter will you have on?"
-                  className="placeholder:capitalize"
-                  status={errors?.haveOn ? "error" : ""}
+              <div>
+                <label>{t("SUB_TITLE")}</label>
+                <Controller
+                  control={control}
+                  name="SubTitle"
+                  rules={{
+                    required: {
+                      value: true,
+                      message: t("REQUIRED"),
+                    },
+                    pattern: {
+                      value: /^[a-zA-Z0-9\s]+$/,
+                      message: t("ENGLISH_LETTER"),
+                    },
+                  }}
+                  render={({ field }) => (
+                    <Input
+                      {...field}
+                      variant="filled"
+                      placeholder="Enter english sub title"
+                      className="placeholder:capitalize"
+                      status={errors?.SubTitle ? "error" : ""}
+                    />
+                  )}
                 />
-              )}
-            />
 
-            {errors?.haveOn ? <p>{errors?.haveOn?.message}</p> : null}
-          </div>
+                {errors?.SubTitle ? <p>{errors?.SubTitle?.message}</p> : null}
+              </div>
 
-          <div>
-            <label>{t("WHAT_NOT_HAVE")}</label>
-            <Controller
-              control={control}
-              name="notHav"
-              rules={{
-                required: {
-                  value: true,
-                  message: t("REQUIRED"),
-                },
-              }}
-              render={({ field }) => (
-                <Input
-                  {...field}
-                  variant="filled"
-                  placeholder="Enter wouldn't you have on?"
-                  className="placeholder:capitalize"
-                  status={errors?.notHav ? "error" : ""}
+              <div>
+                <label>{t("AR_SUB_TITLE")}</label>
+                <Controller
+                  control={control}
+                  name="ArSubTitle"
+                  rules={{
+                    required: {
+                      value: true,
+                      message: t("REQUIRED"),
+                    },
+                    pattern: {
+                      value: /^[\u0600-\u06FF0-9\s]+$/,
+                      message: t("ARABIC_LETTER"),
+                    },
+                  }}
+                  render={({ field }) => (
+                    <Input
+                      {...field}
+                      variant="filled"
+                      placeholder="Enter arabic sub title"
+                      className="placeholder:capitalize"
+                      status={errors?.ArSubTitle ? "error" : ""}
+                    />
+                  )}
                 />
-              )}
-            />
 
-            {errors?.notHav ? <p>{errors?.notHav?.message}</p> : null}
-          </div>
+                {errors?.ArSubTitle ? (
+                  <p>{errors?.ArSubTitle?.message}</p>
+                ) : null}
+              </div>
 
-          <div>
-            <label>{t("TOOLS")}</label>
-            <Controller
-              control={control}
-              name="tool"
-              rules={{
-                required: {
-                  value: true,
-                  message: t("REQUIRED"),
-                },
-              }}
-              render={({ field }) => (
-                <Input
-                  {...field}
-                  variant="filled"
-                  placeholder="Enter tools"
-                  className="placeholder:capitalize"
-                  status={errors?.tool ? "error" : ""}
+              <div className="col-span-full">
+                <label>{t("DESCRIPTION")}</label>
+                <Controller
+                  control={control}
+                  name="Description"
+                  rules={{
+                    required: {
+                      value: true,
+                      message: t("REQUIRED"),
+                    },
+                  }}
+                  render={({ field }) => (
+                    <Input
+                      {...field}
+                      variant="filled"
+                      placeholder="Enter description"
+                      className="placeholder:capitalize"
+                      status={errors?.Description ? "error" : ""}
+                    />
+                  )}
                 />
-              )}
-            />
 
-            {errors?.tool ? <p>{errors?.tool?.message}</p> : null}
-          </div>
+                {errors?.Description ? (
+                  <p>{errors?.Description?.message}</p>
+                ) : null}
+              </div>
 
-          <div>
-            <label>{t("SUPPLIES")}</label>
-            <Controller
-              control={control}
-              name="supplies"
-              rules={{
-                required: {
-                  value: true,
-                  message: t("REQUIRED"),
-                },
-              }}
-              render={({ field }) => (
-                <Input
-                  {...field}
-                  variant="filled"
-                  placeholder="Enter supplies"
-                  className="placeholder:capitalize"
-                  status={errors?.supplies ? "error" : ""}
+              <div className="extra-details-wrapper col-span-full">
+                <div className="col-span-full flex items-center gap-2">
+                  <label className="font-medium text-lg">
+                    {t("PACKAGE_DETAILS")}
+                  </label>
+                  <Button
+                    type="default"
+                    onClick={addMoreExtraDetails}
+                    className="bg-green-700 text-white capitalize rounded-full"
+                    icon={<FaPlus size={13} />}
+                    size="small"
+                  />
+                </div>
+                {extraDetailsFields?.map((field, index) => (
+                  <section
+                    className="my-3 flex items-center gap-5 [&>div]:grow [&>div>label]:block [&>div>label]:mb-1 [&>div>label]:capitalize [&>div>label]:font-medium [&>div>input]:border-[#C4C4C4] [&>div>input]:py-2 [&>div>p]:mt-1 [&>div>p]:text-xs [&>div>p]:capitalize [&>div>p]:text-mainRed"
+                    key={field?.id || index}
+                  >
+                    <div>
+                      <label>{t("NUMBER_OF_ROOMS")}</label>
+
+                      <Controller
+                        control={control}
+                        name={`PackageDetails.${index}.NumberofRooms`}
+                        rules={{
+                          required: {
+                            value: true,
+                            message: t("REQUIRED"),
+                          },
+                        }}
+                        render={({ field }) => (
+                          <Select
+                            {...field}
+                            className="min-h-10 border-[#C4C4C4] border rounded-md w-full"
+                            placeholder="Number of rooms"
+                            variant="filled"
+                            status={
+                              errors?.PackageDetails?.[index]?.NumberofRooms
+                                ? "error"
+                                : ""
+                            }
+                            options={Array.from({ length: 21 })?.map(
+                              (_, index) => ({
+                                label: index,
+                                value: index,
+                              }),
+                            )}
+                          />
+                        )}
+                      />
+                      {errors?.PackageDetails?.[index]?.NumberofRooms && (
+                        <p>
+                          {errors.PackageDetails[index].NumberofRooms.message}
+                        </p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label>{t("NO_WORKERS")}</label>
+
+                      <Controller
+                        control={control}
+                        name={`PackageDetails.${index}.NumberofWorkers`}
+                        rules={{
+                          required: {
+                            value: true,
+                            message: t("REQUIRED"),
+                          },
+                        }}
+                        render={({ field }) => (
+                          <Select
+                            {...field}
+                            className="min-h-10 border-[#C4C4C4] border rounded-md w-full"
+                            placeholder="Number of workers"
+                            variant="filled"
+                            status={
+                              errors?.PackageDetails?.[index]?.NumberofWorkers
+                                ? "error"
+                                : ""
+                            }
+                            options={Array.from({ length: 21 })?.map(
+                              (_, index) => ({
+                                label: index + 1,
+                                value: index + 1,
+                              }),
+                            )}
+                          />
+                        )}
+                      />
+                      {errors?.PackageDetails?.[index]?.NumberofWorkers && (
+                        <p>
+                          {errors.PackageDetails[index].NumberofWorkers.message}
+                        </p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label>{t("PRICE")}</label>
+
+                      <Controller
+                        control={control}
+                        name={`PackageDetails.${index}.Price`}
+                        rules={{
+                          required: {
+                            value: true,
+                            message: t("REQUIRED"),
+                          },
+                          pattern: {
+                            value: /^\d+$/,
+                            message: t("ONLY_NUMBER"),
+                          },
+                        }}
+                        render={({ field }) => (
+                          <Input
+                            {...field}
+                            variant="filled"
+                            placeholder="Enter Price"
+                            className="placeholder:capitalize"
+                            status={
+                              errors?.PackageDetails?.[index]?.Price
+                                ? "error"
+                                : ""
+                            }
+                          />
+                        )}
+                      />
+
+                      {errors?.PackageDetails?.[index]?.Price ? (
+                        <p>{errors?.PackageDetails?.[index]?.Price?.message}</p>
+                      ) : null}
+                    </div>
+
+                    <span className="mt-6">
+                      <Button
+                        type="default"
+                        onClick={() => removeExtraDetails(index)}
+                        className="bg-red-700 text-white capitalize rounded-full disabled:bg-red-700/30"
+                        icon={<FaMinus />}
+                        disabled={extraDetailsFields?.length === 1}
+                      />
+                    </span>
+                  </section>
+                ))}
+              </div>
+
+              <div className="transportation-fees-wrapper col-span-full grid grid-cols-1">
+                <div className="col-span-full flex items-center gap-2">
+                  <label className="font-medium text-lg">
+                    {t("TRANSPORTATION_FEES")}
+                  </label>
+                  <Button
+                    type="default"
+                    onClick={addMoreTransportation}
+                    className="bg-green-700 text-white capitalize rounded-full"
+                    icon={<FaPlus size={13} />}
+                    size="small"
+                  />
+                </div>
+                {transportaionFields?.map((field, index) => (
+                  <section
+                    className="my-3 flex items-center gap-5 [&>div]:grow [&>div>label]:block [&>div>label]:mb-1 [&>div>label]:capitalize [&>div>label]:font-medium [&>div>input]:border-[#C4C4C4] [&>div>input]:py-2 [&>div>p]:mt-1 [&>div>p]:text-xs [&>div>p]:capitalize [&>div>p]:text-mainRed"
+                    key={field?.id || index}
+                  >
+                    <div className="basis-1/4">
+                      <label>{t("CITY")}</label>
+
+                      <Controller
+                        control={control}
+                        name={`TransportationFees.${index}.CityId`}
+                        rules={{
+                          required: {
+                            value: true,
+                            message: t("REQUIRED"),
+                          },
+                        }}
+                        render={({ field }) => (
+                          <Select
+                            {...field}
+                            className="min-h-10 border-[#C4C4C4] border rounded-md w-full"
+                            placeholder="Select Country"
+                            variant="filled"
+                            status={
+                              errors?.TransportationFees?.[index]?.CityId
+                                ? "error"
+                                : ""
+                            }
+                            loading={isCitiesLoading || isCitiesFetching}
+                            options={cities?.data?.map((city) => ({
+                              value: city.id,
+                              label: lang === "ar" ? city.arName : city.name,
+                            }))}
+                          />
+                        )}
+                      />
+                      {errors?.TransportationFees?.[index]?.CityId && (
+                        <p>{errors.TransportationFees[index].CityId.message}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label>{t("FEES")}</label>
+
+                      <Controller
+                        control={control}
+                        name={`TransportationFees.${index}.Fee`}
+                        rules={{
+                          required: {
+                            value: true,
+                            message: t("REQUIRED"),
+                          },
+                          pattern: {
+                            value: /^\d+$/,
+                            message: t("ONLY_NUMBER"),
+                          },
+                        }}
+                        render={({ field }) => (
+                          <Input
+                            {...field}
+                            variant="filled"
+                            placeholder="Enter Fees"
+                            className="placeholder:capitalize"
+                            status={
+                              errors?.TransportationFees?.[index]?.Fee
+                                ? "error"
+                                : ""
+                            }
+                          />
+                        )}
+                      />
+
+                      {errors?.TransportationFees?.[index]?.Fee ? (
+                        <p>
+                          {errors?.TransportationFees?.[index]?.Fee?.message}
+                        </p>
+                      ) : null}
+                    </div>
+
+                    <span className="mt-6">
+                      <Button
+                        type="default"
+                        onClick={() => removeTransportation(index)}
+                        className="bg-red-700 text-white capitalize rounded-full disabled:bg-red-700/30"
+                        icon={<FaMinus />}
+                        disabled={transportaionFields?.length === 1}
+                      />
+                    </span>
+                  </section>
+                ))}
+              </div>
+
+              <div>
+                <label>{t("WORKING_HOURS")}</label>
+                <Controller
+                  control={control}
+                  name="workingHours"
+                  rules={{
+                    required: {
+                      value: true,
+                      message: t("REQUIRED"),
+                    },
+                    pattern: {
+                      value: /^\d+$/,
+                      message: t("ONLY_NUMBER"),
+                    },
+                  }}
+                  render={({ field }) => (
+                    // <Select
+                    //   {...field}
+                    //   className="min-h-10 border-[#C4C4C4] border rounded-md capitalize [&>.ant-select-selector]:capitalize"
+                    //   variant="filled"
+                    //   status={errors?.workingHours ? "error" : ""}
+                    //   // defaultValue="male"
+                    //   style={{ width: "100%" }}
+                    //   onChange={(e) => {
+                    //     field.onChange(e);
+                    //     //   handleChange(e);
+                    //   }}
+                    //   options={[
+                    //     { value: "1-2", label: "1-2" },
+                    //     { value: "2-4", label: "2-4" },
+                    //     { value: "4+", label: "4+" },
+                    //   ]}
+                    // />
+
+                    <Input
+                      {...field}
+                      variant="filled"
+                      placeholder="Enter working hours"
+                      className="placeholder:capitalize"
+                      status={errors?.workingHours ? "error" : ""}
+                    />
+                  )}
                 />
-              )}
-            />
 
-            {errors?.supplies ? <p>{errors?.supplies?.message}</p> : null}
-          </div>
+                {errors?.workingHours ? (
+                  <p>{errors?.workingHours?.message}</p>
+                ) : null}
+              </div>
 
-          <div>
-            <label>{t("RULES")}</label>
-            <Controller
-              control={control}
-              name="rules"
-              rules={{
-                required: {
-                  value: true,
-                  message: t("REQUIRED"),
-                },
-              }}
-              render={({ field }) => (
-                <Input
-                  {...field}
-                  variant="filled"
-                  placeholder="Enter rules"
-                  className="placeholder:capitalize"
-                  status={errors?.rules ? "error" : ""}
+              <div>
+                <label>{t("WHAT_HAVE")}</label>
+                <Controller
+                  control={control}
+                  name="WhatYouWillHaveOnIt"
+                  rules={{
+                    required: {
+                      value: true,
+                      message: t("REQUIRED"),
+                    },
+                  }}
+                  render={({ field }) => (
+                    <Input
+                      {...field}
+                      variant="filled"
+                      placeholder="Enter will you have on?"
+                      className="placeholder:capitalize"
+                      status={errors?.WhatYouWillHaveOnIt ? "error" : ""}
+                    />
+                  )}
                 />
-              )}
-            />
 
-            {errors?.rules ? <p>{errors?.rules?.message}</p> : null}
-          </div>
+                {errors?.WhatYouWillHaveOnIt ? (
+                  <p>{errors?.WhatYouWillHaveOnIt?.message}</p>
+                ) : null}
+              </div>
 
-          <div className="size-full col-span-full">
-            <label className="basis-full">{t("TERMS")}</label>
-            <div className="p-4 flex flex-wrap items-center justify-center border border-dashed border-[#C4C4C4] rounded-sm">
-              {/* <Upload {...uploadProps}>
+              <div>
+                <label>{t("WHAT_NOT_HAVE")}</label>
+                <Controller
+                  control={control}
+                  name="WhatYouwouldntHaveOnIt"
+                  rules={{
+                    required: {
+                      value: true,
+                      message: t("REQUIRED"),
+                    },
+                  }}
+                  render={({ field }) => (
+                    <Input
+                      {...field}
+                      variant="filled"
+                      placeholder="Enter wouldn't you have on?"
+                      className="placeholder:capitalize"
+                      status={errors?.WhatYouwouldntHaveOnIt ? "error" : ""}
+                    />
+                  )}
+                />
+
+                {errors?.WhatYouwouldntHaveOnIt ? (
+                  <p>{errors?.WhatYouwouldntHaveOnIt?.message}</p>
+                ) : null}
+              </div>
+
+              <div>
+                <label>{t("TOOLS")}</label>
+                <Controller
+                  control={control}
+                  name="Tools"
+                  rules={{
+                    required: {
+                      value: true,
+                      message: t("REQUIRED"),
+                    },
+                  }}
+                  render={({ field }) => (
+                    <Input
+                      {...field}
+                      variant="filled"
+                      placeholder="Enter tools"
+                      className="placeholder:capitalize"
+                      status={errors?.Tools ? "error" : ""}
+                    />
+                  )}
+                />
+
+                {errors?.Tools ? <p>{errors?.Tools?.message}</p> : null}
+              </div>
+
+              <div>
+                <label>{t("SUPPLIES")}</label>
+                <Controller
+                  control={control}
+                  name="Supplies"
+                  rules={{
+                    required: {
+                      value: true,
+                      message: t("REQUIRED"),
+                    },
+                  }}
+                  render={({ field }) => (
+                    <Input
+                      {...field}
+                      variant="filled"
+                      placeholder="Enter supplies"
+                      className="placeholder:capitalize"
+                      status={errors?.Supplies ? "error" : ""}
+                    />
+                  )}
+                />
+
+                {errors?.Supplies ? <p>{errors?.Supplies?.message}</p> : null}
+              </div>
+
+              <div>
+                <label>{t("RULES")}</label>
+                <Controller
+                  control={control}
+                  name="Rules"
+                  rules={{
+                    required: {
+                      value: true,
+                      message: t("REQUIRED"),
+                    },
+                  }}
+                  render={({ field }) => (
+                    <Input
+                      {...field}
+                      variant="filled"
+                      placeholder="Enter rules"
+                      className="placeholder:capitalize"
+                      status={errors?.Rules ? "error" : ""}
+                    />
+                  )}
+                />
+
+                {errors?.Rules ? <p>{errors?.Rules?.message}</p> : null}
+              </div>
+
+              <div className="size-full col-span-full">
+                <label className="basis-full">{t("TERMS")}</label>
+                <div className="p-4 flex flex-wrap items-center justify-center border border-dashed border-[#C4C4C4] rounded-sm">
+                  {/* <Upload {...uploadProps}>
                 <Button icon={<BiUpload />}>Click to Upload</Button>
               </Upload> */}
 
-              <Controller
-                name="terms"
-                control={control}
-                rules={{
-                  required: {
-                    value: true,
-                    message: t("REQUIRED"),
-                  },
-                }}
-                render={({ field }) => (
-                  <Upload
-                    beforeUpload={() => false}
-                    fileList={field.value ? [field.value] : []}
-                    onChange={({ file }) => field.onChange(file)}
-                    onRemove={() => field.onChange(null)}
-                    maxCount={1}
-                  >
-                    <Button icon={<BiUpload />}>Upload file</Button>
-                  </Upload>
-                )}
-              />
-            </div>
-            {errors?.terms ? <p>{errors?.terms?.message}</p> : null}
-          </div>
-        </section>
+                  <Controller
+                    name="TermsAndConditions"
+                    control={control}
+                    rules={{
+                      required: {
+                        value: true,
+                        message: t("REQUIRED"),
+                      },
+                    }}
+                    render={({ field }) => (
+                      <Upload
+                        beforeUpload={() => false}
+                        fileList={termsFile}
+                        onChange={({ file, fileList }) => {
+                          setTermsFile(fileList);
+                          field.onChange(file);
+                        }}
+                        onRemove={() => {
+                          setTermsFile([]);
+                          field.onChange(null);
+                        }}
+                        maxCount={1}
+                      >
+                        <Button icon={<BiUpload />}>Upload file</Button>
+                      </Upload>
+                    )}
+                  />
+                </div>
+                {errors?.TermsAndConditions ? (
+                  <p>{errors?.TermsAndConditions?.message}</p>
+                ) : null}
+              </div>
+            </section>
 
-        <section className="w-full mt-6 flex items-center justify-center">
-          <Button
-            htmlType="submit"
-            className="lg:min-w-[200px] p-5 border border-mainColor bg-transparent text-mainColor hover:bg-mainColor hover:text-white capitalize"
-          >
-            {t("SUBMIT")}
-          </Button>
-        </section>
-      </form>
-    </div>
+            <section className="w-full mt-6 flex items-center justify-center">
+              <Button
+                htmlType="submit"
+                className="lg:min-w-[200px] p-5 border border-mainColor bg-transparent text-mainColor hover:bg-mainColor hover:text-white capitalize"
+                loading={isEditPackageLoading}
+              >
+                {t("SUBMIT")}
+              </Button>
+            </section>
+          </form>
+        </div>
+      )}
+    </>
   );
 };
 

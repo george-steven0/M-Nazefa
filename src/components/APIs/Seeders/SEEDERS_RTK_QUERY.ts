@@ -33,10 +33,16 @@ const employees = API.injectEndpoints({
       ],
     }),
 
-    getBuildingTypes: build.query<SingleAPIResponse<seedersProps[]>, void>({
-      query: () => {
+    getBuildingTypes: build.query<
+      SingleAPIResponse<seedersProps[]>,
+      { id: string }
+    >({
+      query: ({ id }) => {
         return {
           url: `/DDL/GetAllBuildingTypes`,
+          headers: {
+            AddressTypeId: id?.toString(),
+          },
         };
       },
       providesTags: ["buildingTypes"],
@@ -67,6 +73,14 @@ const employees = API.injectEndpoints({
       }),
       // providesTags: [{ type: "clients", id: "LIST" }],
     }),
+
+    getAddressTypes: build.query<SingleAPIResponse<seedersProps[]>, void>({
+      query: () => ({
+        url: `/DDL/GetAllAddressTypes`,
+        method: "GET",
+      }),
+      // providesTags: [{ type: "clients", id: "LIST" }],
+    }),
   }),
 });
 export const {
@@ -76,4 +90,5 @@ export const {
   useGetLandTypesQuery,
   useGetStatesQuery,
   useGetCustomerTypesQuery,
+  useGetAddressTypesQuery,
 } = employees;

@@ -6,14 +6,29 @@ import ImgCrop from "antd-img-crop";
 import { Button, Image, Input, Select, Upload, type UploadFile } from "antd";
 import { useState } from "react";
 import type {
+  APIErrorProps,
   FileType,
   packageFormProps,
 } from "../../../components/Utilities/Types/types";
 import { getBase64 } from "../../../components/Utilities/helper";
 import { FaMinus, FaPlus } from "react-icons/fa";
+import { useGetCitiesQuery } from "../../../components/APIs/Seeders/SEEDERS_RTK_QUERY";
+import { useAppSelector } from "../../../components/APIs/store";
+import { useAddPackageMutation } from "../../../components/APIs/Packages/PACKAGES_QUERY";
+import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 
 const AddPackage = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
+  const { lang } = useAppSelector((state) => state?.lang);
+  const [addPackage, { isLoading: isAddPackageLoading }] =
+    useAddPackageMutation();
+  const {
+    data: cities,
+    isFetching: isCitiesFetching,
+    isLoading: isCitiesLoading,
+  } = useGetCitiesQuery();
 
   const {
     control,
@@ -21,17 +36,17 @@ const AddPackage = () => {
     formState: { errors },
   } = useForm<packageFormProps>({
     defaultValues: {
-      extra_details: [
+      PackageDetails: [
         {
-          noOfRooms: "",
-          noOfWorkers: "",
-          price: "",
+          NumberofRooms: "",
+          NumberofWorkers: "",
+          Price: "",
         },
       ],
-      transportaion: [
+      TransportationFees: [
         {
-          fees: "",
-          country: "",
+          Fee: "",
+          CityId: "",
         },
       ],
     },
@@ -57,7 +72,7 @@ const AddPackage = () => {
     append,
     remove,
   } = useFieldArray({
-    name: "extra_details",
+    name: "PackageDetails",
     control,
     rules: {
       required: {
@@ -69,9 +84,9 @@ const AddPackage = () => {
 
   const addMoreExtraDetails = () => {
     append({
-      noOfRooms: "",
-      noOfWorkers: "",
-      price: "",
+      NumberofRooms: "",
+      NumberofWorkers: "",
+      Price: "",
     });
   };
 
@@ -84,7 +99,7 @@ const AddPackage = () => {
     append: transportaionAppend,
     remove: transportaionRemove,
   } = useFieldArray({
-    name: "transportaion",
+    name: "TransportationFees",
     control,
     rules: {
       required: {
@@ -96,8 +111,8 @@ const AddPackage = () => {
 
   const addMoreTransportation = () => {
     transportaionAppend({
-      fees: "",
-      country: "",
+      Fee: "",
+      CityId: "",
     });
   };
 
@@ -105,8 +120,55 @@ const AddPackage = () => {
     transportaionRemove(index);
   };
 
-  const handleSubmitForm = (data: packageFormProps) => {
-    console.log(data);
+  const handleSubmitForm = async (data: packageFormProps) => {
+    // console.log(data);
+    const formattedData = new FormData();
+    Object.entries(data).forEach(([key, value]) => {
+      if (value === null || value === undefined) return;
+
+      if (Array.isArray(value)) {
+        // Handle Arrays (PackageDetails, TransportationFees)
+        value.forEach((item, index) => {
+          if (typeof item === "object" && !(item instanceof File)) {
+            // Loop through the sub-keys of the object
+            // Result: key[index].subKey -> PackageDetails[0].NumberofRooms
+            Object.entries(item).forEach(([subKey, subValue]) => {
+              formattedData.append(
+                `${key}[${index}].${subKey}`,
+                String(subValue),
+              );
+            });
+          } else {
+            // Handle arrays of primitives or files
+            formattedData.append(`${key}[${index}]`, item);
+          }
+        });
+      } else if (value instanceof File) {
+        formattedData.append(key, value);
+      } else if (typeof value === "object") {
+        // Handle single non-file objects if any exist
+        Object.entries(value).forEach(([subKey, subValue]) => {
+          formattedData.append(`${key}.${subKey}`, String(subValue));
+        });
+      } else {
+        // Handle primitives
+        formattedData.append(key, String(value));
+      }
+    });
+
+    // console.log(Object.fromEntries(formattedData));
+
+    try {
+      await addPackage(formattedData).unwrap();
+      toast.success("Package added successfully");
+      navigate("/packages");
+    } catch (error) {
+      const err = error as APIErrorProps;
+      err?.data?.errorMessages?.forEach((message) => {
+        toast.error(message);
+      });
+      // console.log(err?.data);
+    }
   };
   return (
     <div className="add-package-wrapper">
@@ -123,7 +185,7 @@ const AddPackage = () => {
           <div className="image col-span-full text-center w-full flex flex-col justify-center items-center gap-1">
             <Controller
               control={control}
-              name="image"
+              name="Logo"
               rules={{
                 required: {
                   value: true,
@@ -168,64 +230,130 @@ const AddPackage = () => {
               )}
             />
 
-            {errors?.image ? <p>{errors?.image?.message}</p> : null}
+            {errors?.Logo ? <p>{errors?.Logo?.message}</p> : null}
           </div>
 
           <div>
             <label>{t("TITLE")}</label>
             <Controller
               control={control}
-              name="title"
+              name="Title"
               rules={{
                 required: {
                   value: true,
                   message: t("REQUIRED"),
+                },
+                pattern: {
+                  value: /^[a-zA-Z0-9\s]+$/,
+                  message: t("ENGLISH_LETTER"),
                 },
               }}
               render={({ field }) => (
                 <Input
                   {...field}
                   variant="filled"
-                  placeholder="Enter title"
+                  placeholder="Enter english title"
                   className="placeholder:capitalize"
-                  status={errors?.title ? "error" : ""}
+                  status={errors?.Title ? "error" : ""}
                 />
               )}
             />
 
-            {errors?.title ? <p>{errors?.title?.message}</p> : null}
+            {errors?.Title ? <p>{errors?.Title?.message}</p> : null}
+          </div>
+
+          <div>
+            <label>{t("AR_TITLE")}</label>
+            <Controller
+              control={control}
+              name="ArTitle"
+              rules={{
+                required: {
+                  value: true,
+                  message: t("REQUIRED"),
+                },
+                pattern: {
+                  value: /^[\u0600-\u06FF0-9\s]+$/,
+                  message: t("ARABIC_LETTER"),
+                },
+              }}
+              render={({ field }) => (
+                <Input
+                  {...field}
+                  variant="filled"
+                  placeholder="Enter arabic title"
+                  className="placeholder:capitalize"
+                  status={errors?.ArTitle ? "error" : ""}
+                />
+              )}
+            />
+
+            {errors?.ArTitle ? <p>{errors?.ArTitle?.message}</p> : null}
           </div>
 
           <div>
             <label>{t("SUB_TITLE")}</label>
             <Controller
               control={control}
-              name="subTitle"
+              name="SubTitle"
               rules={{
                 required: {
                   value: true,
                   message: t("REQUIRED"),
+                },
+                pattern: {
+                  value: /^[a-zA-Z0-9\s]+$/,
+                  message: t("ENGLISH_LETTER"),
                 },
               }}
               render={({ field }) => (
                 <Input
                   {...field}
                   variant="filled"
-                  placeholder="Enter sub title"
+                  placeholder="Enter english sub title"
                   className="placeholder:capitalize"
-                  status={errors?.subTitle ? "error" : ""}
+                  status={errors?.SubTitle ? "error" : ""}
                 />
               )}
             />
 
-            {errors?.subTitle ? <p>{errors?.subTitle?.message}</p> : null}
+            {errors?.SubTitle ? <p>{errors?.SubTitle?.message}</p> : null}
+          </div>
+
+          <div>
+            <label>{t("AR_SUB_TITLE")}</label>
+            <Controller
+              control={control}
+              name="ArSubTitle"
+              rules={{
+                required: {
+                  value: true,
+                  message: t("REQUIRED"),
+                },
+                pattern: {
+                  value: /^[\u0600-\u06FF0-9\s]+$/,
+                  message: t("ARABIC_LETTER"),
+                },
+              }}
+              render={({ field }) => (
+                <Input
+                  {...field}
+                  variant="filled"
+                  placeholder="Enter arabic sub title"
+                  className="placeholder:capitalize"
+                  status={errors?.ArSubTitle ? "error" : ""}
+                />
+              )}
+            />
+
+            {errors?.ArSubTitle ? <p>{errors?.ArSubTitle?.message}</p> : null}
           </div>
 
           <div className="col-span-full">
             <label>{t("DESCRIPTION")}</label>
             <Controller
               control={control}
-              name="description"
+              name="Description"
               rules={{
                 required: {
                   value: true,
@@ -238,18 +366,18 @@ const AddPackage = () => {
                   variant="filled"
                   placeholder="Enter description"
                   className="placeholder:capitalize"
-                  status={errors?.description ? "error" : ""}
+                  status={errors?.Description ? "error" : ""}
                 />
               )}
             />
 
-            {errors?.description ? <p>{errors?.description?.message}</p> : null}
+            {errors?.Description ? <p>{errors?.Description?.message}</p> : null}
           </div>
 
           <div className="extra-details-wrapper col-span-full">
             <div className="col-span-full flex items-center gap-2">
               <label className="font-medium text-lg">
-                {t("EXTRA_DETAILS")}
+                {t("PACKAGE_DETAILS")}
               </label>
               <Button
                 type="default"
@@ -269,7 +397,7 @@ const AddPackage = () => {
 
                   <Controller
                     control={control}
-                    name={`extra_details.${index}.noOfRooms`}
+                    name={`PackageDetails.${index}.NumberofRooms`}
                     rules={{
                       required: {
                         value: true,
@@ -283,21 +411,21 @@ const AddPackage = () => {
                         placeholder="Number of rooms"
                         variant="filled"
                         status={
-                          errors?.extra_details?.[index]?.noOfRooms
+                          errors?.PackageDetails?.[index]?.NumberofRooms
                             ? "error"
                             : ""
                         }
-                        options={Array.from({ length: 20 })?.map(
+                        options={Array.from({ length: 21 })?.map(
                           (_, index) => ({
-                            label: index + 1,
-                            value: index + 1,
-                          })
+                            label: index,
+                            value: index,
+                          }),
                         )}
                       />
                     )}
                   />
-                  {errors?.extra_details?.[index]?.noOfRooms && (
-                    <p>{errors.extra_details[index].noOfRooms.message}</p>
+                  {errors?.PackageDetails?.[index]?.NumberofRooms && (
+                    <p>{errors.PackageDetails[index].NumberofRooms.message}</p>
                   )}
                 </div>
 
@@ -306,7 +434,7 @@ const AddPackage = () => {
 
                   <Controller
                     control={control}
-                    name={`extra_details.${index}.noOfWorkers`}
+                    name={`PackageDetails.${index}.NumberofWorkers`}
                     rules={{
                       required: {
                         value: true,
@@ -320,21 +448,23 @@ const AddPackage = () => {
                         placeholder="Number of workers"
                         variant="filled"
                         status={
-                          errors?.extra_details?.[index]?.noOfWorkers
+                          errors?.PackageDetails?.[index]?.NumberofWorkers
                             ? "error"
                             : ""
                         }
-                        options={Array.from({ length: 20 })?.map(
+                        options={Array.from({ length: 21 })?.map(
                           (_, index) => ({
                             label: index + 1,
                             value: index + 1,
-                          })
+                          }),
                         )}
                       />
                     )}
                   />
-                  {errors?.extra_details?.[index]?.noOfWorkers && (
-                    <p>{errors.extra_details[index].noOfWorkers.message}</p>
+                  {errors?.PackageDetails?.[index]?.NumberofWorkers && (
+                    <p>
+                      {errors.PackageDetails[index].NumberofWorkers.message}
+                    </p>
                   )}
                 </div>
 
@@ -343,7 +473,7 @@ const AddPackage = () => {
 
                   <Controller
                     control={control}
-                    name={`extra_details.${index}.price`}
+                    name={`PackageDetails.${index}.Price`}
                     rules={{
                       required: {
                         value: true,
@@ -361,14 +491,14 @@ const AddPackage = () => {
                         placeholder="Enter Price"
                         className="placeholder:capitalize"
                         status={
-                          errors?.extra_details?.[index]?.price ? "error" : ""
+                          errors?.PackageDetails?.[index]?.Price ? "error" : ""
                         }
                       />
                     )}
                   />
 
-                  {errors?.extra_details?.[index]?.price ? (
-                    <p>{errors?.extra_details?.[index]?.price?.message}</p>
+                  {errors?.PackageDetails?.[index]?.Price ? (
+                    <p>{errors?.PackageDetails?.[index]?.Price?.message}</p>
                   ) : null}
                 </div>
 
@@ -385,7 +515,7 @@ const AddPackage = () => {
             ))}
           </div>
 
-          <div className="transportation-fees-wrapper col-span-full">
+          <div className="transportation-fees-wrapper col-span-full grid grid-cols-1">
             <div className="col-span-full flex items-center gap-2">
               <label className="font-medium text-lg">
                 {t("TRANSPORTATION_FEES")}
@@ -403,12 +533,12 @@ const AddPackage = () => {
                 className="my-3 flex items-center gap-5 [&>div]:grow [&>div>label]:block [&>div>label]:mb-1 [&>div>label]:capitalize [&>div>label]:font-medium [&>div>input]:border-[#C4C4C4] [&>div>input]:py-2 [&>div>p]:mt-1 [&>div>p]:text-xs [&>div>p]:capitalize [&>div>p]:text-mainRed"
                 key={field?.id || index}
               >
-                <div>
-                  <label>{t("COUNTRY")}</label>
+                <div className="basis-1/4">
+                  <label>{t("CITY")}</label>
 
                   <Controller
                     control={control}
-                    name={`transportaion.${index}.country`}
+                    name={`TransportationFees.${index}.CityId`}
                     rules={{
                       required: {
                         value: true,
@@ -422,19 +552,20 @@ const AddPackage = () => {
                         placeholder="Select Country"
                         variant="filled"
                         status={
-                          errors?.transportaion?.[index]?.country ? "error" : ""
+                          errors?.TransportationFees?.[index]?.CityId
+                            ? "error"
+                            : ""
                         }
-                        options={Array.from({ length: 20 })?.map(
-                          (_, index) => ({
-                            label: index + 1,
-                            value: index + 1,
-                          })
-                        )}
+                        loading={isCitiesLoading || isCitiesFetching}
+                        options={cities?.data?.map((city) => ({
+                          value: city.id,
+                          label: lang === "ar" ? city.arName : city.name,
+                        }))}
                       />
                     )}
                   />
-                  {errors?.transportaion?.[index]?.country && (
-                    <p>{errors.transportaion[index].country.message}</p>
+                  {errors?.TransportationFees?.[index]?.CityId && (
+                    <p>{errors.TransportationFees[index].CityId.message}</p>
                   )}
                 </div>
 
@@ -443,7 +574,7 @@ const AddPackage = () => {
 
                   <Controller
                     control={control}
-                    name={`transportaion.${index}.fees`}
+                    name={`TransportationFees.${index}.Fee`}
                     rules={{
                       required: {
                         value: true,
@@ -461,14 +592,16 @@ const AddPackage = () => {
                         placeholder="Enter Fees"
                         className="placeholder:capitalize"
                         status={
-                          errors?.transportaion?.[index]?.fees ? "error" : ""
+                          errors?.TransportationFees?.[index]?.Fee
+                            ? "error"
+                            : ""
                         }
                       />
                     )}
                   />
 
-                  {errors?.transportaion?.[index]?.fees ? (
-                    <p>{errors?.transportaion?.[index]?.fees?.message}</p>
+                  {errors?.TransportationFees?.[index]?.Fee ? (
+                    <p>{errors?.TransportationFees?.[index]?.Fee?.message}</p>
                   ) : null}
                 </div>
 
@@ -495,24 +628,36 @@ const AddPackage = () => {
                   value: true,
                   message: t("REQUIRED"),
                 },
+                pattern: {
+                  value: /^\d+$/,
+                  message: t("ONLY_NUMBER"),
+                },
               }}
               render={({ field }) => (
-                <Select
+                // <Select
+                //   {...field}
+                //   className="min-h-10 border-[#C4C4C4] border rounded-md capitalize [&>.ant-select-selector]:capitalize"
+                //   variant="filled"
+                //   status={errors?.workingHours ? "error" : ""}
+                //   // defaultValue="male"
+                //   style={{ width: "100%" }}
+                //   onChange={(e) => {
+                //     field.onChange(e);
+                //     //   handleChange(e);
+                //   }}
+                //   options={[
+                //     { value: "1-2", label: "1-2" },
+                //     { value: "2-4", label: "2-4" },
+                //     { value: "4+", label: "4+" },
+                //   ]}
+                // />
+
+                <Input
                   {...field}
-                  className="min-h-10 border-[#C4C4C4] border rounded-md capitalize [&>.ant-select-selector]:capitalize"
                   variant="filled"
+                  placeholder="Enter working hours"
+                  className="placeholder:capitalize"
                   status={errors?.workingHours ? "error" : ""}
-                  // defaultValue="male"
-                  style={{ width: "100%" }}
-                  onChange={(e) => {
-                    field.onChange(e);
-                    //   handleChange(e);
-                  }}
-                  options={[
-                    { value: "1-2", label: "1-2" },
-                    { value: "2-4", label: "2-4" },
-                    { value: "4+", label: "4+" },
-                  ]}
                 />
               )}
             />
@@ -526,7 +671,7 @@ const AddPackage = () => {
             <label>{t("WHAT_HAVE")}</label>
             <Controller
               control={control}
-              name="haveOn"
+              name="WhatYouWillHaveOnIt"
               rules={{
                 required: {
                   value: true,
@@ -539,19 +684,21 @@ const AddPackage = () => {
                   variant="filled"
                   placeholder="Enter will you have on?"
                   className="placeholder:capitalize"
-                  status={errors?.haveOn ? "error" : ""}
+                  status={errors?.WhatYouWillHaveOnIt ? "error" : ""}
                 />
               )}
             />
 
-            {errors?.haveOn ? <p>{errors?.haveOn?.message}</p> : null}
+            {errors?.WhatYouWillHaveOnIt ? (
+              <p>{errors?.WhatYouWillHaveOnIt?.message}</p>
+            ) : null}
           </div>
 
           <div>
             <label>{t("WHAT_NOT_HAVE")}</label>
             <Controller
               control={control}
-              name="notHav"
+              name="WhatYouwouldntHaveOnIt"
               rules={{
                 required: {
                   value: true,
@@ -564,19 +711,21 @@ const AddPackage = () => {
                   variant="filled"
                   placeholder="Enter wouldn't you have on?"
                   className="placeholder:capitalize"
-                  status={errors?.notHav ? "error" : ""}
+                  status={errors?.WhatYouwouldntHaveOnIt ? "error" : ""}
                 />
               )}
             />
 
-            {errors?.notHav ? <p>{errors?.notHav?.message}</p> : null}
+            {errors?.WhatYouwouldntHaveOnIt ? (
+              <p>{errors?.WhatYouwouldntHaveOnIt?.message}</p>
+            ) : null}
           </div>
 
           <div>
             <label>{t("TOOLS")}</label>
             <Controller
               control={control}
-              name="tool"
+              name="Tools"
               rules={{
                 required: {
                   value: true,
@@ -589,19 +738,19 @@ const AddPackage = () => {
                   variant="filled"
                   placeholder="Enter tools"
                   className="placeholder:capitalize"
-                  status={errors?.tool ? "error" : ""}
+                  status={errors?.Tools ? "error" : ""}
                 />
               )}
             />
 
-            {errors?.tool ? <p>{errors?.tool?.message}</p> : null}
+            {errors?.Tools ? <p>{errors?.Tools?.message}</p> : null}
           </div>
 
           <div>
             <label>{t("SUPPLIES")}</label>
             <Controller
               control={control}
-              name="supplies"
+              name="Supplies"
               rules={{
                 required: {
                   value: true,
@@ -614,19 +763,19 @@ const AddPackage = () => {
                   variant="filled"
                   placeholder="Enter supplies"
                   className="placeholder:capitalize"
-                  status={errors?.supplies ? "error" : ""}
+                  status={errors?.Supplies ? "error" : ""}
                 />
               )}
             />
 
-            {errors?.supplies ? <p>{errors?.supplies?.message}</p> : null}
+            {errors?.Supplies ? <p>{errors?.Supplies?.message}</p> : null}
           </div>
 
           <div>
             <label>{t("RULES")}</label>
             <Controller
               control={control}
-              name="rules"
+              name="Rules"
               rules={{
                 required: {
                   value: true,
@@ -639,12 +788,12 @@ const AddPackage = () => {
                   variant="filled"
                   placeholder="Enter rules"
                   className="placeholder:capitalize"
-                  status={errors?.rules ? "error" : ""}
+                  status={errors?.Rules ? "error" : ""}
                 />
               )}
             />
 
-            {errors?.rules ? <p>{errors?.rules?.message}</p> : null}
+            {errors?.Rules ? <p>{errors?.Rules?.message}</p> : null}
           </div>
 
           <div className="size-full col-span-full">
@@ -655,7 +804,7 @@ const AddPackage = () => {
               </Upload> */}
 
               <Controller
-                name="terms"
+                name="TermsAndConditions"
                 control={control}
                 rules={{
                   required: {
@@ -676,7 +825,9 @@ const AddPackage = () => {
                 )}
               />
             </div>
-            {errors?.terms ? <p>{errors?.terms?.message}</p> : null}
+            {errors?.TermsAndConditions ? (
+              <p>{errors?.TermsAndConditions?.message}</p>
+            ) : null}
           </div>
         </section>
 
@@ -684,6 +835,7 @@ const AddPackage = () => {
           <Button
             htmlType="submit"
             className="lg:min-w-[200px] p-5 border border-mainColor bg-transparent text-mainColor hover:bg-mainColor hover:text-white capitalize"
+            loading={isAddPackageLoading}
           >
             {t("SUBMIT")}
           </Button>

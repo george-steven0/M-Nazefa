@@ -12,7 +12,7 @@ import navVector from "../../../assets/imgs/navbarVector.svg";
 import { Button } from "antd";
 import { useTranslation } from "react-i18next";
 import { FaSignOutAlt } from "react-icons/fa";
-import { MdOutlinePermContactCalendar } from "react-icons/md";
+import { MdCardMembership, MdOutlinePermContactCalendar } from "react-icons/md";
 import { FaMapLocation } from "react-icons/fa6";
 
 const Navbar = ({
@@ -55,6 +55,13 @@ const Navbar = ({
       name: t("AREA"),
       path: "/areas",
       icon: <FaMapLocation />,
+      iconType: "fontIcon",
+    },
+    {
+      id: "memberships",
+      name: t("MEMBERSHIPS"),
+      path: "/memberships",
+      icon: <MdCardMembership />,
       iconType: "fontIcon",
     },
     {
