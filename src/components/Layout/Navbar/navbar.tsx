@@ -12,8 +12,13 @@ import navVector from "../../../assets/imgs/navbarVector.svg";
 import { Button } from "antd";
 import { useTranslation } from "react-i18next";
 import { FaSignOutAlt } from "react-icons/fa";
-import { MdCardMembership, MdOutlinePermContactCalendar } from "react-icons/md";
+import {
+  MdCardMembership,
+  MdOutlineCleaningServices,
+  MdOutlinePermContactCalendar,
+} from "react-icons/md";
 import { FaMapLocation } from "react-icons/fa6";
+import { LuPackagePlus } from "react-icons/lu";
 
 const Navbar = ({
   setToggle,
@@ -87,6 +92,20 @@ const Navbar = ({
       name: t("PACKAGES"),
       path: "/packages",
       icon: packagesIcon,
+    },
+    {
+      id: "package_types",
+      name: t("PACKAGE_TYPES"),
+      path: "/package_types",
+      icon: <LuPackagePlus />,
+      iconType: "fontIcon",
+    },
+    {
+      id: "cleaning_area",
+      name: t("CLEANING_AREA"),
+      path: "/cleaning_area",
+      icon: <MdOutlineCleaningServices />,
+      iconType: "fontIcon",
     },
     {
       id: "reservations",

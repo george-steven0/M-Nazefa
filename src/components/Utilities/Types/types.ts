@@ -161,6 +161,7 @@ export type clientFormPropsType = {
   isOld: boolean;
   whatsAppNumber?: string | number;
   membershipId?: string | number;
+  memberShipNumber?: string;
   entryDate: string;
   customerAddresses: (addressProps & buildingProps)[];
   address?: (addressProps & buildingProps)[];
@@ -212,38 +213,61 @@ export type buildingProps = {
 };
 
 export type packageFormProps = {
+  packageTypeId: string;
   Title: string;
   ArTitle: string;
   SubTitle: string;
   ArSubTitle: string;
+  subTitlearSubTitle?: string;
   Description: string;
-  WhatYouWillHaveOnIt: string;
-  WhatYouwouldntHaveOnIt: string;
+  IsPercentage: string;
+  isPercentage: string;
+  Discount: string;
+  // WhatYouWillHaveOnIt: string;
+  // WhatYouwouldntHaveOnIt: string;
   Tools: string;
   Supplies: string;
   Rules: string | number;
-  TermsAndConditions: UploadFile | null;
+  TermsAndConditions: UploadFile | string | null;
   Logo: string | File;
-  workingHours: string;
-  PackageDetails: {
-    NumberofRooms: string;
-    NumberofWorkers: string;
-    Price: string;
+  // workingHours: string;
+  NumberofRooms: string;
+  NumberofWorkers: string;
+  Price?: string;
+  CleaningAreaDetails: {
+    CleaningAreaId: string;
+    ArName: string;
+    Name: string;
   }[];
-  TransportationFees: { Fee: string; CityId: string }[];
+  cleaningAreaDetails?: {
+    CleaningAreaId: string;
+    ArName: string;
+    Name: string;
+  }[];
+  ExtraServices: {
+    ArName: string;
+    Name: string;
+    Price: string | number;
+  }[];
+  // TransportationFees: { Fee: string; CityId: string }[];
 };
 
 // this type for card only
 export type packageCard = {
+  packageTypeId: string;
   id: string | number;
   title: string;
   arTitle: string;
   subTitle: string;
+  subTitlearSubTitle?: string;
   arSubTitle: string;
   description: string;
-  whatYouWillHaveOnIt: string;
-  whatYouWouldntHaveOnIt: string;
-  whatYouwouldntHaveOnIt?: string;
+  IsPercentage: string;
+  isPercentage: string;
+  Discount: string;
+  discount: string | number;
+  packageTypeName?: string;
+  packageTypeArName?: string;
   tools: string;
   supplies: string;
   rules: string | number;
@@ -259,16 +283,30 @@ export type packageCard = {
       };
   logo: string;
   isActive: boolean;
-  workingHours: string;
-  packageDetails: {
-    id?: string | number;
-    numberofRooms: string;
-    numberOfRooms?: string;
-    numberofWorkers: string;
-    numberOfWorkers?: string;
-    price: string;
+  // workingHours: string;
+  numberofRooms: string;
+  numberOfRooms?: string;
+  numberofWorkers: string;
+  numberOfWorkers?: string;
+  price: string;
+  CleaningAreaDetails: {
+    CleaningAreaId: string;
+    ArName: string;
+    Name: string;
   }[];
-  transportationFees: { id?: string; fee: string; cityId: string }[];
+  cleaningAreaDetails?: {
+    id: string | number;
+    cleaningAreaId: string;
+    arName: string;
+    name: string;
+  }[];
+  extraServices?: {
+    arName: string;
+    name: string;
+    price: string | number;
+    id?: string | number;
+  }[];
+  // transportationFees: { id?: string; fee: string; cityId: string }[];
 };
 
 export type appointmentProps = {

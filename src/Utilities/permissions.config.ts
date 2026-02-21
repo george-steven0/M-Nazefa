@@ -31,6 +31,17 @@ export const PERMISSIONS = {
   EDIT_PACKAGE: "edit_package",
   VIEW_PACKAGE: "view_package",
 
+  // Package Types
+  ADD_PACKAGE_TYPE: "add_package_type",
+  EDIT_PACKAGE_TYPE: "edit_package_type",
+  VIEW_PACKAGE_TYPE: "view_package_type",
+
+  // Cleaning Area
+  ADD_CLEANING_AREA: "add_cleaning_area",
+  EDIT_CLEANING_AREA: "edit_cleaning_area",
+  VIEW_CLEANING_AREA: "view_cleaning_area",
+  DELETE_CLEANING_AREA: "delete_cleaning_area",
+
   // Dashboard
   VIEW_DASHBOARD: "view_dashboard",
   //   VIEW_DASHBOARD_ANALYTICS: "view_dashboard_analytics",
@@ -67,6 +78,10 @@ export const ROLE_PERMISSIONS: Record<AppRole, Permission[]> = {
     PERMISSIONS.EDIT_CLIENT,
     PERMISSIONS.VIEW_CLIENT,
 
+    PERMISSIONS.VIEW_PACKAGE_TYPE,
+
+    PERMISSIONS.VIEW_CLEANING_AREA,
+
     PERMISSIONS.ADD_RESERVATION,
     PERMISSIONS.VIEW_RESERVATION,
 
@@ -81,6 +96,8 @@ export const ROLE_PERMISSIONS: Record<AppRole, Permission[]> = {
     PERMISSIONS.ADD_CLIENT,
     PERMISSIONS.EDIT_CLIENT,
     PERMISSIONS.VIEW_CLIENT,
+    PERMISSIONS.VIEW_PACKAGE_TYPE,
+    PERMISSIONS.VIEW_CLEANING_AREA,
     // PERMISSIONS.VIEW_DASHBOARD,
   ],
 
@@ -95,6 +112,9 @@ export const ROLE_PERMISSIONS: Record<AppRole, Permission[]> = {
     PERMISSIONS.ADD_PACKAGE,
     PERMISSIONS.EDIT_PACKAGE,
     PERMISSIONS.VIEW_PACKAGE,
+    PERMISSIONS.VIEW_PACKAGE_TYPE,
+
+    PERMISSIONS.VIEW_CLEANING_AREA,
 
     //EMPLOYEES
 
@@ -109,6 +129,7 @@ export const ROLE_PERMISSIONS: Record<AppRole, Permission[]> = {
     PERMISSIONS.DELETE_CLIENT,
 
     // Reservations
+    PERMISSIONS.VIEW_RESERVATION,
     PERMISSIONS.EDIT_RESERVATION,
     PERMISSIONS.DELETE_RESERVATION,
   ],
@@ -126,6 +147,5 @@ ROLE_PERMISSIONS.super_admin = [
   PERMISSIONS.VIEW_ROLES,
   PERMISSIONS.VIEW_AREAS,
   PERMISSIONS.VIEW_WORKERS,
-  PERMISSIONS.VIEW_RESERVATION,
   PERMISSIONS.VIEW_MEMBERSHIP,
 ];

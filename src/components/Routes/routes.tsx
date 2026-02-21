@@ -11,8 +11,8 @@ import AddClient from "../../Pages/Clients/Components/addClient";
 import EditClient from "../../Pages/Clients/Components/editClient";
 import ViewClient from "../../Pages/Clients/Components/viewClient";
 import Packages from "../../Pages/Packages/packages";
-import AddPackage from "../../Pages/Packages/Components/addPackage";
-import EditPackage from "../../Pages/Packages/Components/editpackage";
+// import AddPackage from "../../Pages/Packages/Components/addPackage";
+// import EditPackage from "../../Pages/Packages/Components/editpackage";
 import ViewPackage from "../../Pages/Packages/Components/viewPackage";
 import Dashboard from "../../Pages/Dashboard/dashboard";
 import AddReservation from "../../Pages/Reservations/Components/addReservation";
@@ -34,6 +34,9 @@ import GuardRole from "./Roles/guardRole";
 import { PERMISSIONS } from "../../Utilities/permissions.config";
 import Unauthorized from "../../Pages/Unauthorized/unauthorized";
 import Memberships from "../../Pages/Membership/memberShip";
+import PackageForm from "../../Pages/Packages/Components/packageForm";
+import PackageTypes from "../../Pages/PackageTypes/packageTypes";
+import CLeaningArea from "../../Pages/CleaningArea/cleaningArea";
 
 export const routes = createBrowserRouter([
   // Guest Routes
@@ -199,20 +202,38 @@ export const routes = createBrowserRouter([
             children: [
               {
                 path: "add-package",
-                element: <AddPackage />,
+                element: <PackageForm />,
                 handle: {
                   permission: PERMISSIONS.ADD_PACKAGE,
                 },
               },
               {
                 path: "edit-package",
-                element: <EditPackage />,
+                element: <PackageForm />,
                 handle: {
                   permission: PERMISSIONS.EDIT_PACKAGE,
                 },
               },
               { path: "view-package", element: <ViewPackage /> },
             ],
+          },
+
+          // Package Types
+          {
+            path: "package_types",
+            element: <PackageTypes />,
+            handle: {
+              permission: PERMISSIONS.VIEW_PACKAGE_TYPE,
+            },
+          },
+
+          // Cleaning Area
+          {
+            path: "cleaning_area",
+            element: <CLeaningArea />,
+            handle: {
+              permission: PERMISSIONS.VIEW_CLEANING_AREA,
+            },
           },
 
           // Reservations

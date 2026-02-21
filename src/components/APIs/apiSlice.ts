@@ -78,6 +78,8 @@ export const API = createApi({
     "packages",
     "services",
     "memberships",
+    "packageTypes",
+    "CleaningArea",
   ],
   endpoints: () => ({}),
 });

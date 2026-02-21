@@ -81,6 +81,22 @@ const employees = API.injectEndpoints({
       }),
       // providesTags: [{ type: "clients", id: "LIST" }],
     }),
+
+    getPackageTypes: build.query<SingleAPIResponse<seedersProps[]>, void>({
+      query: () => ({
+        url: `/DDL/GetAllPackageTypesDDL`,
+        method: "GET",
+      }),
+      providesTags: ["packageTypes"],
+    }),
+
+    getExtraService: build.query<SingleAPIResponse<seedersProps[]>, void>({
+      query: () => ({
+        url: `/DDL/GetAllExtraServicesDDL`,
+        method: "GET",
+      }),
+      // providesTags: [{ type: "clients", id: "LIST" }],
+    }),
   }),
 });
 export const {
@@ -91,4 +107,6 @@ export const {
   useGetStatesQuery,
   useGetCustomerTypesQuery,
   useGetAddressTypesQuery,
+  useGetPackageTypesQuery,
+  useGetExtraServiceQuery,
 } = employees;

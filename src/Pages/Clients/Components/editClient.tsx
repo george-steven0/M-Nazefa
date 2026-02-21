@@ -78,6 +78,7 @@ const EditClient = () => {
     email: data?.data.email ?? "",
     idNumber: data?.data.idNumber ?? "",
     hasMembership: data?.data.hasMembership ?? false,
+    memberShipNumber: data?.data.memberShipNumber ?? "",
     generalNotes: data?.data.generalNotes ?? "",
     membershipId: data?.data.membershipId ?? "",
     customerTypeId: data?.data.customerTypeId ?? "",
@@ -171,7 +172,7 @@ const EditClient = () => {
         setValue("membershipId", data?.data?.membershipId);
       } else {
         setIsMembership(false);
-        setValue("membershipId", "");
+        setValue("membershipId", data?.data?.membershipId);
       }
     }
   }, [data, reset, setValue]);
@@ -296,7 +297,7 @@ const EditClient = () => {
     setIsMembership(e.target.checked);
     // console.log(e.target.checked);
     if (!e.target.checked) {
-      setValue("membershipId", "");
+      setValue("membershipId", data?.data?.membershipId);
     }
   };
 
@@ -536,110 +537,161 @@ const EditClient = () => {
                   )}
                 </div>
 
-                <div className="col-span-full grid grid-cols-1 lg:grid-cols-3 gap-5 lg:gap-10 justify-start">
-                  <div className="flex flex-col w-fit">
-                    <label className="cursor-pointer w-fit" htmlFor="isOld">
-                      {t("OLD_CUSTOMER")}
-                      {/* <Astrisk /> */}
-                    </label>
-
-                    <Controller
-                      control={control}
-                      name="isOld"
-                      // rules={{
-                      //   required: { value: true, message: t("REQUIRED") },
-                      // }}
-                      render={({ field }) => (
-                        <Checkbox
-                          id="isOld"
-                          {...field}
-                          className="size-fit scale-125"
-                          // status={errors?.hasMembership ? "error" : ""}
-                          checked={Boolean(field.value)}
-                          onChange={(e) => {
-                            field.onChange(e.target.checked);
-                            oldCustomerChange(e);
-                          }}
-                        />
-                      )}
-                    />
-                    {errors?.isOld && (
-                      <p className="text-red-500 text-xs mt-1 capitalize">
-                        {errors?.isOld?.message}
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="flex flex-col w-fit">
-                    <label
-                      className="cursor-pointer w-fit"
-                      htmlFor="hasMembership"
-                    >
-                      {t("HAS_MEMBERSHIP")}
-                    </label>
-
-                    <Controller
-                      control={control}
-                      name="hasMembership"
-                      render={({ field }) => (
-                        <Checkbox
-                          id="hasMembership"
-                          checked={!!field.value}
-                          {...field}
-                          className="size-fit"
-                          onChange={(e) => {
-                            field.onChange(e.target.checked);
-                            membershipChange(e);
-                          }}
-                        />
-                      )}
-                    />
-                  </div>
-
-                  {isMembership ? (
-                    <div className="flex flex-col">
-                      <label
-                        className="w-fit"
-                        // htmlFor="hasMembership"
-                      >
-                        {t("MEMBERSHIP_ID")}
-                        <Astrisk />
+                <div className="col-span-full grid grid-cols-1 lg:grid-cols-5 gap-5 lg:gap-10 justify-start">
+                  <article className="flex item-start justify-between col-span-2 ">
+                    <div className="flex flex-col w-fit">
+                      <label className="cursor-pointer w-fit" htmlFor="isOld">
+                        {t("OLD_CUSTOMER")}
+                        {/* <Astrisk /> */}
                       </label>
 
                       <Controller
                         control={control}
-                        name="membershipId"
+                        name="isOld"
+                        // rules={{
+                        //   required: { value: true, message: t("REQUIRED") },
+                        // }}
                         render={({ field }) => (
-                          <Select
+                          <Checkbox
+                            id="isOld"
                             {...field}
-                            className="min-h-10 border-[#C4C4C4] border rounded-md w-full"
-                            placeholder="Select membership"
-                            variant="filled"
-                            status={errors?.membershipId ? "error" : ""}
-                            showSearch={true}
-                            optionFilterProp="label"
-                            onSearch={onMembershipSearch}
-                            // filterOption={(input, option) =>
-                            //   (option?.label ?? "")
-                            //     .toLowerCase()
-                            //     .includes(input.toLowerCase())
-                            // }
-                            loading={
-                              isMembershipLoading || isMembershipFetching
-                            }
-                            options={memberships?.data?.map((membership) => ({
-                              value: membership.id,
-                              label: membership?.code,
-                            }))}
+                            className="size-fit scale-125"
+                            checked={Boolean(field.value)}
+                            onChange={(e) => {
+                              field.onChange(e.target.checked);
+                              oldCustomerChange(e);
+                            }}
                           />
                         )}
                       />
-                      {errors?.membershipId && (
+                      {errors?.isOld && (
                         <p className="text-red-500 text-xs mt-1 capitalize">
-                          {errors?.membershipId?.message}
+                          {errors?.isOld?.message}
                         </p>
                       )}
                     </div>
+
+                    <div className="flex flex-col w-fit">
+                      <label
+                        className="cursor-pointer w-fit"
+                        htmlFor="hasMembership"
+                      >
+                        {t("HAS_MEMBERSHIP")}
+                        {/* <Astrisk /> */}
+                      </label>
+
+                      <Controller
+                        control={control}
+                        name="hasMembership"
+                        // rules={{
+                        //   required: { value: true, message: t("REQUIRED") },
+                        // }}
+                        render={({ field }) => (
+                          <Checkbox
+                            id="hasMembership"
+                            {...field}
+                            className="size-fit scale-125"
+                            // status={errors?.hasMembership ? "error" : ""}
+                            checked={Boolean(field.value)}
+                            onChange={(e) => {
+                              field.onChange(e.target.checked);
+                              membershipChange(e);
+                            }}
+                          />
+                        )}
+                      />
+                      {errors?.hasMembership && (
+                        <p className="text-red-500 text-xs mt-1 capitalize">
+                          {errors?.hasMembership?.message}
+                        </p>
+                      )}
+                    </div>
+                  </article>
+
+                  {isMembership ? (
+                    <article className="flex flex-wrap md:flex-nowrap item-start justify-between col-span-3 gap-5 [&>div]:md:basis-1/2 [&>div]:basis-full">
+                      <div className="flex flex-col">
+                        <label
+                        // className="w-fit"
+                        // htmlFor="hasMembership"
+                        >
+                          {t("MEMBERSHIP_ID")}
+                          <Astrisk />
+                        </label>
+
+                        <Controller
+                          control={control}
+                          name="membershipId"
+                          rules={{
+                            required: {
+                              value: isMembership,
+                              message: t("REQUIRED"),
+                            },
+                          }}
+                          render={({ field }) => (
+                            <Select
+                              {...field}
+                              className="min-h-10 border-[#C4C4C4] border rounded-md w-full"
+                              placeholder="Select membership"
+                              variant="filled"
+                              status={errors?.membershipId ? "error" : ""}
+                              showSearch={true}
+                              optionFilterProp="label"
+                              onSearch={onMembershipSearch}
+                              loading={
+                                isMembershipLoading || isMembershipFetching
+                              }
+                              // filterOption={(input, option) =>
+                              //   (option?.label ?? "")
+                              //     .toLowerCase()
+                              //     .includes(input.toLowerCase())
+                              // }
+                              // loading={isCustomerTypesLoading || isCustomerTypesFetching}
+                              options={memberships?.data?.map((membership) => ({
+                                value: membership.id,
+                                label: membership?.code,
+                              }))}
+                            />
+                          )}
+                        />
+                        {errors?.membershipId && (
+                          <p className="text-red-500 text-xs mt-1 capitalize">
+                            {errors?.membershipId?.message}
+                          </p>
+                        )}
+                      </div>
+
+                      <div>
+                        <label className="capitalize">
+                          {t("MEMBERSHIP_NUMBER")} <Astrisk />
+                        </label>
+                        <Controller
+                          control={control}
+                          name={`memberShipNumber`}
+                          rules={{
+                            required: { value: true, message: t("REQUIRED") },
+                            pattern: {
+                              value: /^\d+$/,
+                              message: t("ONLY_NUMBER"),
+                            },
+                          }}
+                          render={({ field }) => (
+                            <Input
+                              {...field}
+                              variant="filled"
+                              placeholder="Enter membership number"
+                              className={`placeholder:capitalize border-[#C4C4C4] border rounded-md py-2 min-w-[250px]`}
+                              status={errors?.memberShipNumber ? "error" : ""}
+                            />
+                          )}
+                        />
+                        {errors?.memberShipNumber && (
+                          <p className="text-red-500 text-xs mt-1 capitalize">
+                            {errors?.memberShipNumber?.message}
+                          </p>
+                        )}
+                      </div>
+                    </article>
                   ) : null}
                 </div>
 

@@ -2,6 +2,7 @@ import type {
   APIResponse,
   packageCard,
   packageFormProps,
+  seedersProps,
   SingleAPIResponse,
 } from "../../Utilities/Types/types";
 import { API } from "../apiSlice";
@@ -49,6 +50,7 @@ const packagesQuery = API.injectEndpoints({
       }),
       invalidatesTags: ["packages"],
     }),
+
     togglePackage: builder.mutation<
       SingleAPIResponse<packageFormProps>,
       { packageId: string | number; isActive: boolean }
@@ -60,6 +62,30 @@ const packagesQuery = API.injectEndpoints({
       }),
       invalidatesTags: ["packages"],
     }),
+
+    addPackageType: builder.mutation<
+      SingleAPIResponse<packageFormProps>,
+      seedersProps
+    >({
+      query: (data) => ({
+        url: `/Package/AddPackageType`,
+        method: "POST",
+        body: data,
+      }),
+      invalidatesTags: ["packageTypes"],
+    }),
+
+    editPackageType: builder.mutation<
+      SingleAPIResponse<packageFormProps>,
+      seedersProps
+    >({
+      query: (data) => ({
+        url: `/Package/EditPackageType`,
+        method: "POST",
+        body: data,
+      }),
+      invalidatesTags: ["packageTypes"],
+    }),
   }),
 });
 
@@ -69,4 +95,6 @@ export const {
   useEditPackageMutation,
   useTogglePackageMutation,
   useGetPackageByIdQuery,
+  useAddPackageTypeMutation,
+  useEditPackageTypeMutation,
 } = packagesQuery;

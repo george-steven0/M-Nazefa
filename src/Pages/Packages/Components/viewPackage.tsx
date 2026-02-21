@@ -1,5 +1,5 @@
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Button, Image, Skeleton, Tag } from "antd";
+import { Button, Image, Skeleton, Spin, Tag } from "antd";
 import { useTranslation } from "react-i18next";
 import {
   useGetPackageByIdQuery,
@@ -8,10 +8,13 @@ import {
 import { skipToken } from "@reduxjs/toolkit/query";
 import { useAppSelector } from "../../../components/APIs/store";
 import def from "../../../assets/imgs/logo-cropped.svg";
-import { RiMoneyPoundCircleLine } from "react-icons/ri";
-import { IoSpeedometerOutline } from "react-icons/io5";
 import type { APIErrorProps } from "../../../components/Utilities/Types/types";
 import { toast } from "react-toastify";
+import { FaPoundSign } from "react-icons/fa";
+import { LuPackageOpen } from "react-icons/lu";
+import { MdOutlineAddHome, MdOutlineDiscount } from "react-icons/md";
+import { HiOutlineUserGroup } from "react-icons/hi2";
+import { useState } from "react";
 
 const ViewPackage = () => {
   const { t } = useTranslation();
@@ -73,8 +76,10 @@ const ViewPackage = () => {
     );
   };
 
+  const [isDownloading, setIsDownloading] = useState(false);
   const handleDownload = async (e: { preventDefault: () => void }) => {
     e.preventDefault();
+    setIsDownloading(true);
     const imageUrl = packageById?.data?.termsAndConditions as unknown as string;
 
     if (!imageUrl) return;
@@ -97,6 +102,8 @@ const ViewPackage = () => {
       console.error("Download failed:", error);
       // Fallback: Just open in new tab if fetch fails
       window.open(imageUrl, "_blank");
+    } finally {
+      setIsDownloading(false);
     }
   };
 
@@ -106,7 +113,7 @@ const ViewPackage = () => {
         <Skeleton active paragraph={{ rows: 15 }} />
       ) : (
         <>
-          <header className="view-package-title flex justify-center relative">
+          <header className="view-package-title flex items-stretch gap-4 relative">
             <div>
               <Image
                 className="w-[200px] h-[200px] object-cover rounded-lg"
@@ -115,178 +122,197 @@ const ViewPackage = () => {
               />
             </div>
 
+            <div className="flex flex-col justify-between items-start">
+              <h1 className="flex items-start gap-3 font-semibold text-center text-mainColor capitalize">
+                <div className="flex flex-col gap-1 items-start">
+                  <span className="text-2xl lg:text-4xl">
+                    {lang === "ar"
+                      ? packageById?.data?.arTitle
+                      : packageById?.data?.title}
+                  </span>
+
+                  <span className="text-sm text-gray-400">
+                    {lang === "ar"
+                      ? packageById?.data?.subTitlearSubTitle
+                      : packageById?.data?.subTitle}
+                  </span>
+                </div>
+
+                <span>
+                  <Tag
+                    className={`mt-2 capitalize rounded-full flex items-center px-3 ${packageById?.data?.isActive ? "bg-green-500/20 text-green-700 border-green-500" : "bg-red-500/20 text-red-700 border-red-500"}`}
+                  >
+                    {packageById?.data?.isActive ? t("ACTIVE") : t("INACTIVE")}
+                  </Tag>
+                </span>
+              </h1>
+            </div>
+
             <div className="absolute top-0 right-0">
               {handleNavigateButton()}
             </div>
           </header>
 
-          <section className="package-details-wrapper mt-6">
-            <h1 className="flex items-center justify-center gap-1 text-2xl lg:text-4xl font-semibold text-center text-mainColor capitalize">
-              <span>
-                {lang === "ar"
-                  ? packageById?.data?.arTitle
-                  : packageById?.data?.title}
-              </span>
+          <section className="mt-2 text-left text-[#555]">
+            <p>{packageById?.data?.description || t("NA")}</p>
+          </section>
 
-              <span>
-                <Tag
-                  className={`capitalize rounded-full flex items-center px-3 ${packageById?.data?.isActive ? "bg-green-500/20 text-green-700 border-green-500" : "bg-red-500/20 text-red-700 border-red-500"}`}
-                >
-                  {packageById?.data?.isActive ? t("ACTIVE") : t("INACTIVE")}
-                </Tag>
-              </span>
-            </h1>
+          <hr className="my-10 text-gray-200" />
 
-            <hr className="my-6 text-gray-200" />
-
-            <section className="mt-12 flex items-stretch justify-center gap-5">
-              <div className="pr-5 border-r border-gray-200">
-                <div className="flex flex-col items-center justify-center border border-mainColor/70 rounded-full size-35">
+          <section className="package-details-wrapper md:max-w-[90%] mx-auto">
+            <div className="flex items-center justify-between gap-5 [&>div]:grow [&>div]:text-center [&>div]:flex [&>div]:flex-col [&>div]:gap-2 [&>div]:items-center [&>div>p]:font-semibold [&>div>p]:text-xl capitalize">
+              <div className="package-type-wrapper w-full bg-[#EDF2F5] text-mainColor py-3 rounded-md p-2">
+                <label>{t("PACKAGE_TYPE")}:</label>
+                <p className="flex items-center gap-2">
                   <span>
-                    <IoSpeedometerOutline size={55} />
+                    <LuPackageOpen size={25} />
                   </span>
+                  <span className="text-base">
+                    {lang === "ar"
+                      ? packageById?.data?.packageTypeArName
+                      : packageById?.data?.packageTypeName || t("NA")}
+                  </span>
+                </p>
+              </div>
 
-                  <p className="flex flex-col items-center justify-center">
-                    <span className="text-lg font-semibold">
-                      {packageById?.data?.workingHours}
-                    </span>
-                    <span className="text-xs capitalize block w-fit wrap-break-word">
-                      {t("WORKING_HOURS")}
-                    </span>
+              <div className="rooms-wrapper w-full bg-green-600/40 text-mainColor p-2 rounded-md">
+                <label>{t("ROOMS")}:</label>
+                <p className="flex items-center gap-2">
+                  <span>
+                    <MdOutlineAddHome size={25} />
+                  </span>
+                  <span>{packageById?.data?.numberOfRooms || t("NA")}</span>
+                </p>
+              </div>
+
+              <div className="workers-wrapper w-full bg-blue-500/40 text-mainColor p-2 rounded-md">
+                <label>{t("WORKERS")}:</label>
+                <p className="flex items-center gap-2">
+                  <span>
+                    <HiOutlineUserGroup size={25} />
+                  </span>
+                  <span>{packageById?.data?.numberOfWorkers || t("NA")}</span>
+                </p>
+              </div>
+
+              <div className="discount-wrapper w-full bg-amber-400 text-white p-2 rounded-md">
+                <label>{t("DISCOUNT")}:</label>
+                <div className="flex items-center gap-1">
+                  <span>
+                    <MdOutlineDiscount />
+                  </span>
+                  <p className="flex items-center gap-1">
+                    <span>{packageById?.data?.discount || 0}</span>
+                    <span>{packageById?.data?.isPercentage ? "%" : "L.E"}</span>
                   </p>
                 </div>
               </div>
 
-              <div className="flex flex-col gap-2 pr-5 border-r border-gray-200">
-                <label className="text-lg font-semibold capitalize">
-                  {t("WHAT_HAVE")}
+              <div className="price-wrapper w-full bg-blue-500 text-white p-2 rounded-md">
+                <label>{t("PRICE")}:</label>
+                <p className="flex items-center gap-1">
+                  <span>
+                    <FaPoundSign />
+                  </span>
+                  <span>{packageById?.data?.price || t("NA")}</span>
+                </p>
+              </div>
+            </div>
+          </section>
+
+          <hr className="my-10 text-gray-200" />
+
+          <section className="cleaning-extra-wrapper">
+            <div className="flex items-start justify-between gap-8 [&>article]:basis-full [&>article]:md:basis-1/2">
+              <article className="max-w-1/2 overflow-x-auto ">
+                <label className="text-lg font-semibold capitalize mb-2 block">
+                  {t("CLEANING_AREA")}:
                 </label>
-                {packageById?.data?.whatYouWillHaveOnIt}
-              </div>
 
-              <div className="flex flex-col gap-2">
-                <label className="text-lg font-semibold capitalize">
-                  {t("WHAT_NOT_HAVE")}
-                </label>
-                {packageById?.data?.whatYouwouldntHaveOnIt}
-              </div>
-            </section>
-
-            <hr className="my-6 text-gray-200" />
-
-            <section className="mt-4 text-center text-[#555]">
-              <p>{packageById?.data?.description || t("NA")}</p>
-            </section>
-
-            <section className="mt-6 gap-8">
-              <label className="text-lg font-semibold capitalize">
-                {t("PACKAGE_DETAILS")}:
-              </label>
-              <div className="flex items-start gap-8 mt-6 overflow-hidden overflow-x-auto">
-                {packageById?.data?.packageDetails?.map((packageDetail) => (
-                  <div
-                    key={packageDetail.id}
-                    className="flex items-center justify-between gap-2 min-h-[130px] min-w-[220px]  p-3 rounded-md text-gray-100 bg-linear-to-br from-mainColor/80 to-mainColor/60"
-                  >
-                    <div className="flex flex-col gap-2">
-                      <p>
-                        {packageDetail.numberOfRooms} {t("ROOMS")}
-                      </p>
-                      <p>
-                        {packageDetail.numberOfWorkers} {t("WORKERS")}
-                      </p>
-                    </div>
-
-                    <p className="flex items-center gap-1">
-                      <span>
-                        <RiMoneyPoundCircleLine />
-                      </span>
-                      {/* <span>{t("PRICE")}:</span> */}
-                      {packageDetail.price} L.E
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </section>
-
-            <hr className="my-6 text-gray-200" />
-
-            <section>
-              <label className="text-lg font-semibold capitalize">
-                {t("TRANSPORTATION_FEES")}:
-              </label>
-
-              <div className="flex items-start gap-8 mt-6 overflow-hidden overflow-x-auto">
-                {packageById?.data?.transportationFees?.map(
-                  (transportationFee) => (
-                    <div
-                      key={transportationFee.id}
-                      className="flex items-center justify-between gap-2 min-h-[130px] min-w-[220px]  p-3 rounded-md text-mainColor/80 bg-gray-100 border border-mainColor/20 capitalize "
+                <div className="flex items-center gap-2">
+                  {packageById?.data?.cleaningAreaDetails?.map((item) => (
+                    <Tag
+                      key={item?.id}
+                      className="capitalize rounded-full flex items-center px-3 bg-green-500/20 text-green-700 border-green-500"
                     >
-                      <div className="flex flex-col gap-2 [&>p]:flex [&>p]:items-center [&>p]:gap-1">
-                        <p>
-                          <span>{t("CITY")}:</span> {transportationFee.cityId}
-                        </p>
-                        <p>
-                          <span>{t("FEES")}:</span> {transportationFee.fee}{" "}
-                          <span>
-                            <RiMoneyPoundCircleLine />
-                          </span>
-                        </p>
-                      </div>
-                    </div>
-                  ),
-                )}
-              </div>
-            </section>
+                      {lang === "ar" ? item?.arName : item?.name}
+                    </Tag>
+                  ))}
+                </div>
+              </article>
 
-            <hr className="my-6 text-gray-200" />
+              <article>
+                <label className="text-lg font-semibold capitalize mb-2 block">
+                  {t("EXTRA_SERVICES")}:
+                </label>
 
-            <section>
-              <label className="text-lg font-semibold capitalize">
-                {t("RULES")}:
-              </label>
+                <div className="flex items-center gap-2">
+                  {packageById?.data?.extraServices?.map((item) => (
+                    <Tag
+                      key={item?.id}
+                      className="capitalize rounded-full flex items-center gap-1 px-3 bg-blue-500/20 text-blue-700 border-blue-500"
+                    >
+                      <span>{lang === "ar" ? item?.arName : item?.name}:</span>
+                      <span className="flex items-center">
+                        {item?.price} <FaPoundSign />
+                      </span>
+                    </Tag>
+                  ))}
+                </div>
+              </article>
+            </div>
+          </section>
+
+          <hr className="my-10 text-gray-200" />
+
+          <section className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4 [&>div]:flex [&>div]:flex-col [&>div]:items-center [&>div]:gap-1 [&>div]:bg-gray-300/30 [&>div]:p-4 [&>div]:rounded-md [&>div>label]:block [&>div>label]:text-lg [&>div>label]:font-semibold capitalize">
+            <div>
+              <label>{t("RULES")}</label>
 
               <p>{packageById?.data?.rules || t("NA")}</p>
-            </section>
+            </div>
 
-            <section className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 [&>div]:flex [&>div]:items-center [&>div]:gap-2 [&>div>label]:font-semibold capitalize">
-              <div>
-                <label>{t("TOOLS")}:</label>
-                <p>{packageById?.data?.tools || t("NA")}</p>
-              </div>
+            <div>
+              <label>{t("TOOLS")}</label>
+              <p>{packageById?.data?.tools || t("NA")}</p>
+            </div>
 
-              <div>
-                <label>{t("SUPPLIES")}:</label>
-                <p>{packageById?.data?.supplies || t("NA")}</p>
-              </div>
-            </section>
+            <div>
+              <label>{t("SUPPLIES")}</label>
+              <p>{packageById?.data?.supplies || t("NA")}</p>
+            </div>
+          </section>
 
-            <hr className="my-6 text-gray-200" />
+          <hr className="my-10 text-gray-200" />
 
-            <section className="w-full flex items-center justify-center">
-              {packageById?.data?.termsAndConditions ? (
-                <a
-                  href={
-                    (packageById?.data
-                      ?.termsAndConditions as unknown as string) || "#"
-                  }
-                  target="_blank"
-                  // download={"terms & conditions"}
-                  className="border text-mainColor/90 border-mainColor/30 p-2 rounded-md cursor-pointer"
-                  rel="noopener noreferrer"
-                  onClick={handleDownload}
-                >
+          <section className="w-full flex items-center justify-center min-w-20">
+            {packageById?.data?.termsAndConditions ? (
+              <a
+                href={
+                  (packageById?.data
+                    ?.termsAndConditions as unknown as string) || "#"
+                }
+                target="_blank"
+                // download={"terms & conditions"}
+                className="block text-center border text-mainColor/90 border-mainColor/30 py-2 px-6 rounded-full hover:bg-mainColor/10 transition-all duration-500 cursor-pointer"
+                rel="noopener noreferrer"
+                onClick={handleDownload}
+              >
+                {isDownloading ? (
+                  <span className="px-5">
+                    <Spin />
+                  </span>
+                ) : (
                   <p className="text-lg font-semibold capitalize">
                     {t("TERMS")}
                   </p>
-                </a>
-              ) : (
-                <p className="text-lg font-semibold capitalize">
-                  {t("FILE_NOTFOUND")}
-                </p>
-              )}
-            </section>
+                )}
+              </a>
+            ) : (
+              <p className="text-lg font-semibold capitalize">
+                {t("FILE_NOTFOUND")}
+              </p>
+            )}
           </section>
         </>
       )}
