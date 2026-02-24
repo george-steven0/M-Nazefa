@@ -1,4 +1,6 @@
 import type {
+  APIResponse,
+  clientFormPropsType,
   seedersProps,
   SingleAPIResponse,
 } from "../../Utilities/Types/types";
@@ -97,7 +99,29 @@ const employees = API.injectEndpoints({
       }),
       // providesTags: [{ type: "clients", id: "LIST" }],
     }),
-  }),
+
+    getAllCustomersDDL: build.query<APIResponse<clientFormPropsType>, void>({
+      query: () => ({
+        url: `/DDL/GetAllCustomerDDL`,
+        method: "GET",
+      }),
+      // providesTags: ["clients"],
+    }),
+
+    getAllCustomerAddresses: build.query<
+      APIResponse<clientFormPropsType>,
+      { id: string }
+    >({
+      query: ({ id }) => ({
+        url: `/DDL/GetAllCustomerAddressDDL`,
+        method: "GET",
+        headers: {
+          CustomerId: id,
+        },
+      }),
+      // providesTags: ["clients"],
+    }),
+  }), // builder braces
 });
 export const {
   useGetCitiesQuery,
@@ -109,4 +133,6 @@ export const {
   useGetAddressTypesQuery,
   useGetPackageTypesQuery,
   useGetExtraServiceQuery,
+  useGetAllCustomersDDLQuery,
+  useGetAllCustomerAddressesQuery,
 } = employees;

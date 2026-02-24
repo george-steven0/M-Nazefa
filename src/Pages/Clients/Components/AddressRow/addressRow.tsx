@@ -463,14 +463,14 @@ const AddressRow = ({
         <div>
           <label>
             {t("BUILDING_TYPE")}
-            <Astrisk />
+            {/* <Astrisk /> */}
           </label>
           <Controller
             control={control}
             name={`customerAddresses.${index}.BuildingTypeId`}
-            rules={{
-              required: { value: true, message: t("REQUIRED") },
-            }}
+            // rules={{
+            //   required: { value: true, message: t("REQUIRED") },
+            // }}
             render={({ field }) => (
               <Select
                 {...field}

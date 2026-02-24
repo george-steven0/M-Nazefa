@@ -146,6 +146,7 @@ type addressProps = {
 export type clientFormPropsType = {
   id?: number | string;
   firstName: string;
+  name?: string;
   middleName: string;
   lastName: string;
   idNumber: string | number;
@@ -325,6 +326,8 @@ export type reservationFormProps = {
   customerId: string | number;
   addressId: string | number;
   duration: string[];
+  insects: boolean;
+  rodents: boolean;
 } & clientFormPropsType &
   appointmentProps &
   buildingProps &

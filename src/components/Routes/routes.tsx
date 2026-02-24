@@ -15,8 +15,8 @@ import Packages from "../../Pages/Packages/packages";
 // import EditPackage from "../../Pages/Packages/Components/editpackage";
 import ViewPackage from "../../Pages/Packages/Components/viewPackage";
 import Dashboard from "../../Pages/Dashboard/dashboard";
-import AddReservation from "../../Pages/Reservations/Components/addReservation";
-import EditReservation from "../../Pages/Reservations/Components/editReservation";
+// import AddReservation from "../../Pages/Reservations/Components/addReservation";
+// import EditReservation from "../../Pages/Reservations/Components/editReservation";
 import ReservationDetails from "../../Pages/Reservations/Components/reservationDetails";
 import { Reservations } from "../../Pages/Reservations/reservation";
 import Services from "../../Pages/Services/services";
@@ -37,6 +37,7 @@ import Memberships from "../../Pages/Membership/memberShip";
 import PackageForm from "../../Pages/Packages/Components/packageForm";
 import PackageTypes from "../../Pages/PackageTypes/packageTypes";
 import CLeaningArea from "../../Pages/CleaningArea/cleaningArea";
+import ReservationForm from "../../Pages/Reservations/Components/reservationForm";
 
 export const routes = createBrowserRouter([
   // Guest Routes
@@ -246,14 +247,14 @@ export const routes = createBrowserRouter([
             children: [
               {
                 path: "add-reservation",
-                element: <AddReservation />,
+                element: <ReservationForm />,
                 handle: {
                   permission: PERMISSIONS.ADD_RESERVATION,
                 },
               },
               {
                 path: "edit-reservation",
-                element: <EditReservation />,
+                element: <ReservationForm />,
                 handle: {
                   permission: PERMISSIONS.EDIT_RESERVATION,
                 },
