@@ -155,7 +155,7 @@ export default function PackageForm() {
         },
   });
 
-  console.log(errors);
+  // console.log(errors);
 
   useEffect(() => {
     if (id && packageById?.isSuccess && packageById?.data) {

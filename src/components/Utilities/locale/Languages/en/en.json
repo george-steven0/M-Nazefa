@@ -94,6 +94,7 @@
     "BRIDE_CLEANS": "bride cleans up",
     "VISIT_DURATION": "visit duration",
     "EXTRA_SERVICE": "extra service",
+    "EXTRA_SERVICE_DETAILS": "extra service details",
     "EXTRA_BATHROOM": "extra bathroom",
     "CLEAN_KITCHEN": "clean up kitchen",
     "BUYING_TOOLS": "buying new tools",
@@ -175,6 +176,7 @@
     "PRICE": "Price",
     "PACKAGE_DETAILS": "Package details",
     "TRANSPORTATION_FEES": "Transportation fees",
+    "TRANSPORTATION_FEES_DETAILS": "Transportation fees details",
     "FEES": "Fees",
     "COUNTRY": "Country",
     "AREA_NAME": "Area name (EN)",
@@ -229,5 +231,7 @@
     "SELECT_EXTRA_SERVICE": "Select extra service",
     "EXTRA_SERVICES": "Extra services",
     "DISCOUNT": "Discount",
-    "MEMBERSHIP_NUMBER": "Membership number"
+    "MEMBERSHIP_NUMBER": "Membership number",
+    "RESERVATION_DATE": "Reservation date",
+    "APARTMENT_CLOSING_PERIOD": "Apartment closing period"
 }

@@ -3,6 +3,7 @@ import type {
   clientFormPropsType,
   seedersProps,
   SingleAPIResponse,
+  transportationFeesProps,
 } from "../../Utilities/Types/types";
 import { API } from "../apiSlice";
 
@@ -121,6 +122,43 @@ const employees = API.injectEndpoints({
       }),
       // providesTags: ["clients"],
     }),
+
+    getAllTransportationFees: build.query<
+      APIResponse<transportationFeesProps>,
+      void
+    >({
+      query: () => ({
+        url: `/TransportationFee/GetAllTransportationFees`,
+        method: "GET",
+      }),
+    }),
+
+    getApartmentClosingPeriod: build.query<APIResponse<seedersProps>, void>({
+      query: () => ({
+        url: `/DDL/GetApartmentClosingPeriodDDL`,
+        method: "GET",
+      }),
+    }),
+
+    getExtraServicesList: build.query<
+      APIResponse<seedersProps>,
+      { id: string }
+    >({
+      query: ({ id }) => ({
+        url: `/DDL/GetAllExtraServicesDDL`,
+        method: "GET",
+        headers: {
+          PackageId: id,
+        },
+      }),
+    }),
+
+    getAllPackagesList: build.query<APIResponse<seedersProps>, void>({
+      query: () => ({
+        url: `/DDL/GetAllPackagesDDL`,
+        method: "GET",
+      }),
+    }),
   }), // builder braces
 });
 export const {
@@ -135,4 +173,8 @@ export const {
   useGetExtraServiceQuery,
   useGetAllCustomersDDLQuery,
   useGetAllCustomerAddressesQuery,
+  useGetAllTransportationFeesQuery,
+  useGetApartmentClosingPeriodQuery,
+  useGetExtraServicesListQuery,
+  useGetAllPackagesListQuery,
 } = employees;

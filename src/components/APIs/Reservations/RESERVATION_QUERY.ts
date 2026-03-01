@@ -9,7 +9,7 @@ const reservationQuery = API.injectEndpoints({
   endpoints: (builder) => ({
     getAllReservations: builder.query<APIResponse<reservationFormProps>, void>({
       query: () => ({
-        url: "/Reservation/GetAllReservations",
+        url: "/Reservation/GetReservationList",
         method: "GET",
       }),
       providesTags: ["reservations"],

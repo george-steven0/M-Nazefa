@@ -94,6 +94,7 @@
     "BRIDE_CLEANS": "تنظيف تجهيز العروس",
     "VISIT_DURATION": "مدة الزيارة",
     "EXTRA_SERVICE": "خدمة إضافية",
+    "EXTRA_SERVICE_DETAILS": "تفاصيل الخدمة الإضافية",
     "EXTRA_BATHROOM": "حمام إضافي",
     "CLEAN_KITCHEN": "تنظيف المطبخ",
     "BUYING_TOOLS": "شراء أدوات جديدة",
@@ -174,6 +175,7 @@
     "PRICE": "السعر",
     "PACKAGE_DETAILS": "تفاصيل الباقة",
     "TRANSPORTATION_FEES": "رسوم الانتقال",
+    "TRANSPORTATION_FEES_DETAILS": "تفاصيل رسوم الانتقال",
     "FEES": "الرسوم",
     "COUNTRY": "البلد",
     "AREA_NAME": "اسم المنطقة (EN)",
@@ -228,5 +230,7 @@
     "SELECT_EXTRA_SERVICE": "اختر خدمة إضافية",
     "EXTRA_SERVICES": "خدمات إضافية",
     "DISCOUNT": "الخصم",
-    "MEMBERSHIP_NUMBER": "رقم العضوية"
+    "MEMBERSHIP_NUMBER": "رقم العضوية",
+    "RESERVATION_DATE": "تاريخ الحجز",
+    "APARTMENT_CLOSING_PERIOD": "فترة إغلاق الشقة"
 }

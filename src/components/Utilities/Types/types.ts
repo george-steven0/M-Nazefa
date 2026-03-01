@@ -316,18 +316,26 @@ export type appointmentProps = {
   endTime: string;
 };
 
-export type extraServiceProps = {
-  extraRoom: string;
-  extraRoomDescription: string;
-  comments: string;
-};
-
 export type reservationFormProps = {
   customerId: string | number;
-  addressId: string | number;
+  customerAddressId: string | number;
   duration: string[];
-  insects: boolean;
-  rodents: boolean;
+  insects: string | boolean;
+  rodents: string | boolean;
+  reservationDate: string;
+  transportationFeesId: string | number;
+  apartmentClosingPeriodId: string | number;
+  generalComments: string;
+  cityId?: string;
+  areaId?: string;
+  addReservationPackagesDtos?: {
+    packageId: string | number;
+    count: string | number;
+    packageAmount: string | number;
+    reservationPackageExtraServices?: {
+      packageExtraServiceId: string | number;
+    }[];
+  }[];
 } & clientFormPropsType &
   appointmentProps &
   buildingProps &
@@ -390,4 +398,29 @@ export type membershipFormProps = {
   startDate: string;
   endDate: string;
   noOfVisits: string | number;
+};
+export type transportationFeesProps = {
+  id?: string | number;
+  fee: string | number;
+  cityId: string | number;
+  areaId: string | number;
+  name: string;
+  arName: string;
+  city?: {
+    id: string | number;
+    name: string;
+    arName: string;
+  };
+  area?: {
+    id: string | number;
+    name: string;
+    arName: string;
+  };
+};
+
+export type extraServiceProps = {
+  id: string;
+  name: string;
+  arName: string;
+  price: string | number;
 };

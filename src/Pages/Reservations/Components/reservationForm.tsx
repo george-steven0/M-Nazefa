@@ -1,45 +1,83 @@
 // import { useLocation } from "react-router-dom";
-import { Controller, useForm } from "react-hook-form";
+import { Controller, useFieldArray, useForm } from "react-hook-form";
 import Title from "../../../components/Common/Title/title";
 import { useTranslation } from "react-i18next";
-import type { reservationFormProps } from "../../../components/Utilities/Types/types";
-import { Button, Input, Radio, Select } from "antd";
+import type {
+  APIErrorProps,
+  reservationFormProps,
+} from "../../../components/Utilities/Types/types";
+import { Button, Collapse, DatePicker, Input, Select } from "antd";
 import dayjs from "dayjs";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import {
   useGetAllCustomerAddressesQuery,
   useGetAllCustomersDDLQuery,
+  useGetAllPackagesListQuery,
+  useGetAllTransportationFeesQuery,
+  useGetApartmentClosingPeriodQuery,
+  useGetAreasQuery,
+  useGetCitiesQuery,
 } from "../../../components/APIs/Seeders/SEEDERS_RTK_QUERY";
 import { useGetCustomerByIdQuery } from "../../../components/APIs/ClientQuery/CLIENTS_QUERY";
 import { skipToken } from "@reduxjs/toolkit/query";
+import { useAppSelector } from "../../../components/APIs/store";
+import { FaMinus, FaPlus } from "react-icons/fa";
+import ExtraPackage from "./packageComponent";
+import TextArea from "antd/es/input/TextArea";
+import { useAddReservationMutation } from "../../../components/APIs/Reservations/RESERVATION_QUERY";
+import { toast } from "react-toastify";
+import Astrisk from "../../../components/Common/Astrisk/astrisk";
+import { useNavigate } from "react-router-dom";
 
-const extraOptions = [
-  "EXTRA_BATHROOM",
-  "CLEAN_KITCHEN",
-  "BUYING_TOOLS",
-  "EXTRA_MATERIAL",
-  "EXTRA_WORKERS",
-];
+// const extraOptions = [
+//   "EXTRA_BATHROOM",
+//   "CLEAN_KITCHEN",
+//   "BUYING_TOOLS",
+//   "EXTRA_MATERIAL",
+//   "EXTRA_WORKERS",
+// ];
 
 const ReservationForm = () => {
   const { t } = useTranslation();
+  const { lang } = useAppSelector((state) => state?.lang);
+  const navigate = useNavigate();
 
+  const [addReservation, { isLoading: isAddReservationLoading }] =
+    useAddReservationMutation();
   const {
     control,
     handleSubmit,
     setValue,
     watch,
+    reset,
     formState: { errors },
-  } = useForm<reservationFormProps>();
+  } = useForm<reservationFormProps>({
+    defaultValues: {
+      addReservationPackagesDtos: [
+        {
+          packageId: "",
+          count: 1,
+          packageAmount: "",
+          reservationPackageExtraServices: [
+            {
+              packageExtraServiceId: undefined,
+            },
+          ],
+        },
+      ],
+    },
+  });
 
   const customerId = watch("customerId");
 
+  // all customers
   const {
     data: customers,
     isLoading: customersLoading,
     isFetching: customersIsFetching,
   } = useGetAllCustomersDDLQuery();
 
+  // all addresses of customer
   const {
     data: addresses,
     isLoading: addressesLoading,
@@ -48,6 +86,7 @@ const ReservationForm = () => {
     customerId ? { id: customerId.toString() } : skipToken,
   );
 
+  // customer by id
   const {
     data: customer,
     isLoading: customerLoading,
@@ -56,22 +95,73 @@ const ReservationForm = () => {
     customerId ? { id: customerId.toString() } : skipToken,
   );
 
-  //   console.log(addresses?.data);
+  // cities
+  const {
+    data: cities,
+    isFetching: isCitiesFetching,
+    isLoading: isCitiesLoading,
+  } = useGetCitiesQuery();
 
-  console.log(customer);
+  const cityId = watch("cityId");
+  const areaId = watch("areaId");
 
-  const [selectedRadio, setSelectedRadio] = useState(0);
+  const {
+    data: areas,
+    isFetching: isAreasFetching,
+    isLoading: isAreasLoading,
+  } = useGetAreasQuery(cityId ? { cityId } : skipToken);
 
-  const handleSubmitForm = (data: reservationFormProps) => {
-    const formattedData = {
-      ...data,
-      date: dayjs(data.date).format("YYYY-MM-DD"),
-      startTime: dayjs(data.startTime).format("HH:mm"),
-      endTime: dayjs(data.endTime).format("HH:mm"),
-      duration: data?.duration?.map((item) => dayjs(item).format("HH:mm")),
-    };
-    console.log(formattedData);
+  // transportation fees
+  const {
+    data: transportationFees,
+    isLoading: transportationFeesLoading,
+    isFetching: transportationFeesIsFetching,
+  } = useGetAllTransportationFeesQuery();
+
+  // apartment closing period
+  const {
+    data: apartmentClosingPeriod,
+    isLoading: apartmentClosingPeriodLoading,
+    isFetching: apartmentClosingPeriodIsFetching,
+  } = useGetApartmentClosingPeriodQuery();
+
+  // all packages
+  const {
+    data: packages,
+    isLoading: packagesLoading,
+    isFetching: packagesIsFetching,
+  } = useGetAllPackagesListQuery();
+
+  const {
+    fields: packagesFields,
+    append: packagesAppend,
+    remove: packagesRemove,
+  } = useFieldArray({
+    name: "addReservationPackagesDtos",
+    control,
+    rules: {
+      required: {
+        value: true,
+        message: t("REQUIRED"),
+      },
+    },
+  });
+
+  const handlePackageAppend = () => {
+    packagesAppend({
+      packageId: "",
+      count: "",
+      packageAmount: "",
+      reservationPackageExtraServices: [],
+    });
   };
+
+  const handlePackageRemove = (index: number) => {
+    packagesRemove(index);
+  };
+  // console.log(packages);
+
+  // const [selectedRadio, setSelectedRadio] = useState(0);
 
   useEffect(() => {
     if (customer) {
@@ -87,7 +177,38 @@ const ReservationForm = () => {
     }
   }, [customer]);
 
-  // console.log(errors);
+  const handleSubmitForm = async (data: reservationFormProps) => {
+    const formattedData = {
+      ...data,
+      reservationDate: dayjs(data?.reservationDate)?.toISOString(),
+      addReservationPackagesDtos: data?.addReservationPackagesDtos?.map(
+        (item) => ({
+          ...item,
+          count: 1,
+          reservationPackageExtraServices:
+            item?.reservationPackageExtraServices?.filter(
+              (extraService) => extraService?.packageExtraServiceId,
+            ),
+        }),
+      ),
+      insects: data?.insects === "true",
+      rodents: data?.rodents === "true",
+    };
+
+    try {
+      await addReservation(formattedData).unwrap();
+      toast.success("Reservation added successfully");
+      navigate("/reservations");
+      reset();
+    } catch (error) {
+      const err = error as APIErrorProps;
+      err?.data?.errorMessages?.forEach((message) => {
+        toast.error(message);
+      });
+    }
+
+    // console.log(formattedData);
+  };
 
   return (
     <main className="px-6">
@@ -100,7 +221,10 @@ const ReservationForm = () => {
           <div className="flex flex-col gap-15 [&>section]:grid [&>section]:grid-cols-1 [&>section]:md:grid-cols-2 [&>section]:lg:grid-cols-3 [&>section]:gap-5 [&>section>div>label]:block [&>section>div>label]:mb-1 [&>section>div>label]:capitalize [&>section>div>label]:font-medium [&>section>div>input]:border-[#C4C4C4] [&>section>div>select]:border-[#C4C4C4] [&>section>div>input]:py-2 [&>section>div>select]:py-2 [&>section>div>p]:mt-1 [&>section>div>p]:text-xs [&>section>div>p]:text-mainRed">
             <section className="customer-selection-wrapper ">
               <div className="col-span-2 lg:col-span-1 text-xl text-[#1D1B1B]">
-                <label className="font-semibold">{t("SELECT_CUSTOMER")}</label>
+                <label className="font-semibold">
+                  {t("SELECT_CUSTOMER")}
+                  <Astrisk />
+                </label>
 
                 <Controller
                   control={control}
@@ -139,11 +263,14 @@ const ReservationForm = () => {
               </div>
 
               <div className="col-span-2 lg:col-span-1 text-xl text-[#1D1B1B]">
-                <label className="font-semibold">{t("SELECT_ADDRESS")}</label>
+                <label className="font-semibold">
+                  {t("SELECT_ADDRESS")}
+                  <Astrisk />
+                </label>
 
                 <Controller
                   control={control}
-                  name="addressId"
+                  name="customerAddressId"
                   rules={{
                     required: {
                       value: true,
@@ -159,7 +286,7 @@ const ReservationForm = () => {
                       loading={addressesLoading || addressesIsFetching}
                       className="min-h-10 border-[#C4C4C4] border rounded-md capitalize [&>.ant-select-selector]:capitalize"
                       variant="filled"
-                      status={errors?.addressId ? "error" : ""}
+                      status={errors?.customerAddressId ? "error" : ""}
                       // defaultValue="male"
                       placeholder="Select Address"
                       style={{ width: "100%" }}
@@ -175,8 +302,10 @@ const ReservationForm = () => {
                   )}
                 />
 
-                {errors?.addressId ? (
-                  <p className="font-light">{errors?.addressId?.message}</p>
+                {errors?.customerAddressId ? (
+                  <p className="font-light">
+                    {errors?.customerAddressId?.message}
+                  </p>
                 ) : null}
               </div>
             </section>
@@ -191,12 +320,12 @@ const ReservationForm = () => {
                 <Controller
                   control={control}
                   name="firstName"
-                  rules={{
-                    required: {
-                      value: true,
-                      message: t("REQUIRED"),
-                    },
-                  }}
+                  // rules={{
+                  //   required: {
+                  //     value: true,
+                  //     message: t("REQUIRED"),
+                  //   },
+                  // }}
                   render={({ field }) => (
                     <Input
                       {...field}
@@ -220,12 +349,12 @@ const ReservationForm = () => {
                 <Controller
                   control={control}
                   name="middleName"
-                  rules={{
-                    required: {
-                      value: true,
-                      message: t("REQUIRED"),
-                    },
-                  }}
+                  // rules={{
+                  //   required: {
+                  //     value: true,
+                  //     message: t("REQUIRED"),
+                  //   },
+                  // }}
                   render={({ field }) => (
                     <Input
                       {...field}
@@ -251,12 +380,12 @@ const ReservationForm = () => {
                 <Controller
                   control={control}
                   name="lastName"
-                  rules={{
-                    required: {
-                      value: true,
-                      message: t("REQUIRED"),
-                    },
-                  }}
+                  // rules={{
+                  //   required: {
+                  //     value: true,
+                  //     message: t("REQUIRED"),
+                  //   },
+                  // }}
                   render={({ field }) => (
                     <Input
                       {...field}
@@ -280,12 +409,12 @@ const ReservationForm = () => {
                 <Controller
                   control={control}
                   name="idNumber"
-                  rules={{
-                    required: {
-                      value: true,
-                      message: t("REQUIRED"),
-                    },
-                  }}
+                  // rules={{
+                  //   required: {
+                  //     value: true,
+                  //     message: t("REQUIRED"),
+                  //   },
+                  // }}
                   render={({ field }) => (
                     <Input
                       {...field}
@@ -309,12 +438,12 @@ const ReservationForm = () => {
                 <Controller
                   control={control}
                   name="phoneNumber"
-                  rules={{
-                    required: {
-                      value: true,
-                      message: t("REQUIRED"),
-                    },
-                  }}
+                  // rules={{
+                  //   required: {
+                  //     value: true,
+                  //     message: t("REQUIRED"),
+                  //   },
+                  // }}
                   render={({ field }) => (
                     <Input
                       {...field}
@@ -340,16 +469,12 @@ const ReservationForm = () => {
                 <Controller
                   control={control}
                   name="email"
-                  rules={{
-                    required: {
-                      value: true,
-                      message: t("REQUIRED"),
-                    },
-                    pattern: {
-                      value: /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
-                      message: "Email is not valid",
-                    },
-                  }}
+                  // rules={{
+                  //   required: {
+                  //     value: true,
+                  //     message: t("REQUIRED"),
+                  //   },
+                  // }}
                   render={({ field }) => (
                     <Input
                       {...field}
@@ -369,10 +494,52 @@ const ReservationForm = () => {
               </div>
             </section>
 
-            <section>
+            <section className="reservation-details-wrapper">
+              <div className="reservation-details-title capitalize col-span-full text-xl text-[#1D1B1B] font-semibold">
+                {t("CUSTOMER_RESERVATION_DETAILS")}
+              </div>
+
+              {/* Reservation Date */}
+              <div>
+                <label>
+                  {t("RESERVATION_DATE")}
+                  <Astrisk />
+                </label>
+                <Controller
+                  control={control}
+                  name="reservationDate"
+                  rules={{
+                    required: {
+                      value: true,
+                      message: t("REQUIRED"),
+                    },
+                  }}
+                  render={({ field }) => (
+                    <DatePicker
+                      {...field}
+                      className="w-full p-2 border-[#C4C4C4] border rounded-md"
+                      variant="filled"
+                      placeholder="Select reservation date"
+                      status={errors?.reservationDate ? "error" : ""}
+                      showTime
+                      // disabled={
+                      //   !customerId || customerLoading || customerIsFetching
+                      // }
+                    />
+                  )}
+                />
+
+                {errors?.reservationDate ? (
+                  <p>{errors?.reservationDate?.message}</p>
+                ) : null}
+              </div>
+
               {/* INSECTS */}
               <div>
-                <label>{t("INSECTS")}</label>
+                <label>
+                  {t("INSECTS")}
+                  <Astrisk />
+                </label>
                 <Controller
                   control={control}
                   name={`insects`}
@@ -398,7 +565,10 @@ const ReservationForm = () => {
 
               {/* RODENTS */}
               <div>
-                <label>{t("RODENTS")}</label>
+                <label>
+                  {t("RODENTS")}
+                  <Astrisk />
+                </label>
                 <Controller
                   control={control}
                   name={`rodents`}
@@ -421,131 +591,71 @@ const ReservationForm = () => {
                 />
                 {errors?.rodents && <p>{errors.rodents.message}</p>}
               </div>
+
+              {/* APARTMENT CLOSING PERIOD */}
+              <div>
+                <label className="font-semibold">
+                  {t("APARTMENT_CLOSING_PERIOD")}
+                  <Astrisk />
+                </label>
+
+                <Controller
+                  control={control}
+                  name="apartmentClosingPeriodId"
+                  rules={{
+                    required: {
+                      value: true,
+                      message: t("REQUIRED"),
+                    },
+                  }}
+                  render={({ field }) => (
+                    <Select
+                      {...field}
+                      loading={
+                        apartmentClosingPeriodLoading ||
+                        apartmentClosingPeriodIsFetching
+                      }
+                      className="min-h-10 border-[#C4C4C4] border rounded-md capitalize [&>.ant-select-selector]:capitalize"
+                      variant="filled"
+                      status={errors?.apartmentClosingPeriodId ? "error" : ""}
+                      // defaultValue="male"
+                      placeholder="Select apartment closing period"
+                      style={{ width: "100%" }}
+                      onChange={(e) => {
+                        field.onChange(e);
+                        //   handleChange(e);
+                      }}
+                      options={apartmentClosingPeriod?.data?.map((period) => ({
+                        value: period?.id,
+                        label: lang === "en" ? period?.name : period?.arName,
+                      }))}
+                    />
+                  )}
+                />
+
+                {errors?.apartmentClosingPeriodId ? (
+                  <p className="font-light">
+                    {errors?.apartmentClosingPeriodId?.message}
+                  </p>
+                ) : null}
+              </div>
             </section>
 
-            {/* <section className="appintment-info-wrapper">
-              <div className="capitalize col-span-full text-xl text-[#1D1B1B] font-semibold">
-                {t("ADD_APPOINTMENT")}
+            <section className="transportation-fees-wrapper">
+              <div className="transportation-fees-title capitalize col-span-full text-xl text-[#1D1B1B] font-semibold">
+                {t("TRANSPORTATION_FEES_DETAILS")}
               </div>
 
+              {/* CITY */}
               <div>
-                <label>{t("DATE_OF_BIRTH")}</label>
-                <Controller
-                  control={control}
-                  name="date"
-                  rules={{
-                    required: {
-                      value: true,
-                      message: t("REQUIRED"),
-                    },
-                  }}
-                  render={({ field }) => (
-                    <DatePicker
-                      className="min-h-10 w-full border-[#C4C4C4] border rounded-md capitalize [&>.ant-select-selector]:capitalize"
-                      {...field}
-                      variant="filled"
-                      status={errors?.date ? "error" : ""}
-                      value={field.value ? dayjs(field.value) : null}
-                      onChange={(e) => {
-                        field.onChange(dayjs(e));
-                      }}
-                    />
-                  )}
-                />
-                {errors?.date ? <p>{errors?.date?.message}</p> : null}
-              </div>
-
-              <div>
-                <label>{t("FROM_TIME")}</label>
-                <Controller
-                  control={control}
-                  name="startTime"
-                  rules={{
-                    required: {
-                      value: true,
-                      message: t("REQUIRED"),
-                    },
-                  }}
-                  render={({ field }) => (
-                    <TimePicker
-                      className="min-h-10 w-full border-[#C4C4C4] border rounded-md capitalize [&>.ant-select-selector]:capitalize"
-                      {...field}
-                      variant="filled"
-                      status={errors?.startTime ? "error" : ""}
-                      value={field.value ? dayjs(field.value) : null}
-                      onChange={(e) => {
-                        field.onChange(dayjs(e));
-                      }}
-                    />
-                  )}
-                />
-                {errors?.startTime ? <p>{errors?.startTime?.message}</p> : null}
-              </div>
-
-              <div>
-                <label>{t("TO_TIME")}</label>
-                <Controller
-                  control={control}
-                  name="endTime"
-                  rules={{
-                    required: {
-                      value: true,
-                      message: t("REQUIRED"),
-                    },
-                  }}
-                  render={({ field }) => (
-                    <TimePicker
-                      className="min-h-10 w-full border-[#C4C4C4] border rounded-md capitalize [&>.ant-select-selector]:capitalize"
-                      {...field}
-                      variant="filled"
-                      status={errors?.endTime ? "error" : ""}
-                      value={field.value ? dayjs(field.value) : null}
-                      onChange={(e) => {
-                        field.onChange(dayjs(e));
-                      }}
-                    />
-                  )}
-                />
-                {errors?.endTime ? <p>{errors?.endTime?.message}</p> : null}
-              </div>
-            </section> */}
-
-            {/* <section className="bulding-info-wrapper">
-              <div className="capitalize col-span-full text-xl text-[#1D1B1B] font-semibold">
-                {t("BUILDING_DETAILS")}
-              </div>
-
-              <div>
-                <label>{t("SPACE")}</label>
-                <Controller
-                  control={control}
-                  name="space"
-                  rules={{
-                    required: {
-                      value: true,
-                      message: t("REQUIRED"),
-                    },
-                  }}
-                  render={({ field }) => (
-                    <Input
-                      {...field}
-                      variant="filled"
-                      placeholder="Enter space"
-                      className="placeholder:capitalize"
-                      status={errors?.space ? "error" : ""}
-                    />
-                  )}
-                />
-
-                {errors?.space ? <p>{errors?.space?.message}</p> : null}
-              </div>
-
-              <div>
-                <label>{t("BUILDING_TYPE")}</label>
+                <label className="font-semibold">
+                  {t("CITY")}
+                  <Astrisk />
+                </label>
 
                 <Controller
                   control={control}
-                  name="buildType"
+                  name="cityId"
                   rules={{
                     required: {
                       value: true,
@@ -555,230 +665,40 @@ const ReservationForm = () => {
                   render={({ field }) => (
                     <Select
                       {...field}
+                      loading={isCitiesLoading || isCitiesFetching}
                       className="min-h-10 border-[#C4C4C4] border rounded-md capitalize [&>.ant-select-selector]:capitalize"
                       variant="filled"
-                      status={errors?.buildType ? "error" : ""}
+                      status={errors?.cityId ? "error" : ""}
                       // defaultValue="male"
-                      placeholder="Select building type"
+                      placeholder="Select city"
                       style={{ width: "100%" }}
                       onChange={(e) => {
                         field.onChange(e);
                         //   handleChange(e);
                       }}
-                      options={[
-                        { value: "1", label: "Apartment" },
-                        { value: "2", label: "flat" },
-                        { value: "3", label: "villa" },
-                        // { value: 'Yiminghe', label: 'yiminghe' },
-                        // { value: 'disabled', label: 'Disabled', disabled: true },
-                      ]}
+                      options={cities?.data?.map((city) => ({
+                        value: city?.id,
+                        label: lang === "en" ? city?.name : city?.arName,
+                      }))}
                     />
                   )}
                 />
 
-                {errors?.buildType ? <p>{errors?.buildType?.message}</p> : null}
-              </div>
-
-              <div>
-                <label>{t("STATE")}</label>
-
-                <Controller
-                  control={control}
-                  name="states"
-                  rules={{
-                    required: {
-                      value: true,
-                      message: t("REQUIRED"),
-                    },
-                  }}
-                  render={({ field }) => (
-                    <Select
-                      {...field}
-                      className="min-h-10 border-[#C4C4C4] border rounded-md capitalize [&>.ant-select-selector]:capitalize"
-                      variant="filled"
-                      status={errors?.states ? "error" : ""}
-                      // defaultValue="male"
-                      placeholder="Select building type"
-                      style={{ width: "100%" }}
-                      onChange={(e) => {
-                        field.onChange(e);
-                        //   handleChange(e);
-                      }}
-                      options={[
-                        { value: "1", label: "Alexandria" },
-                        { value: "2", label: "Gharbia" },
-                        { value: "3", label: "Cairo" },
-                        // { value: 'Yiminghe', label: 'yiminghe' },
-                        // { value: 'disabled', label: 'Disabled', disabled: true },
-                      ]}
-                    />
-                  )}
-                />
-
-                {errors?.states ? <p>{errors?.states?.message}</p> : null}
-              </div>
-
-              <div>
-                <label>{t("LAND_TYPE")}</label>
-                <Controller
-                  control={control}
-                  name="landType"
-                  rules={{
-                    required: {
-                      value: true,
-                      message: t("REQUIRED"),
-                    },
-                  }}
-                  render={({ field }) => (
-                    <Input
-                      {...field}
-                      variant="filled"
-                      placeholder="Enter land type"
-                      className="placeholder:capitalize"
-                      status={errors?.landType ? "error" : ""}
-                    />
-                  )}
-                />
-
-                {errors?.landType ? <p>{errors?.landType?.message}</p> : null}
-              </div>
-
-              <div>
-                <label>{t("INSECTS")}</label>
-
-                <Controller
-                  control={control}
-                  name="insects"
-                  rules={{
-                    required: {
-                      value: true,
-                      message: t("REQUIRED"),
-                    },
-                  }}
-                  render={({ field }) => (
-                    <Select
-                      {...field}
-                      className="min-h-10 border-[#C4C4C4] border rounded-md capitalize [&>.ant-select-selector]:capitalize"
-                      variant="filled"
-                      status={errors?.insects ? "error" : ""}
-                      // defaultValue="male"
-                      placeholder="Insects?"
-                      style={{ width: "100%" }}
-                      onChange={(e) => {
-                        field.onChange(e);
-                        //   handleChange(e);
-                      }}
-                      options={[
-                        { value: "true", label: "Yes" },
-                        { value: "false", label: "No" },
-                        // { value: "3", label: "villa" },
-                        // { value: 'Yiminghe', label: 'yiminghe' },
-                        // { value: 'disabled', label: 'Disabled', disabled: true },
-                      ]}
-                    />
-                  )}
-                />
-
-                {errors?.insects ? <p>{errors?.insects?.message}</p> : null}
-              </div>
-
-              <div>
-                <label>{t("RODENTS")}</label>
-
-                <Controller
-                  control={control}
-                  name="rodents"
-                  rules={{
-                    required: {
-                      value: true,
-                      message: t("REQUIRED"),
-                    },
-                  }}
-                  render={({ field }) => (
-                    <Select
-                      {...field}
-                      className="min-h-10 border-[#C4C4C4] border rounded-md capitalize [&>.ant-select-selector]:capitalize"
-                      variant="filled"
-                      status={errors?.rodents ? "error" : ""}
-                      // defaultValue="male"
-                      placeholder="rodents?"
-                      style={{ width: "100%" }}
-                      onChange={(e) => {
-                        field.onChange(e);
-                        //   handleChange(e);
-                      }}
-                      options={[
-                        { value: "true", label: "Yes" },
-                        { value: "false", label: "No" },
-                        // { value: "3", label: "villa" },
-                        // { value: 'Yiminghe', label: 'yiminghe' },
-                        // { value: 'disabled', label: 'Disabled', disabled: true },
-                      ]}
-                    />
-                  )}
-                />
-
-                {errors?.rodents ? <p>{errors?.rodents?.message}</p> : null}
-              </div>
-
-              <div>
-                <label>{t("TOOLS")}</label>
-                <Controller
-                  control={control}
-                  name="tools"
-                  rules={{
-                    required: {
-                      value: true,
-                      message: t("REQUIRED"),
-                    },
-                  }}
-                  render={({ field }) => (
-                    <Input
-                      {...field}
-                      variant="filled"
-                      placeholder="Enter Tools"
-                      className="placeholder:capitalize"
-                      status={errors?.tools ? "error" : ""}
-                    />
-                  )}
-                />
-
-                {errors?.tools ? <p>{errors?.tools?.message}</p> : null}
-              </div>
-
-              <div>
-                <label>{t("MATERIAL_BY_GM")}</label>
-                <Controller
-                  control={control}
-                  name="materialWeight"
-                  rules={{
-                    required: {
-                      value: true,
-                      message: t("REQUIRED"),
-                    },
-                  }}
-                  render={({ field }) => (
-                    <Input
-                      {...field}
-                      variant="filled"
-                      placeholder="Enter material weight by gm"
-                      className="placeholder:capitalize"
-                      status={errors?.materialWeight ? "error" : ""}
-                    />
-                  )}
-                />
-
-                {errors?.materialWeight ? (
-                  <p>{errors?.materialWeight?.message}</p>
+                {errors?.cityId ? (
+                  <p className="font-light">{errors?.cityId?.message}</p>
                 ) : null}
               </div>
 
+              {/* AREA */}
               <div>
-                <label>{t("NUMBER_OF_WINDOWS")}</label>
+                <label className="font-semibold">
+                  {t("AREA")}
+                  <Astrisk />
+                </label>
 
                 <Controller
                   control={control}
-                  name="numberOfWindows"
+                  name="areaId"
                   rules={{
                     required: {
                       value: true,
@@ -788,38 +708,40 @@ const ReservationForm = () => {
                   render={({ field }) => (
                     <Select
                       {...field}
+                      loading={isAreasLoading || isAreasFetching}
                       className="min-h-10 border-[#C4C4C4] border rounded-md capitalize [&>.ant-select-selector]:capitalize"
                       variant="filled"
-                      status={errors?.numberOfWindows ? "error" : ""}
-                      // defaultValue="male"
-                      placeholder="number of windows"
+                      status={errors?.areaId ? "error" : ""}
+                      disabled={!cityId}
+                      placeholder="Select area"
                       style={{ width: "100%" }}
                       onChange={(e) => {
                         field.onChange(e);
                         //   handleChange(e);
                       }}
-                      options={[
-                        { value: "1-2", label: "1-2" },
-                        { value: "3-6", label: "3-6" },
-                        { value: "7+", label: "7+" },
-                        // { value: 'Yiminghe', label: 'yiminghe' },
-                        // { value: 'disabled', label: 'Disabled', disabled: true },
-                      ]}
+                      options={areas?.data?.map((area) => ({
+                        value: area?.id,
+                        label: lang === "en" ? area?.name : area?.arName,
+                      }))}
                     />
                   )}
                 />
 
-                {errors?.numberOfWindows ? (
-                  <p>{errors?.numberOfWindows?.message}</p>
+                {errors?.areaId ? (
+                  <p className="font-light">{errors?.areaId?.message}</p>
                 ) : null}
               </div>
 
+              {/* TRANSPORTATION FEES */}
               <div>
-                <label>{t("NO_WORKERS")}</label>
+                <label className="font-semibold">
+                  {t("TRANSPORTATION_FEES")}
+                  <Astrisk />
+                </label>
 
                 <Controller
                   control={control}
-                  name="numberOfWorkers"
+                  name="transportationFeesId"
                   rules={{
                     required: {
                       value: true,
@@ -829,155 +751,129 @@ const ReservationForm = () => {
                   render={({ field }) => (
                     <Select
                       {...field}
-                      className="min-h-10 border-[#C4C4C4] border rounded-md capitalize [&>.ant-select-selector]:capitalize"
-                      variant="filled"
-                      status={errors?.numberOfWorkers ? "error" : ""}
-                      // defaultValue="male"
-                      placeholder="number of workers"
-                      style={{ width: "100%" }}
-                      onChange={(e) => {
-                        field.onChange(e);
-                        //   handleChange(e);
-                      }}
-                      options={[
-                        { value: "1-2", label: "1-2" },
-                        { value: "3-6", label: "3-6" },
-                        { value: "7+", label: "7+" },
-                        // { value: 'Yiminghe', label: 'yiminghe' },
-                        // { value: 'disabled', label: 'Disabled', disabled: true },
-                      ]}
-                    />
-                  )}
-                />
-
-                {errors?.numberOfWorkers ? (
-                  <p>{errors?.numberOfWorkers?.message}</p>
-                ) : null}
-              </div>
-
-              <div>
-                <label>{t("BRIDE_CLEANS")}</label>
-
-                <Controller
-                  control={control}
-                  name="brideClean"
-                  rules={{
-                    required: {
-                      value: true,
-                      message: t("REQUIRED"),
-                    },
-                  }}
-                  render={({ field }) => (
-                    <Select
-                      {...field}
-                      className="min-h-10 border-[#C4C4C4] border rounded-md capitalize [&>.ant-select-selector]:capitalize"
-                      variant="filled"
-                      status={errors?.brideClean ? "error" : ""}
-                      // defaultValue="male"
-                      placeholder="Bride cleans up?"
-                      style={{ width: "100%" }}
-                      onChange={(e) => {
-                        field.onChange(e);
-                        //   handleChange(e);
-                      }}
-                      options={[
-                        { value: "true", label: "Yes" },
-                        { value: "false", label: "No" },
-                        // { value: "3", label: "villa" },
-                        // { value: 'Yiminghe', label: 'yiminghe' },
-                        // { value: 'disabled', label: 'Disabled', disabled: true },
-                      ]}
-                    />
-                  )}
-                />
-
-                {errors?.brideClean ? (
-                  <p>{errors?.brideClean?.message}</p>
-                ) : null}
-              </div>
-
-              <div>
-                <label>{t("VISIT_DURATION")}</label>
-
-                <Controller
-                  name="duration"
-                  control={control}
-                  rules={{
-                    required: {
-                      value: true,
-                      message: t("REQUIRED"),
-                    },
-                  }}
-                  render={({ field }) => (
-                    <TimePicker.RangePicker
-                      className="min-h-10 w-full border-[#C4C4C4] border rounded-md capitalize [&>.ant-picker-selector]:capitalize"
-                      status={errors?.duration ? "error" : ""}
-                      variant="filled"
-                      value={
-                        field.value
-                          ? [
-                              field.value[0] ? dayjs(field.value[0]) : null,
-                              field.value[1] ? dayjs(field.value[1]) : null,
-                            ]
-                          : [null, null]
+                      loading={
+                        transportationFeesLoading ||
+                        transportationFeesIsFetching
                       }
-                      onChange={(values) => {
-                        // values is [dayjs | null, dayjs | null]
-                        field.onChange(
-                          values ? values.map((v) => v?.toISOString()) : null
-                        );
+                      className="min-h-10 border-[#C4C4C4] border rounded-md capitalize [&>.ant-select-selector]:capitalize"
+                      variant="filled"
+                      status={errors?.transportationFeesId ? "error" : ""}
+                      disabled={!cityId || !areaId}
+                      placeholder="Select transportation fees"
+                      style={{ width: "100%" }}
+                      onChange={(e) => {
+                        field.onChange(e);
+                        //   handleChange(e);
                       }}
+                      options={transportationFees?.data
+                        ?.filter(
+                          (fee) =>
+                            fee.cityId === cityId && fee.areaId === areaId,
+                        )
+                        ?.map((fee) => ({
+                          value: fee.id,
+                          label: fee.fee || "---",
+                        }))}
                     />
                   )}
                 />
 
-                {errors?.duration && <p>{errors.duration.message}</p>}
+                {errors?.transportationFeesId ? (
+                  <p className="font-light">
+                    {errors?.transportationFeesId?.message}
+                  </p>
+                ) : null}
               </div>
-            </section> */}
+            </section>
 
-            <section className="extra-services-wrapper">
-              <div className="capitalize col-span-full text-xl text-[#1D1B1B] font-semibold">
-                {t("EXTRA_SERVICE")}
+            <section className="packages-wrapper">
+              <div className="packages-title flex items-center gap-3 capitalize col-span-full text-xl text-[#1D1B1B] font-semibold">
+                <span>{t("EXTRA_SERVICE_DETAILS")}</span>
+
+                <Button
+                  onClick={handlePackageAppend}
+                  className="text-sm cursor-pointer bg-green-600 text-white"
+                  icon={<FaPlus />}
+                  shape="circle"
+                />
               </div>
 
-              <div className="radio-group capitalize col-span-full">
-                <Controller
-                  name="extraRoom"
-                  control={control}
-                  rules={{
-                    required: {
-                      value: true,
-                      message: t("REQUIRED"),
-                    },
-                  }}
-                  render={({ field }) => (
-                    <div className="flex flex-col gap-4">
-                      <Radio.Group
-                        {...field}
-                        value={field.value}
-                        onChange={(e) => {
-                          field.onChange(e.target.value);
-                          setSelectedRadio(e?.target?.value);
-                          setValue("extraRoomDescription", "");
-                        }}
-                        className="flex flex-col gap-3 extra-room-radio font-semibold"
-                      >
-                        {extraOptions.map((option, index) => (
-                          <div key={option}>
-                            <Radio
-                              value={index}
-                              style={{
-                                accentColor: "red",
-                              }}
+              <div className="package-dropdown-wrapper flex flex-col gap-5 w-full col-span-full">
+                {packagesFields.map((field, index) => (
+                  <section
+                    key={field.id}
+                    className="w-full flex flex-wrap items-center gap-3"
+                  >
+                    {/* <div className="flex items-center justify-between gap-3">
+                      <div className="w-full flex flex-col gap-2">
+                        <label className="font-semibold capitalize">
+                          {t("SELECT_PACKAGE_TYPE")}
+                        </label>
+
+                        <div className="select-wrapper grow flex items-center gap-3">
+                          <Controller
+                            control={control}
+                            name={`addReservationPackagesDtos.${index}.packageId`}
+                            rules={{
+                              required: {
+                                value: true,
+                                message: t("REQUIRED"),
+                              },
+                            }}
+                            render={({ field }) => (
+                              <Select
+                                {...field}
+                                loading={packagesLoading || packagesIsFetching}
+                                className="min-h-10 border-[#C4C4C4] border rounded-md capitalize [&>.ant-select-selector]:capitalize"
+                                variant="filled"
+                                status={
+                                  errors?.addReservationPackagesDtos?.[index]
+                                    ?.packageId
+                                    ? "error"
+                                    : ""
+                                }
+                                placeholder="Select package"
+                                style={{ width: "100%" }}
+                                onChange={(e) => {
+                                  field.onChange(e);
+                                  //   handleChange(e);
+                                }}
+                                options={packages?.data?.map((pkg) => ({
+                                  value: pkg.id,
+                                  label: lang === "en" ? pkg.name : pkg.arName,
+                                }))}
+                              />
+                            )}
+                          />
+
+                          <Button
+                            onClick={() => handlePackageRemove(index)}
+                            className="text-lg cursor-pointer bg-red-600 text-white disabled:bg-gray-300 disabled:cursor-not-allowed"
+                            icon={<FaMinus />}
+                            shape="circle"
+                            disabled={packagesFields?.length === 1}
+                          />
+                        </div>
+                      </div>
+                    </div> */}
+
+                    <Collapse
+                      className="grow [&_.ant-collapse-header]:items-center"
+                      accordion
+                      destroyOnHidden={false}
+                      items={[
+                        {
+                          key: "1",
+                          forceRender: true,
+                          label: (
+                            <div
+                              className="flex items-center justify-between gap-3"
+                              onClick={(e) => e.stopPropagation()}
                             >
-                              {t(option)}
-                            </Radio>
-
-                            {selectedRadio === index && (
-                              <div className="flex flex-col gap-1">
+                              <div className="w-full flex flex-col gap-2">
                                 <Controller
                                   control={control}
-                                  name="extraRoomDescription"
+                                  name={`addReservationPackagesDtos.${index}.packageId`}
                                   rules={{
                                     required: {
                                       value: true,
@@ -985,78 +881,119 @@ const ReservationForm = () => {
                                     },
                                   }}
                                   render={({ field }) => (
-                                    <Input
+                                    <Select
                                       {...field}
+                                      loading={
+                                        packagesLoading || packagesIsFetching
+                                      }
+                                      value={field?.value || null}
+                                      className="min-h-10 border-[#C4C4C4] border rounded-md capitalize [&>.ant-select-selector]:capitalize"
                                       variant="filled"
                                       status={
-                                        errors?.extraRoomDescription
+                                        errors?.addReservationPackagesDtos?.[
+                                          index
+                                        ]?.packageId
                                           ? "error"
                                           : ""
                                       }
-                                      placeholder={`Enter ${t(
-                                        option,
-                                      )} description`}
-                                      className="mt-2 col-span-full w-full min-h-[70px] border- border-[#C4C4C4] placeholder:capitalize"
+                                      placeholder="Select package"
+                                      style={{ width: "100%" }}
+                                      onChange={(e) => {
+                                        field.onChange(e);
+                                        //   handleChange(e);
+                                      }}
+                                      options={
+                                        packages?.data?.map((pkg) => ({
+                                          value: pkg.id,
+                                          label:
+                                            lang === "en"
+                                              ? pkg.name
+                                              : pkg.arName,
+                                        })) || []
+                                      }
                                     />
                                   )}
                                 />
-                                {errors?.extraRoomDescription ? (
-                                  <p className="text-mainRed text-xs mt-1 font-normal">
-                                    {errors?.extraRoomDescription?.message}
-                                  </p>
-                                ) : null}
                               </div>
-                            )}
-                          </div>
-                        ))}
-                      </Radio.Group>
-                    </div>
-                  )}
-                />
-                {errors?.extraRoom ? <p>{errors?.extraRoom?.message}</p> : null}
-              </div>
-
-              <div className="col-span-full mt-8">
-                <label>{t("GENERAL_COMMENTS")}</label>
-                <Controller
-                  control={control}
-                  name="comments"
-                  rules={{
-                    required: {
-                      value: true,
-                      message: t("REQUIRED"),
-                    },
-                  }}
-                  render={({ field }) => (
-                    <Input
-                      {...field}
-                      variant="filled"
-                      placeholder="Enter general comments"
-                      className="placeholder:capitalize min-h-[70px]"
-                      status={errors?.comments ? "error" : ""}
+                            </div>
+                          ),
+                          children: (
+                            <ExtraPackage
+                              index={index}
+                              control={control}
+                              errors={errors}
+                              watch={watch}
+                              setValue={setValue}
+                            />
+                          ),
+                        },
+                      ]}
                     />
-                  )}
-                />
 
-                {errors?.comments ? <p>{errors?.comments?.message}</p> : null}
+                    <Button
+                      onClick={() => handlePackageRemove(index)}
+                      className="text-lg cursor-pointer bg-red-600 text-white disabled:bg-gray-300 disabled:cursor-not-allowed"
+                      icon={<FaMinus />}
+                      shape="circle"
+                      disabled={packagesFields?.length === 1}
+                    />
+
+                    <p className="basis-full text-xs text-red-500 capitalize">
+                      {
+                        errors?.addReservationPackagesDtos?.[index]?.packageId
+                          ?.message
+                      }
+                    </p>
+                  </section>
+                ))}
               </div>
             </section>
+
+            <div className="md:col-span-full">
+              <label className="font-semibold mb-1 block">
+                {t("GENERAL_NOTES")}
+                <Astrisk />
+              </label>
+              <Controller
+                control={control}
+                name={`generalComments`}
+                rules={{
+                  required: { value: true, message: t("REQUIRED") },
+                }}
+                render={({ field }) => (
+                  <TextArea
+                    {...field}
+                    variant="filled"
+                    placeholder="Enter general comments"
+                    className="placeholder:capitalize border-[#C4C4C4] border rounded-md py-2 min-h-[70px] resize-none"
+                    status={errors?.generalComments ? "error" : ""}
+                  />
+                )}
+              />
+              {errors?.generalComments && (
+                <p className="text-xs text-red-500 mt-1">
+                  {errors?.generalComments?.message}
+                </p>
+              )}
+            </div>
           </div>
 
-          <section className="btn-wrapper mt-8 flex items-center justify-between gap-4 [&>div>button]:capitalize [&>div>button]:min-w-[120px] [&>div>button]:py-5 ">
-            <div>
+          <section className="btn-wrapper mt-8 flex items-center justify-center gap-4 [&>div>button]:capitalize [&>div>button]:min-w-[120px] [&>div>button]:py-5 ">
+            {/* <div>
               <Button
                 variant="outlined"
                 className="bg-transparent text-mainColor border-mainColor hover:bg-gray-600/80 hover:border-gray-600/80 hover:text-white transition-colors duration-500"
               >
                 {t("BACK")}
               </Button>
-            </div>
+            </div> */}
             <div>
               <Button
                 htmlType="submit"
                 variant="filled"
                 className="bg-mainColor text-white"
+                disabled={isAddReservationLoading}
+                loading={isAddReservationLoading}
               >
                 {t("SUBMIT")}
               </Button>

@@ -1,5 +1,6 @@
 import type {
   APIResponse,
+  extraServiceProps,
   packageCard,
   packageFormProps,
   seedersProps,
@@ -86,7 +87,21 @@ const packagesQuery = API.injectEndpoints({
       }),
       invalidatesTags: ["packageTypes"],
     }),
-  }),
+
+    getAllPackagesExtraService: builder.query<
+      APIResponse<extraServiceProps>,
+      { id: string }
+    >({
+      query: ({ id }) => ({
+        url: `/Package/GetAllPackagesExtraService`,
+        method: "GET",
+        headers: {
+          PackageId: id,
+        },
+      }),
+      // providesTags: ["extraServices"],
+    }),
+  }), //End of endpoints
 });
 
 export const {
@@ -97,4 +112,5 @@ export const {
   useGetPackageByIdQuery,
   useAddPackageTypeMutation,
   useEditPackageTypeMutation,
+  useGetAllPackagesExtraServiceQuery,
 } = packagesQuery;
