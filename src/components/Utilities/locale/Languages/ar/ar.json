@@ -100,7 +100,7 @@
     "BUYING_TOOLS": "شراء أدوات جديدة",
     "EXTRA_MATERIAL": "مواد إضافية",
     "EXTRA_WORKERS": "عمال إضافيون",
-    "GENERAL_COMMENTS": "إضافة تعليقات عامة",
+    "GENERAL_COMMENTS": "تعليقات عامة",
     "BUILDING_DETAILS": "تفاصيل المبنى",
     "BACK": "رجوع",
     "CUSTOMER_RESERVATION_DETAILS": "تفاصيل حجز العميل",
@@ -232,5 +232,16 @@
     "DISCOUNT": "الخصم",
     "MEMBERSHIP_NUMBER": "رقم العضوية",
     "RESERVATION_DATE": "تاريخ الحجز",
-    "APARTMENT_CLOSING_PERIOD": "فترة إغلاق الشقة"
+    "APARTMENT_CLOSING_PERIOD": "فترة إغلاق الشقة",
+    "RESERVATION_ID": "رقم الحجز",
+    "YES": "نعم",
+    "NO": "لا",
+    "EGP": "ج.م",
+    "TOTAL_AMOUNT": "إجمالي المبلغ",
+    "INCLUDING_VAT": "شامل 14% ضريبة القيمة المضافة",
+    "SELECT_WORKER": "اختر العامل",
+    "NO_EXTRA_SERVICES": "لا توجد خدمات إضافية",
+    "PACKAGE_AMOUNT": "مبلغ الباقة",
+    "NO_COMMENTS": "لا توجد تعليقات",
+    "RESERVATION_AMOUNT": "مبلغ الحجز"
 }

@@ -341,6 +341,82 @@ export type reservationFormProps = {
   buildingProps &
   extraServiceProps;
 
+export type reservationDetailsData = {
+  id: number;
+  reservationDate: string;
+  reservationAmount: number;
+  customerId: number;
+  customerName: string;
+  customerAddressId: number;
+  customerAddressName: string;
+  idNumber?: string;
+  phoneNumber?: string;
+  email?: string;
+  city?: string;
+  area?: string;
+  street?: string;
+  apartment?: string;
+  floor?: string;
+  postalCode?: string;
+  rodents: boolean;
+  insects: boolean;
+  generalComments: string;
+  apartmentClosingPeriod: string;
+  apartmentClosingPeriodId: number;
+  space?: string;
+  buildingType?: string;
+  state?: string;
+  landType?: string;
+  numberOfWindows?: number;
+  numberOfWorkers?: number;
+  brideCleansUp?: boolean;
+  visitDuration?: string;
+  startTime?: string;
+  endTime?: string;
+  getPackageDtoList: {
+    count: number;
+    packageAmount: number;
+    reservationPackageExtraServices: {
+      id: number;
+      service: string;
+      price: number;
+    }[];
+    getPackageDto: {
+      id: number;
+      title: string;
+      arTitle: string;
+      subTitle: string;
+      arSubTitle: string;
+      description: string;
+      tools: string;
+      supplies: string;
+      rules: string;
+      discount: number;
+      isPercentage: boolean;
+      numberOfWorkers: number;
+      numberOfRooms: number;
+      price: number;
+      packageTypeId: number;
+      packageTypeName: string | null;
+      packageTypeArName: string | null;
+      termsAndConditions: string;
+      logo: string;
+      isActive: boolean;
+      cleaningAreaDetails: {
+        id: number;
+        name: string;
+        arName: string;
+      }[];
+      extraServices: {
+        id: number;
+        name: string;
+        arName: string;
+        price: number;
+      }[];
+    };
+  }[];
+};
+
 export type serviceFormProps = {
   id?: string | number;
   title?: string;

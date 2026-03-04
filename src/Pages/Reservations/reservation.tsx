@@ -3,39 +3,38 @@ import Title from "../../components/Common/Title/title";
 import { useTranslation } from "react-i18next";
 import { useSearchBox } from "../../components/Common/Search/searchInput";
 import { Button, Table, type TableProps } from "antd";
-// import { BiEdit } from "react-icons/bi";
-// import { AiOutlineEye } from "react-icons/ai";
 import type { serviceFormProps } from "../../components/Utilities/Types/types";
 import { useGetAllReservationsQuery } from "../../components/APIs/Reservations/RESERVATION_QUERY";
 import dayjs from "dayjs";
+import { AiOutlineEye } from "react-icons/ai";
 
-// const Actions = ({ data }: { data: serviceFormProps }) => {
-//   const navigate = useNavigate();
-//   //   const handleNavigateEdit = () => {
-//   //     navigate(`edit-reservation?id=${data?.id}`);
-//   //     console.log(data);
-//   //   };
-//   const handleNavigateView = () => {
-//     navigate(`reservation-details?id=${data?.id}`);
-//     // console.log(data);
-//   };
-//   return (
-//     <div className="flex items-center gap-2">
-//       {/* <Button
-//         shape="circle"
-//         className="hover:bg-mainColor/60 hover:text-white hover:border-transparent size-10 [&>span]:flex [&>span]:items-center"
-//         onClick={handleNavigateEdit}
-//         icon={<BiEdit size={20} />}
-//       /> */}
-//       <Button
-//         className="hover:bg-mainGray/60 hover:text-white hover:border-transparent size-10 [&>span]:flex [&>span]:items-center"
-//         shape="circle"
-//         onClick={handleNavigateView}
-//         icon={<AiOutlineEye size={20} />}
-//       />
-//     </div>
-//   );
-// };
+const Actions = ({ data }: { data: serviceFormProps }) => {
+  const navigate = useNavigate();
+  //   const handleNavigateEdit = () => {
+  //     navigate(`edit-reservation?id=${data?.id}`);
+  //     console.log(data);
+  //   };
+  const handleNavigateView = () => {
+    navigate(`reservation-details?id=${data?.id}`);
+    // console.log(data);
+  };
+  return (
+    <div className="flex items-center gap-2">
+      {/* <Button
+        shape="circle"
+        className="hover:bg-mainColor/60 hover:text-white hover:border-transparent size-10 [&>span]:flex [&>span]:items-center"
+        onClick={handleNavigateEdit}
+        icon={<BiEdit size={20} />}
+      /> */}
+      <Button
+        className="hover:bg-mainGray/60 hover:text-white hover:border-transparent size-10 [&>span]:flex [&>span]:items-center"
+        shape="circle"
+        onClick={handleNavigateView}
+        icon={<AiOutlineEye size={20} />}
+      />
+    </div>
+  );
+};
 
 export const Reservations = () => {
   const { t } = useTranslation();
@@ -63,10 +62,22 @@ export const Reservations = () => {
       render: (text) => <p>{text}</p>,
     },
     {
+      title: "Customer Name",
+      dataIndex: "customerName",
+      key: "customerName",
+      render: (text) => <p>{text}</p>,
+    },
+    {
       title: "Reservation Date",
       dataIndex: "reservationDate",
       key: "reservationDate",
       render: (text) => <span>{dayjs(text).format("DD-MM-YYYY hh:mm A")}</span>,
+    },
+    {
+      title: "Reservation Amount",
+      dataIndex: "reservationAmount",
+      key: "reservationAmount",
+      render: (text) => <p>{text} L.E</p>,
     },
     {
       title: "General Comments",
@@ -74,10 +85,10 @@ export const Reservations = () => {
       key: "generalComments",
       render: (text) => <span>{text}</span>,
     },
-    // {
-    //   title: "Actions",
-    //   render: (data) => <Actions data={data} />,
-    // },
+    {
+      title: "Actions",
+      render: (data) => <Actions data={data} />,
+    },
   ];
 
   const data: serviceFormProps[] = reservations?.data || [];

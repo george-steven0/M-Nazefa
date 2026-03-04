@@ -100,7 +100,7 @@
     "BUYING_TOOLS": "buying new tools",
     "EXTRA_MATERIAL": "extra material",
     "EXTRA_WORKERS": "extra workers",
-    "GENERAL_COMMENTS": "add general comments",
+    "GENERAL_COMMENTS": "general comments",
     "BUILDING_DETAILS": "building details",
     "BACK": "back",
     "CUSTOMER_RESERVATION_DETAILS": "Customer reservation details",
@@ -233,5 +233,16 @@
     "DISCOUNT": "Discount",
     "MEMBERSHIP_NUMBER": "Membership number",
     "RESERVATION_DATE": "Reservation date",
-    "APARTMENT_CLOSING_PERIOD": "Apartment closing period"
+    "APARTMENT_CLOSING_PERIOD": "Apartment closing period",
+    "RESERVATION_ID": "Reservation ID",
+    "YES": "Yes",
+    "NO": "No",
+    "EGP": "EGP",
+    "TOTAL_AMOUNT": "Total Amount",
+    "INCLUDING_VAT": "Including 14% VAT",
+    "SELECT_WORKER": "Select worker",
+    "NO_EXTRA_SERVICES": "No extra services",
+    "PACKAGE_AMOUNT": "Package Amount",
+    "NO_COMMENTS": "No comments provided",
+    "RESERVATION_AMOUNT": "Reservation Amount"
 }
