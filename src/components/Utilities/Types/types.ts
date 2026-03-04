@@ -318,7 +318,7 @@ export type appointmentProps = {
 
 export type reservationFormProps = {
   customerId: string | number;
-  customerAddressId: string | number;
+  customerAddressId: string | number | null;
   duration: string[];
   insects: string | boolean;
   rodents: string | boolean;
@@ -326,8 +326,8 @@ export type reservationFormProps = {
   transportationFeesId: string | number;
   apartmentClosingPeriodId: string | number;
   generalComments: string;
-  cityId?: string;
-  areaId?: string;
+  cityId?: string | null;
+  areaId?: string | null;
   addReservationPackagesDtos?: {
     packageId: string | number;
     count: string | number;

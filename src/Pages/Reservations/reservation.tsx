@@ -129,6 +129,7 @@ export const Reservations = () => {
 
         <section className="mt-8">
           <Table<serviceFormProps>
+            rowKey="id"
             columns={columns}
             dataSource={data}
             loading={isLoading || isFetching}

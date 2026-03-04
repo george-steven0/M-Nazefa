@@ -247,6 +247,7 @@ const ReservationForm = () => {
                       style={{ width: "100%" }}
                       onChange={(e) => {
                         field.onChange(e);
+                        setValue("customerAddressId", null);
                         //   handleChange(e);
                       }}
                       options={customers?.data?.map((customer) => ({
@@ -674,6 +675,7 @@ const ReservationForm = () => {
                       style={{ width: "100%" }}
                       onChange={(e) => {
                         field.onChange(e);
+                        setValue("areaId", null);
                         //   handleChange(e);
                       }}
                       options={cities?.data?.map((city) => ({

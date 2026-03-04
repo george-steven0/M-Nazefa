@@ -324,6 +324,7 @@ const ReservationDetails = () => {
                             <List
                               size="small"
                               dataSource={pkg?.reservationPackageExtraServices}
+                              className="[&_.ant-list-items]:grid [&_.ant-list-items]:grid-cols-2 [&_.ant-list-items]:gap-5"
                               renderItem={(item) => (
                                 <List.Item className="py-1! px-0! border-none">
                                   <Tag className="flex items-center gap-2 bg-mainOrange/20 text-mainOrange border-mainOrange">
