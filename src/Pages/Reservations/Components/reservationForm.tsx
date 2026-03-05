@@ -175,7 +175,7 @@ const ReservationForm = () => {
       );
       setValue("email", customer.data?.email || t("NA"));
     }
-  }, [customer]);
+  }, [customer, setValue, t]);
 
   const handleSubmitForm = async (data: reservationFormProps) => {
     const formattedData = {

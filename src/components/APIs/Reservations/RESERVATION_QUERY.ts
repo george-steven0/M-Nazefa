@@ -1,5 +1,6 @@
 import type {
   APIResponse,
+  holdReservationProps,
   reservationDetailsData,
   reservationFormProps,
   SingleAPIResponse,
@@ -31,6 +32,26 @@ const reservationQuery = API.injectEndpoints({
       providesTags: ["reservations"],
     }),
 
+    getHoldReservation: builder.query<APIResponse<holdReservationProps>, void>({
+      query: () => ({
+        url: `/Reservation/GetHoldReservationList`,
+        method: "GET",
+      }),
+      providesTags: ["holdReservation"],
+    }),
+
+    addHoldReservation: builder.mutation<
+      SingleAPIResponse<holdReservationProps>,
+      holdReservationProps
+    >({
+      query: (data: holdReservationProps) => ({
+        url: "/Reservation/HoldReservation",
+        method: "POST",
+        body: data,
+      }),
+      invalidatesTags: ["holdReservation"],
+    }),
+
     addReservation: builder.mutation<
       APIResponse<reservationFormProps>,
       reservationFormProps
@@ -49,4 +70,6 @@ export const {
   useGetAllReservationsQuery,
   useAddReservationMutation,
   useGetReservationByIdQuery,
+  useGetHoldReservationQuery,
+  useAddHoldReservationMutation,
 } = reservationQuery;

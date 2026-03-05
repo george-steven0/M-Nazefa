@@ -3,10 +3,22 @@ import Title from "../../components/Common/Title/title";
 import { useTranslation } from "react-i18next";
 import { useSearchBox } from "../../components/Common/Search/searchInput";
 import { Button, Table, type TableProps } from "antd";
-import type { serviceFormProps } from "../../components/Utilities/Types/types";
-import { useGetAllReservationsQuery } from "../../components/APIs/Reservations/RESERVATION_QUERY";
+import type {
+  APIErrorProps,
+  holdReservationProps,
+  serviceFormProps,
+} from "../../components/Utilities/Types/types";
+import {
+  useAddHoldReservationMutation,
+  useGetAllReservationsQuery,
+  useGetHoldReservationQuery,
+} from "../../components/APIs/Reservations/RESERVATION_QUERY";
 import dayjs from "dayjs";
 import { AiOutlineEye } from "react-icons/ai";
+import { useEffect, useState } from "react";
+import HoldReservationModal from "./Components/holdReservationModal";
+import { useForm } from "react-hook-form";
+import { toast } from "react-toastify";
 
 const Actions = ({ data }: { data: serviceFormProps }) => {
   const navigate = useNavigate();
@@ -39,6 +51,20 @@ const Actions = ({ data }: { data: serviceFormProps }) => {
 export const Reservations = () => {
   const { t } = useTranslation();
   const { pathname } = useLocation();
+
+  const {
+    control,
+    handleSubmit,
+    formState: { errors, isDirty },
+    reset,
+  } = useForm<holdReservationProps>({
+    defaultValues: {
+      dateFrom: "",
+      dateTo: "",
+    },
+  });
+
+  // console.log(isDirty);
 
   const {
     data: reservations,
@@ -93,6 +119,99 @@ export const Reservations = () => {
 
   const data: serviceFormProps[] = reservations?.data || [];
 
+  const handleNavigateAdd = () => {
+    navigate(`/reservations/add-reservation`);
+  };
+
+  const handleTitleComponent = () => {
+    return (
+      <div className="flex gap-2 items-center [&>button]:py-5 [&>button]:capitalize">
+        <Button
+          onClick={handleNavigateAdd}
+          className="text-white bg-mainColor "
+        >
+          {t("ADD_RESERVATION")}
+        </Button>
+
+        <Button
+          onClick={openHoldReservationModal}
+          className="text-white bg-mainOrange "
+        >
+          {t("AVAILABLE_APPOINTMENTS")}
+        </Button>
+      </div>
+    );
+  };
+
+  // Hold Reservation Modal
+
+  const [
+    addHoldReservation,
+    {
+      isLoading: holdAddReservationLoading,
+      // isSuccess: holdAddReservationSuccess,
+    },
+  ] = useAddHoldReservationMutation();
+
+  const {
+    data: holdReservation,
+    isLoading: holdReservationLoading,
+    isFetching: holdReservationIsFetching,
+    isSuccess: holdReservationSuccess,
+  } = useGetHoldReservationQuery();
+
+  // console.log(holdReservation);
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const openHoldReservationModal = () => {
+    setIsModalOpen(true);
+  };
+
+  const closeHoldReservationModal = () => {
+    setIsModalOpen(false);
+  };
+
+  useEffect(() => {
+    if (holdReservationSuccess) {
+      reset({
+        dateFrom: holdReservation?.data?.[0]?.dateFrom,
+        dateTo: holdReservation?.data?.[0]?.dateTo,
+      });
+    }
+  }, [holdReservation?.data, holdReservationSuccess, reset]);
+
+  const handleHoldReservationSubmit = async (data: holdReservationProps) => {
+    // console.log(data);
+
+    const formData = {
+      dateFrom: dayjs(data.dateFrom).format("YYYY-MM-DDThh:mm:ss[Z]"),
+      dateTo: dayjs(data.dateTo).format("YYYY-MM-DDThh:mm:ss[Z]"),
+    };
+
+    // console.log(formData);
+
+    try {
+      await addHoldReservation(formData).unwrap();
+      closeHoldReservationModal();
+      toast.success("Available Appointments Updated Successfully");
+    } catch (error) {
+      const err = error as APIErrorProps;
+      // console.log(err);
+
+      if (
+        err?.data?.validationErrors &&
+        err?.data?.validationErrors.length > 0
+      ) {
+        const errs =
+          err?.data?.errorMessage && err?.data?.errorMessage.join("\n");
+        toast.error(errs);
+      } else {
+        toast.error("Failed to update available appointments");
+      }
+    }
+  };
+
   const isChildClientPage =
     pathname.includes("add-reservation") ||
     pathname.includes("edit-reservation") ||
@@ -101,21 +220,6 @@ export const Reservations = () => {
   if (isChildClientPage) {
     return <Outlet />;
   }
-  const handleNavigateAdd = () => {
-    navigate(`/reservations/add-reservation`);
-  };
-  const handleTitleComponent = () => {
-    return (
-      <div className="flex flex-col gap-2 items-center [&>button]:py-5 [&>button]:capitalize">
-        <Button
-          onClick={handleNavigateAdd}
-          className="text-white bg-mainColor "
-        >
-          {t("ADD_RESERVATION")}
-        </Button>
-      </div>
-    );
-  };
   return (
     <main>
       <header>
@@ -142,6 +246,22 @@ export const Reservations = () => {
           />
         </section>
       </div>
+
+      <HoldReservationModal
+        open={isModalOpen}
+        close={closeHoldReservationModal}
+        loading={
+          holdReservationLoading ||
+          holdReservationIsFetching ||
+          holdAddReservationLoading
+        }
+        t={t}
+        submitFunction={handleHoldReservationSubmit}
+        control={control}
+        handleSubmit={handleSubmit}
+        errors={errors}
+        isDirty={isDirty}
+      />
     </main>
   );
 };

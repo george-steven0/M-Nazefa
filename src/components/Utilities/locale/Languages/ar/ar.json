@@ -243,5 +243,10 @@
     "NO_EXTRA_SERVICES": "لا توجد خدمات إضافية",
     "PACKAGE_AMOUNT": "مبلغ الباقة",
     "NO_COMMENTS": "لا توجد تعليقات",
-    "RESERVATION_AMOUNT": "مبلغ الحجز"
+    "RESERVATION_AMOUNT": "مبلغ الحجز",
+    "HOLD_RESERVATION": "أيقاف الحجز",
+    "DATE_FROM": "تاريخ البدء",
+    "DATE_TO": "تاريخ الانتهاء",
+    "CANCEL": "إلغاء",
+    "AVAILABLE_APPOINTMENTS": "المواعيد المتاحة"
 }

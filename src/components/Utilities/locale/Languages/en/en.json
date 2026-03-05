@@ -244,5 +244,10 @@
     "NO_EXTRA_SERVICES": "No extra services",
     "PACKAGE_AMOUNT": "Package Amount",
     "NO_COMMENTS": "No comments provided",
-    "RESERVATION_AMOUNT": "Reservation Amount"
+    "RESERVATION_AMOUNT": "Reservation Amount",
+    "HOLD_RESERVATION": "Hold Reservation",
+    "DATE_FROM": "Date From",
+    "DATE_TO": "Date To",
+    "CANCEL": "Cancel",
+    "AVAILABLE_APPOINTMENTS": "Available Appointments"
 }

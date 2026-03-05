@@ -417,6 +417,11 @@ export type reservationDetailsData = {
   }[];
 };
 
+export type holdReservationProps = {
+  dateFrom: string;
+  dateTo: string;
+};
+
 export type serviceFormProps = {
   id?: string | number;
   title?: string;

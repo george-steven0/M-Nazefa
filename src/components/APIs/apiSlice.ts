@@ -81,6 +81,7 @@ export const API = createApi({
     "packageTypes",
     "CleaningArea",
     "reservations",
+    "holdReservation",
   ],
   endpoints: () => ({}),
 });
