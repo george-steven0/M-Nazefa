@@ -10,10 +10,16 @@ import { API } from "../apiSlice";
 const employees = API.injectEndpoints({
   endpoints: (build) => ({
     //replace any type with the employee response type
-    getCities: build.query<SingleAPIResponse<seedersProps[]>, void>({
-      query: () => {
+    getCities: build.query<
+      SingleAPIResponse<seedersProps[]>,
+      { filter?: string }
+    >({
+      query: ({ filter }) => {
         return {
           url: `/DDL/GetAllCities`,
+          headers: {
+            ForReservation: filter || "",
+          },
         };
       },
       providesTags: ["cities"],
@@ -21,13 +27,14 @@ const employees = API.injectEndpoints({
 
     getAreas: build.query<
       SingleAPIResponse<seedersProps[]>,
-      { cityId: string }
+      { cityId: string; filter?: string }
     >({
-      query: ({ cityId }) => {
+      query: ({ cityId, filter }) => {
         return {
           url: `/DDL/GetAllAreas`,
           headers: {
             cityId: cityId,
+            ForReservation: filter || "",
           },
         };
       },

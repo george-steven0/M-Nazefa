@@ -23,8 +23,12 @@ import { skipToken } from "@reduxjs/toolkit/query";
 import { useAppSelector } from "../../../components/APIs/store";
 import { FaMinus, FaPlus } from "react-icons/fa";
 import ExtraPackage from "./packageComponent";
+import ReservationSummary from "./reservationSummary";
 import TextArea from "antd/es/input/TextArea";
-import { useAddReservationMutation } from "../../../components/APIs/Reservations/RESERVATION_QUERY";
+import {
+  useAddReservationMutation,
+  useGetHoldReservationQuery,
+} from "../../../components/APIs/Reservations/RESERVATION_QUERY";
 import { toast } from "react-toastify";
 import Astrisk from "../../../components/Common/Astrisk/astrisk";
 import { useNavigate } from "react-router-dom";
@@ -100,7 +104,7 @@ const ReservationForm = () => {
     data: cities,
     isFetching: isCitiesFetching,
     isLoading: isCitiesLoading,
-  } = useGetCitiesQuery();
+  } = useGetCitiesQuery({ filter: "true" });
 
   const cityId = watch("cityId");
   const areaId = watch("areaId");
@@ -109,7 +113,7 @@ const ReservationForm = () => {
     data: areas,
     isFetching: isAreasFetching,
     isLoading: isAreasLoading,
-  } = useGetAreasQuery(cityId ? { cityId } : skipToken);
+  } = useGetAreasQuery(cityId ? { cityId, filter: "true" } : skipToken);
 
   // transportation fees
   const {
@@ -131,6 +135,16 @@ const ReservationForm = () => {
     isLoading: packagesLoading,
     isFetching: packagesIsFetching,
   } = useGetAllPackagesListQuery();
+
+  // Get availiable Reservation appointemtns
+
+  const {
+    data: holdReservation,
+    isLoading: holdReservationLoading,
+    isFetching: holdReservationIsFetching,
+  } = useGetHoldReservationQuery();
+
+  // console.log(holdReservation?.data[0]);
 
   const {
     fields: packagesFields,
@@ -523,9 +537,22 @@ const ReservationForm = () => {
                       placeholder="Select reservation date"
                       status={errors?.reservationDate ? "error" : ""}
                       showTime
-                      // disabled={
-                      //   !customerId || customerLoading || customerIsFetching
-                      // }
+                      disabled={
+                        holdReservationLoading || holdReservationIsFetching
+                      }
+                      disabledDate={(current) => {
+                        const allowedStartDate =
+                          holdReservation?.data[0]?.dateFrom;
+                        const allowedEndDate = holdReservation?.data[0]?.dateTo;
+                        return (
+                          (current &&
+                            current.isBefore(
+                              dayjs(allowedStartDate).startOf("day"),
+                            )) ||
+                          (current &&
+                            current.isAfter(dayjs(allowedEndDate).endOf("day")))
+                        );
+                      }}
                     />
                   )}
                 />
@@ -950,6 +977,9 @@ const ReservationForm = () => {
                 ))}
               </div>
             </section>
+
+            {/* ── Reservation Amount Summary ─────────────────────────────── */}
+            <ReservationSummary control={control} />
 
             <div className="md:col-span-full">
               <label className="font-semibold mb-1 block">

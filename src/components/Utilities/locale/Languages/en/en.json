@@ -249,5 +249,8 @@
     "DATE_FROM": "Date From",
     "DATE_TO": "Date To",
     "CANCEL": "Cancel",
-    "AVAILABLE_APPOINTMENTS": "Available Appointments"
+    "AVAILABLE_APPOINTMENTS": "Available Appointments",
+    "ORDER_SUMMARY": "Order Summary",
+    "SUBTOTAL": "Subtotal",
+    "PRICE_AFTER_DISCOUNT": "Price after discount"
 }

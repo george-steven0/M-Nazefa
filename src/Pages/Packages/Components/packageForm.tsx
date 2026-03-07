@@ -30,6 +30,7 @@ import { skipToken } from "@reduxjs/toolkit/query";
 import { useGetPackageTypesQuery } from "../../../components/APIs/Seeders/SEEDERS_RTK_QUERY";
 import { useAppSelector } from "../../../components/APIs/store";
 import { useGetCleaningAreasQuery } from "../../../components/APIs/CleaningArea/CLEANING_AREA_QUERY";
+import Astrisk from "../../../components/Common/Astrisk/astrisk";
 
 export default function PackageForm() {
   const { t } = useTranslation();
@@ -427,7 +428,9 @@ export default function PackageForm() {
               </div>
 
               <div className="col-span-full">
-                <label>{t("PACKAGE_TYPE")}</label>
+                <label>
+                  {t("PACKAGE_TYPE")} <Astrisk />
+                </label>
                 <Controller
                   control={control}
                   name="packageTypeId"
@@ -461,7 +464,9 @@ export default function PackageForm() {
               </div>
 
               <div>
-                <label>{t("TITLE")}</label>
+                <label>
+                  {t("TITLE")} <Astrisk />
+                </label>
                 <Controller
                   control={control}
                   name="Title"
@@ -490,7 +495,9 @@ export default function PackageForm() {
               </div>
 
               <div>
-                <label>{t("AR_TITLE")}</label>
+                <label>
+                  {t("AR_TITLE")} <Astrisk />
+                </label>
                 <Controller
                   control={control}
                   name="ArTitle"
@@ -519,7 +526,9 @@ export default function PackageForm() {
               </div>
 
               <div>
-                <label>{t("SUB_TITLE")}</label>
+                <label>
+                  {t("SUB_TITLE")} <Astrisk />
+                </label>
                 <Controller
                   control={control}
                   name="SubTitle"
@@ -548,7 +557,9 @@ export default function PackageForm() {
               </div>
 
               <div>
-                <label>{t("AR_SUB_TITLE")}</label>
+                <label>
+                  {t("AR_SUB_TITLE")} <Astrisk />
+                </label>
                 <Controller
                   control={control}
                   name="ArSubTitle"
@@ -579,7 +590,9 @@ export default function PackageForm() {
               </div>
 
               <div className="col-span-full">
-                <label>{t("DESCRIPTION")}</label>
+                <label>
+                  {t("DESCRIPTION")} <Astrisk />
+                </label>
                 <Controller
                   control={control}
                   name="Description"
@@ -607,7 +620,9 @@ export default function PackageForm() {
 
               <div className="col-span-full grid grid-cols-1 md:grid-cols-3 gap-5 [&>div>label]:block [&>div>label]:mb-1 [&>div>label]:capitalize [&>div>label]:font-medium [&>div>input]:border-[#C4C4C4] [&>div>input]:py-2 [&>div>p]:mt-1 [&>div>p]:text-xs [&>div>p]:capitalize [&>div>p]:text-mainRed">
                 <div>
-                  <label>{t("NUMBER_OF_ROOMS")}</label>
+                  <label>
+                    {t("NUMBER_OF_ROOMS")} <Astrisk />
+                  </label>
 
                   <Controller
                     control={control}
@@ -640,7 +655,9 @@ export default function PackageForm() {
                 </div>
 
                 <div>
-                  <label>{t("NO_WORKERS")}</label>
+                  <label>
+                    {t("NO_WORKERS")} <Astrisk />
+                  </label>
 
                   <Controller
                     control={control}
@@ -673,7 +690,9 @@ export default function PackageForm() {
                 </div>
 
                 <div>
-                  <label>{t("PRICE")}</label>
+                  <label>
+                    {t("PRICE")} <Astrisk />
+                  </label>
 
                   <Controller
                     control={control}
@@ -705,7 +724,9 @@ export default function PackageForm() {
 
               <div className="discount-wrapper col-span-full grid grid-cols-1 md:grid-cols-2 gap-5 [&>div>label]:block [&>div>label]:mb-1 [&>div>label]:capitalize [&>div>label]:font-medium [&>div>input]:border-[#C4C4C4] [&>div>input]:py-2 [&>div>p]:mt-1 [&>div>p]:text-xs [&>div>p]:capitalize [&>div>p]:text-mainRed">
                 <div>
-                  <label>{t("DISCOUNT_TYPE")}</label>
+                  <label>
+                    {t("DISCOUNT_TYPE")} <Astrisk />
+                  </label>
                   <Controller
                     control={control}
                     name="IsPercentage"
@@ -744,7 +765,9 @@ export default function PackageForm() {
                 </div>
 
                 <div>
-                  <label>{t("DISCOUNT_VALUE")}</label>
+                  <label>
+                    {t("DISCOUNT_VALUE")} <Astrisk />
+                  </label>
                   <Controller
                     control={control}
                     name="Discount"
@@ -988,7 +1011,9 @@ export default function PackageForm() {
               </div> */}
 
               <div>
-                <label>{t("TOOLS")}</label>
+                <label>
+                  {t("TOOLS")} <Astrisk />
+                </label>
                 <Controller
                   control={control}
                   name="Tools"
@@ -1013,7 +1038,9 @@ export default function PackageForm() {
               </div>
 
               <div>
-                <label>{t("SUPPLIES")}</label>
+                <label>
+                  {t("SUPPLIES")} <Astrisk />
+                </label>
                 <Controller
                   control={control}
                   name="Supplies"
@@ -1038,7 +1065,9 @@ export default function PackageForm() {
               </div>
 
               <div className="col-span-full">
-                <label>{t("RULES")}</label>
+                <label>
+                  {t("RULES")} <Astrisk />
+                </label>
                 <Controller
                   control={control}
                   name="Rules"
@@ -1069,7 +1098,7 @@ export default function PackageForm() {
               <section className="cleaning-area-wrapper col-span-full">
                 <div className="flex items-center gap-2">
                   <h2 className="text-lg font-semibold">
-                    {t("CLEANING_AREA")}
+                    {t("CLEANING_AREA")} <Astrisk />
                   </h2>
                   <Button
                     className="bg-green-600/60 hover:bg-green-600 border-green-600 text-white"
@@ -1086,7 +1115,9 @@ export default function PackageForm() {
                       className="mb-5 flex items-center gap-5 [&>div>label]:block [&>div>label]:mb-1 [&>div>label]:capitalize [&>div>label]:font-medium [&>div>input]:border-[#C4C4C4] [&>div>input]:py-2 [&>div>p]:mt-1 [&>div>p]:text-xs [&>div>p]:capitalize [&>div>p]:text-mainRed"
                     >
                       <div className="grow">
-                        <label>{t("SELECT_CLEANING_AREA")}</label>
+                        <label>
+                          {t("SELECT_CLEANING_AREA")} <Astrisk />
+                        </label>
                         <Controller
                           control={control}
                           name={`CleaningAreaDetails.${index}.CleaningAreaId`}
@@ -1138,7 +1169,9 @@ export default function PackageForm() {
                       </div>
 
                       <div className="grow">
-                        <label>{t("NAME_EN")}</label>
+                        <label>
+                          {t("NAME_EN")} <Astrisk />
+                        </label>
                         <Controller
                           control={control}
                           name={`CleaningAreaDetails.${index}.Name`}
@@ -1178,7 +1211,9 @@ export default function PackageForm() {
                       </div>
 
                       <div className="grow">
-                        <label>{t("NAME_AR")}</label>
+                        <label>
+                          {t("NAME_AR")} <Astrisk />
+                        </label>
                         <Controller
                           control={control}
                           name={`CleaningAreaDetails.${index}.ArName`}
@@ -1243,7 +1278,7 @@ export default function PackageForm() {
               <section className="extra-services-wrapper col-span-full">
                 <div className="flex items-center gap-2">
                   <h2 className="text-lg font-semibold">
-                    {t("EXTRA_SERVICES")}
+                    {t("EXTRA_SERVICES")} <Astrisk />
                   </h2>
                   <Button
                     className="bg-green-600/60 hover:bg-green-600 border-green-600 text-white"
@@ -1260,7 +1295,9 @@ export default function PackageForm() {
                       className="mb-5 flex items-center gap-5 [&>div>label]:block [&>div>label]:mb-1 [&>div>label]:capitalize [&>div>label]:font-medium [&>div>input]:border-[#C4C4C4] [&>div>input]:py-2 [&>div>p]:mt-1 [&>div>p]:text-xs [&>div>p]:capitalize [&>div>p]:text-mainRed"
                     >
                       <div className="grow">
-                        <label>{t("NAME_EN")}</label>
+                        <label>
+                          {t("NAME_EN")} <Astrisk />
+                        </label>
                         <Controller
                           control={control}
                           name={`ExtraServices.${index}.Name`}
@@ -1295,7 +1332,9 @@ export default function PackageForm() {
                       </div>
 
                       <div className="grow">
-                        <label>{t("NAME_AR")}</label>
+                        <label>
+                          {t("NAME_AR")} <Astrisk />
+                        </label>
                         <Controller
                           control={control}
                           name={`ExtraServices.${index}.ArName`}
@@ -1332,7 +1371,9 @@ export default function PackageForm() {
                       </div>
 
                       <div className="grow">
-                        <label>{t("PRICE")}</label>
+                        <label>
+                          {t("PRICE")} <Astrisk />
+                        </label>
                         <Controller
                           control={control}
                           name={`ExtraServices.${index}.Price`}
@@ -1389,7 +1430,9 @@ export default function PackageForm() {
               <hr className="col-span-full my-2 border-[#C4C4C4]" />
 
               <div className="size-full col-span-full">
-                <label className="basis-full">{t("TERMS")}</label>
+                <label className="basis-full">
+                  {t("TERMS")} <Astrisk />
+                </label>
                 <div className="p-4 flex flex-wrap items-center justify-center border border-dashed border-[#C4C4C4] rounded-sm">
                   {/* <Upload {...uploadProps}>
                 <Button icon={<BiUpload />}>Click to Upload</Button>

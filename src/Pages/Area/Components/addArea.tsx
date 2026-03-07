@@ -24,7 +24,7 @@ const AddArea = ({ open, close, t }: areaPropsType) => {
     data: cities,
     isFetching: isCitiesFetching,
     isLoading: isCitiesLoading,
-  } = useGetCitiesQuery();
+  } = useGetCitiesQuery({});
   const {
     control,
     handleSubmit,

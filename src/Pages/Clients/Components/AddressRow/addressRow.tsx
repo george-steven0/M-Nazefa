@@ -45,7 +45,7 @@ const AddressRow = ({
     data: cities,
     isFetching: isCitiesFetching,
     isLoading: isCitiesLoading,
-  } = useGetCitiesQuery();
+  } = useGetCitiesQuery({});
 
   const cityId = useWatch({
     control,

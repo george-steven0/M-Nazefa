@@ -248,5 +248,8 @@
     "DATE_FROM": "تاريخ البدء",
     "DATE_TO": "تاريخ الانتهاء",
     "CANCEL": "إلغاء",
-    "AVAILABLE_APPOINTMENTS": "المواعيد المتاحة"
+    "AVAILABLE_APPOINTMENTS": "المواعيد المتاحة",
+    "ORDER_SUMMARY": "ملخص الطلب",
+    "SUBTOTAL": "المجموع الجزئي",
+    "PRICE_AFTER_DISCOUNT": "السعر بعد الخصم"
 }
