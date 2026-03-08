@@ -62,6 +62,8 @@ const ReservationDetails = () => {
 
   const reservation = reservationData?.data;
 
+  console.log(reservation);
+
   const renderValue = (value: boolean | string | null | undefined) => {
     if (value === null || value === undefined || value === "") {
       return <Text type="secondary">{t("N/A") || "N/A"}</Text>;
@@ -361,6 +363,190 @@ const ReservationDetails = () => {
                   </div>
                 </Card>
               ))}
+            </div>
+
+            {/* Order Summary */}
+            <div className="mt-8">
+              <TypographyTitle
+                level={4}
+                className="text-mainColor flex items-center gap-2 mb-6"
+              >
+                <span className="w-2 h-8 bg-mainColor rounded-full" />
+                {t("RESERVATION_SUMMARY")}
+              </TypographyTitle>
+
+              <div className="rounded-xl border border-[#e5e7eb] shadow-sm overflow-hidden bg-white">
+                <div className="bg-mainColor px-5 py-3">
+                  <h3 className="text-white font-semibold text-lg capitalize m-0">
+                    {t("RESERVATION_SUMMARY")}
+                  </h3>
+                </div>
+                <div className="p-4 flex flex-col gap-3">
+                  {(() => {
+                    let grandTotal = 0;
+
+                    const packageRows = reservation?.getPackageDtoList?.map(
+                      (pkg: Record<string, unknown>, index: number) => {
+                        const packageDto = (pkg.getPackageDto || {}) as Record<
+                          string,
+                          unknown
+                        >;
+                        const extraServices =
+                          (pkg.reservationPackageExtraServices || []) as Record<
+                            string,
+                            unknown
+                          >[];
+
+                        const count = Number(pkg.count) || 1;
+
+                        // Use pkg.packageAmount as the base price. Fallback to packageDto.price if needed.
+                        const basePrice =
+                          Number(pkg.packageAmount ?? packageDto.price) || 0;
+                        const discount = Number(packageDto.discount) || 0;
+
+                        const rawIsPercentage =
+                          packageDto.isPercentage ?? packageDto.IsPercentage;
+                        const isPercentage =
+                          rawIsPercentage === true ||
+                          rawIsPercentage === "true";
+
+                        let discountAmount = 0;
+
+                        if (discount > 0) {
+                          if (isPercentage) {
+                            discountAmount = (basePrice * discount) / 100;
+                          } else {
+                            discountAmount = discount;
+                          }
+                        }
+                        const priceAfterDiscount = Math.max(
+                          0,
+                          basePrice - discountAmount,
+                        );
+
+                        const extraServicesTotal = extraServices.reduce(
+                          (sum: number, es: Record<string, unknown>) =>
+                            sum + (Number(es.price) || 0),
+                          0,
+                        );
+
+                        // Multiply by count if the package has quantity
+                        const calculatedTotal =
+                          (priceAfterDiscount + extraServicesTotal) * count;
+
+                        grandTotal += calculatedTotal;
+
+                        return (
+                          <div
+                            key={index}
+                            className="flex flex-col gap-2 p-4 bg-gray-50 rounded-lg border border-gray-200"
+                          >
+                            <div className="flex items-center justify-between">
+                              <span className="font-semibold text-[#1D1B1B] capitalize">
+                                {isAr
+                                  ? (packageDto.arTitle as string)
+                                  : (packageDto.title as string)}
+                              </span>
+                              <span className="text-gray-700 font-medium">
+                                {basePrice > 0
+                                  ? `${basePrice.toLocaleString()} ${t("EGP")}`
+                                  : renderValue(null)}
+                              </span>
+                            </div>
+
+                            {discount > 0 && (
+                              <div className="flex items-center justify-between text-sm">
+                                <span className="text-gray-500">
+                                  {t("DISCOUNT")}{" "}
+                                  <Tag color="volcano" className="ms-1">
+                                    {isPercentage
+                                      ? `${discount}%`
+                                      : `${discount} ${t("EGP")}`}
+                                  </Tag>
+                                </span>
+                                <span className="text-red-500">
+                                  - {discountAmount.toLocaleString()} {t("EGP")}
+                                </span>
+                              </div>
+                            )}
+
+                            {discount > 0 && (
+                              <div className="flex items-center justify-between text-sm font-medium">
+                                <span className="text-gray-600">
+                                  {t("PRICE_AFTER_DISCOUNT")}
+                                </span>
+                                <span className="text-green-700">
+                                  {priceAfterDiscount.toLocaleString()}{" "}
+                                  {t("EGP")}
+                                </span>
+                              </div>
+                            )}
+
+                            {extraServices.length > 0 && (
+                              <div className="flex flex-col gap-1 mt-1">
+                                <span className="text-xs text-gray-500 font-medium uppercase tracking-wide">
+                                  {t("EXTRA_SERVICE_DETAILS")}
+                                </span>
+                                {extraServices.map(
+                                  (
+                                    es: Record<string, unknown>,
+                                    esIdx: number,
+                                  ) => (
+                                    <div
+                                      key={esIdx}
+                                      className="flex items-center justify-between text-sm ps-2"
+                                    >
+                                      <span className="text-gray-600 capitalize">
+                                        {es.service as string}
+                                      </span>
+                                      <span className="text-gray-700">
+                                        + {Number(es.price).toLocaleString()}{" "}
+                                        {t("EGP")}
+                                      </span>
+                                    </div>
+                                  ),
+                                )}
+                              </div>
+                            )}
+
+                            {count > 1 && (
+                              <div className="flex items-center justify-between text-sm font-medium mt-1">
+                                <span className="text-gray-600">
+                                  {t("QUANTITY")}
+                                </span>
+                                <span className="text-gray-700">x {count}</span>
+                              </div>
+                            )}
+
+                            <Divider className="my-1" />
+                            <div className="flex items-center justify-between font-semibold text-[#1D1B1B]">
+                              <span>{t("SUBTOTAL")}</span>
+                              <span>
+                                {Number(calculatedTotal).toLocaleString()}{" "}
+                                {t("EGP")}
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      },
+                    );
+
+                    return (
+                      <>
+                        {packageRows}
+                        <div className="flex items-center justify-between bg-mainColor/10 rounded-lg px-4 py-3 mt-1">
+                          <span className="font-bold text-mainColor text-lg capitalize">
+                            {t("TOTAL_AMOUNT")}
+                          </span>
+                          <span className="font-bold text-mainColor text-xl">
+                            {Number(grandTotal).toLocaleString()} {t("EGP")}
+                          </span>
+                        </div>
+                      </>
+                    );
+                  })()}
+                </div>
+              </div>
             </div>
           </div>
         </div>

@@ -249,7 +249,7 @@
     "DATE_TO": "تاريخ الانتهاء",
     "CANCEL": "إلغاء",
     "AVAILABLE_APPOINTMENTS": "المواعيد المتاحة",
-    "ORDER_SUMMARY": "ملخص الطلب",
+    "RESERVATION_SUMMARY": "ملخص الحجز",
     "SUBTOTAL": "المجموع الجزئي",
     "PRICE_AFTER_DISCOUNT": "السعر بعد الخصم"
 }

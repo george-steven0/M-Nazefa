@@ -219,7 +219,7 @@ export default function ReservationSummary({
         {/* Header */}
         <div className="bg-mainColor px-5 py-3">
           <h3 className="text-white font-semibold text-lg capitalize">
-            {t("ORDER_SUMMARY")}
+            {t("RESERVATION_SUMMARY")}
           </h3>
         </div>
 
