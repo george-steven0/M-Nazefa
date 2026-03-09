@@ -7,25 +7,33 @@ import type {
 import type { TFunction } from "i18next";
 import { toast } from "react-toastify";
 import dayjs from "dayjs";
-import { useEditMembershipMutation } from "../../../components/APIs/Membership/MEMBERSHIP_QUERY";
+import {
+  useAddMembershipMutation,
+  useEditMembershipMutation,
+} from "../../../components/APIs/Membership/MEMBERSHIP_QUERY";
+import { useEffect } from "react";
 
 type addRoleProps = {
   open: boolean;
   close: () => void;
   t: TFunction;
-  data: membershipFormProps;
+  data?: membershipFormProps;
 };
 
-const EditMembership = ({ open, close, t, data }: addRoleProps) => {
-  const [editMembership, { isLoading }] = useEditMembershipMutation();
+const MembershipForm = ({ open, close, t, data }: addRoleProps) => {
+  const [addMembership, { isLoading: isAddLoading }] =
+    useAddMembershipMutation();
+
+  const [editMembership, { isLoading: isEditLoading }] =
+    useEditMembershipMutation();
 
   // console.log(data);
 
   const defaultValues = {
-    name: data?.name,
-    code: data?.code,
-    startDate: data?.startDate,
-    endDate: data?.endDate,
+    name: data?.name || "",
+    code: data?.code || "",
+    startDate: data?.startDate || "",
+    endDate: data?.endDate || "",
   };
 
   const {
@@ -34,8 +42,18 @@ const EditMembership = ({ open, close, t, data }: addRoleProps) => {
     reset,
     formState: { errors },
   } = useForm<membershipFormProps>({
-    defaultValues,
+    defaultValues: defaultValues,
   });
+
+  useEffect(() => {
+    if (open && data) {
+      reset(defaultValues);
+    }
+
+    if (!data && !open) {
+      reset();
+    }
+  }, [data, open, reset]);
 
   const handleReset = () => {
     reset();
@@ -45,14 +63,19 @@ const EditMembership = ({ open, close, t, data }: addRoleProps) => {
   const submitForm = async (values: membershipFormProps) => {
     const formatData = {
       ...values,
-      id: data?.id,
+      id: data ? data?.id : "",
       startDate: dayjs(values?.startDate)?.format("YYYY-MM-DDTHH:mm:ss"),
       endDate: dayjs(values?.endDate)?.format("YYYY-MM-DDTHH:mm:ss"),
     };
 
     try {
-      await editMembership(formatData).unwrap();
-      toast.success("membership updated successfully");
+      if (data) {
+        await editMembership(formatData).unwrap();
+        toast.success("membership updated successfully");
+      } else {
+        await addMembership(formatData).unwrap();
+        toast.success("membership added successfully");
+      }
       handleReset();
     } catch (error) {
       const err = error as APIErrorProps;
@@ -73,7 +96,7 @@ const EditMembership = ({ open, close, t, data }: addRoleProps) => {
   return (
     <div>
       <Modal
-        title={t("EDIT_MEMBERSHIP")}
+        title={data ? t("EDIT_MEMBERSHIP") : t("ADD_MEMBERSHIP")}
         closable={{ "aria-label": "Close Button" }}
         open={open}
         // onOk={handleOk}
@@ -97,7 +120,7 @@ const EditMembership = ({ open, close, t, data }: addRoleProps) => {
                   <Input
                     {...field}
                     variant="filled"
-                    placeholder="Enter role name"
+                    placeholder="Enter membership name"
                     className="placeholder:capitalize"
                     status={errors?.name ? "error" : ""}
                   />
@@ -203,6 +226,44 @@ const EditMembership = ({ open, close, t, data }: addRoleProps) => {
                 </p>
               ) : null}
             </div>
+
+            <div className="col-span-full">
+              <label>{t("PERCENTAGE")}</label>
+
+              <Controller
+                control={control}
+                name="percent"
+                rules={{
+                  required: {
+                    value: true,
+                    message: t("REQUIRED"),
+                  },
+                  pattern: {
+                    value: /^\d+(\.\d+)?$/,
+                    message: t("ONLY_NUMBER"),
+                  },
+                  max: {
+                    value: 100,
+                    message: t("VALUE_LIMIT", { value: 100 }),
+                  },
+                }}
+                render={({ field }) => (
+                  <Input
+                    {...field}
+                    variant="filled"
+                    placeholder="Enter percent"
+                    className="placeholder:capitalize"
+                    status={errors?.percent ? "error" : ""}
+                  />
+                )}
+              />
+
+              {errors?.percent ? (
+                <p className="text-mainRed text-xs mt-1">
+                  {errors?.percent?.message}
+                </p>
+              ) : null}
+            </div>
           </div>
 
           <div className="w-full flex justify-between [&>button]:min-w-[120px] [&>button]:py-5 [&>button]:capitalize mt-8">
@@ -210,9 +271,9 @@ const EditMembership = ({ open, close, t, data }: addRoleProps) => {
             <Button
               htmlType="submit"
               className="bg-mainColor text-white border-none"
-              loading={isLoading}
+              loading={isAddLoading || isEditLoading}
             >
-              {t("UPDATE")}
+              {data ? t("UPDATE") : t("SUBMIT")}
             </Button>
           </div>
         </form>
@@ -221,4 +282,4 @@ const EditMembership = ({ open, close, t, data }: addRoleProps) => {
   );
 };
 
-export default EditMembership;
+export default MembershipForm;

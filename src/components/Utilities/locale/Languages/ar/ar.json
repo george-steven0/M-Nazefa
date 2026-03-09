@@ -251,5 +251,8 @@
     "AVAILABLE_APPOINTMENTS": "المواعيد المتاحة",
     "RESERVATION_SUMMARY": "ملخص الحجز",
     "SUBTOTAL": "المجموع الجزئي",
-    "PRICE_AFTER_DISCOUNT": "السعر بعد الخصم"
+    "PRICE_AFTER_DISCOUNT": "السعر بعد الخصم",
+    "NO_OF_RESERVATION": "عدد الحجوزات",
+    "LAST_RESERVATION_DATE": "تاريخ اخر حجز",
+    "CREATION_DATE": "تاريخ الأنشاء"
 }

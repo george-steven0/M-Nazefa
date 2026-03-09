@@ -5,11 +5,13 @@ import Title from "../../components/Common/Title/title";
 import { useSearchBox } from "../../components/Common/Search/searchInput";
 import type { TFunction } from "i18next";
 import { useState } from "react";
-import AddMembership from "./Components/addMembership";
-import EditMembership from "./Components/editMembership";
 import { BiEdit } from "react-icons/bi";
 import { useGetAllMembershipsQuery } from "../../components/APIs/Membership/MEMBERSHIP_QUERY";
-import { DateOnlyFormat } from "../../components/Utilities/helper";
+import {
+  DateOnlyFormat,
+  fullDateFormat,
+} from "../../components/Utilities/helper";
+import MembershipForm from "./Components/membershipForm";
 
 const Actions = ({ data, t }: { data: membershipFormProps; t: TFunction }) => {
   const [editMembership, setEditMembership] = useState(false);
@@ -28,7 +30,7 @@ const Actions = ({ data, t }: { data: membershipFormProps; t: TFunction }) => {
         icon={<BiEdit size={20} />}
       />
 
-      <EditMembership
+      <MembershipForm
         open={editMembership}
         close={handleEditMembershipToggle}
         t={t}
@@ -66,6 +68,12 @@ const Memberships = () => {
       render: (text) => <span>{text ? text : t("NA")}</span>,
     },
     {
+      key: "creationDate",
+      title: t("CREATION_DATE"),
+      dataIndex: "creationDate",
+      render: (text) => <span>{text ? fullDateFormat(text) : t("NA")}</span>,
+    },
+    {
       key: "startDate",
       title: t("START_DATE"),
       dataIndex: "startDate",
@@ -82,6 +90,13 @@ const Memberships = () => {
       title: t("NUMBER_OF_VISITS"),
       dataIndex: "noOfVisits",
       render: (text) => <span className="">{text ? text : t("NA")}</span>,
+    },
+
+    {
+      key: "percent",
+      title: t("PERCENTAGE"),
+      dataIndex: "percent",
+      render: (text) => <span className="">{text ? `${text}%` : t("NA")}</span>,
     },
 
     {
@@ -137,7 +152,7 @@ const Memberships = () => {
         />
       </section>
 
-      <AddMembership open={openAddModal} close={handleAddModalToggle} t={t} />
+      <MembershipForm open={openAddModal} close={handleAddModalToggle} t={t} />
     </div>
   );
 };

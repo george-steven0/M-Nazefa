@@ -16,6 +16,7 @@ import { useTranslation } from "react-i18next";
 import useCustomDataTable from "../../components/Common/Datatable/dataTable";
 import { useState } from "react";
 import { MdFilterAlt } from "react-icons/md";
+import { fullDateFormat } from "../../components/Utilities/helper";
 
 const Actions = ({ data }: { data: clientFormPropsType }) => {
   const navigate = useNavigate();
@@ -101,6 +102,20 @@ const Clients = () => {
     },
 
     {
+      title: t("NO_OF_RESERVATION"),
+      dataIndex: "noOfReservations",
+      render: (text) => <span>{text || 0}</span>,
+      key: "noOfReservations",
+    },
+
+    {
+      title: t("LAST_RESERVATION_DATE"),
+      dataIndex: "lastReservationDate",
+      render: (text) => <span>{fullDateFormat(text) || ""}</span>,
+      key: "lastReservationDate",
+    },
+
+    {
       title: "Status",
       dataIndex: "isActive",
       key: "status",
@@ -153,6 +168,7 @@ const Clients = () => {
       key: "false",
     },
   ];
+
   const handleMenuClick: MenuProps["onClick"] = (info) => {
     // console.log("Clicked item key:", info.key);
     // You can map key to a value or use it directly

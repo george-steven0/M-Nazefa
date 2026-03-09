@@ -18,7 +18,7 @@ const employees = API.injectEndpoints({
         return {
           url: `/DDL/GetAllCities`,
           headers: {
-            ForReservation: filter || "",
+            ...(filter && { ForReservation: filter }),
           },
         };
       },
@@ -30,12 +30,13 @@ const employees = API.injectEndpoints({
       { cityId: string; filter?: string }
     >({
       query: ({ cityId, filter }) => {
+        const headers = {
+          cityId: cityId,
+          ...(filter && { ForReservation: filter }),
+        };
         return {
           url: `/DDL/GetAllAreas`,
-          headers: {
-            cityId: cityId,
-            ForReservation: filter || "",
-          },
+          headers: headers,
         };
       },
       providesTags: (_result, _error, { cityId }) => [

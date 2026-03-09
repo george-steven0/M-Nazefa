@@ -252,5 +252,8 @@
     "AVAILABLE_APPOINTMENTS": "Available Appointments",
     "RESERVATION_SUMMARY": "Reservation Summary",
     "SUBTOTAL": "Subtotal",
-    "PRICE_AFTER_DISCOUNT": "Price after discount"
+    "PRICE_AFTER_DISCOUNT": "Price after discount",
+    "NO_OF_RESERVATION": "no of reservations",
+    "LAST_RESERVATION_DATE": "last reservation date",
+    "CREATION_DATE": "Creation Date"
 }
