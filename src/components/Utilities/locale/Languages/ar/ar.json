@@ -254,5 +254,9 @@
     "PRICE_AFTER_DISCOUNT": "السعر بعد الخصم",
     "NO_OF_RESERVATION": "عدد الحجوزات",
     "LAST_RESERVATION_DATE": "تاريخ اخر حجز",
-    "CREATION_DATE": "تاريخ الأنشاء"
+    "CREATION_DATE": "تاريخ الأنشاء",
+    "DOWNLOAD_PDF": "تحميل ملف PDF",
+    "SELECT_WORKERS_DESCRIPTION": "ابحث واختر العمال لتعيينهم لهذا الحجز",
+    "SELECTED_WORKERS": "العمال المختارين",
+    "NO_WORKERS_SELECTED": "لم يتم اختيار عمال"
 }

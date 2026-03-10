@@ -2,8 +2,6 @@ import { useTranslation } from "react-i18next";
 import Title from "../../../components/Common/Title/title";
 import {
   Button,
-  Modal,
-  Select,
   Skeleton,
   Card,
   Descriptions,
@@ -12,47 +10,40 @@ import {
   Typography,
   Avatar,
   List,
-  type SelectProps,
 } from "antd";
 import { useState } from "react";
-import type { DefaultOptionType } from "antd/es/select";
-import { FaTrash, FaCheckCircle, FaTimesCircle } from "react-icons/fa";
+import { FaCheckCircle, FaTimesCircle, FaDownload } from "react-icons/fa";
 import { useSearchParams } from "react-router-dom";
 import { useGetReservationByIdQuery } from "../../../components/APIs/Reservations/RESERVATION_QUERY";
 import { skipToken } from "@reduxjs/toolkit/query";
 import dayjs from "dayjs";
 
+import { PDFDownloadLink } from "@react-pdf/renderer";
+import { ReservationDetailsPdf } from "./reservationDetailsPdf";
+import AssignWorkerModal from "./assignWorkerModal";
+import { useAppSelector } from "../../../components/APIs/store";
+import { useForm } from "react-hook-form";
+import type { assignWorkerFormProps } from "../../../components/Utilities/Types/types";
+
 const { Text, Title: TypographyTitle } = Typography;
 
 const ReservationDetails = () => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const [params] = useSearchParams();
   const id = params.get("id");
-  const isAr = i18n.language === "ar";
+  const { lang } = useAppSelector((state) => state?.lang);
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedOptions, setselectedOptions] = useState<
-    DefaultOptionType | DefaultOptionType[] | undefined
-  >([]);
-
-  const toggleModal = () => {
-    setIsModalOpen((prev) => !prev);
-  };
-
-  const options: SelectProps["options"] = [
-    { value: "1", label: "worker 1" },
-    { value: "2", label: "worker 2" },
-    { value: "3", label: "worker 3" },
-    { value: "4", label: "worker 4" },
-    { value: "5", label: "worker 5" },
-  ];
-
-  const handleChange = (
-    _value: string[],
-    obj: DefaultOptionType | DefaultOptionType[] | undefined,
-  ) => {
-    setselectedOptions(obj);
-  };
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+    setValue,
+    reset,
+  } = useForm<assignWorkerFormProps>({
+    defaultValues: {
+      workers: [],
+    },
+  });
 
   const {
     data: reservationData,
@@ -62,7 +53,7 @@ const ReservationDetails = () => {
 
   const reservation = reservationData?.data;
 
-  console.log(reservation);
+  // console.log(reservation);
 
   const renderValue = (value: boolean | string | null | undefined) => {
     if (value === null || value === undefined || value === "") {
@@ -80,6 +71,17 @@ const ReservationDetails = () => {
       );
     }
     return <Text className="font-medium">{value}</Text>;
+  };
+
+  // Assign worker modal state
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const toggleModal = () => {
+    setIsModalOpen((prev) => !prev);
+  };
+
+  const handleAssignWorker = async (data: assignWorkerFormProps) => {
+    console.log(data);
   };
 
   if (isLoading || isFetching) {
@@ -104,15 +106,35 @@ const ReservationDetails = () => {
               component={null}
               className="m-0"
             />
-            {/* <div className="flex gap-3">
-              <Button
-                type="primary"
-                className="bg-mainColor hover:bg-mainColor/90! border-none px-6 py-5 h-auto rounded-xl flex items-center justify-center font-semibold"
-                onClick={toggleModal}
-              >
-                {t("ASSIGN_WORKERS")}
-              </Button>
-            </div> */}
+            <div className="flex gap-3">
+              {reservation && (
+                <div className="flex items-center gap-3">
+                  <PDFDownloadLink
+                    document={<ReservationDetailsPdf data={reservation} />}
+                    fileName={`reservation-${reservation.id}.pdf`}
+                  >
+                    {({ loading }: { loading: boolean }) => (
+                      <Button
+                        type="primary"
+                        icon={<FaDownload />}
+                        loading={loading}
+                        className="bg-mainColor hover:bg-mainColor/90! border-none px-4 py-3 h-auto rounded-md flex items-center justify-center font-semibold"
+                      >
+                        {loading ? "Loading..." : t("DOWNLOAD_PDF")}
+                      </Button>
+                    )}
+                  </PDFDownloadLink>
+
+                  <Button
+                    type="primary"
+                    className="bg-white text-mainColor hover:bg-mainColor/90! hover:text-white border-mainColor border-2 px-4 py-3 h-auto rounded-md flex items-center justify-center font-semibold"
+                    onClick={toggleModal}
+                  >
+                    {t("ASSIGN_WORKERS")}
+                  </Button>
+                </div>
+              )}
+            </div>
           </div>
         </header>
 
@@ -257,7 +279,7 @@ const ReservationDetails = () => {
                         className="bg-white mb-4 border-4 border-mainOrange"
                       />
                       <TypographyTitle level={5} className="text-white! m-0!">
-                        {isAr
+                        {lang
                           ? pkg.getPackageDto?.arTitle
                           : pkg.getPackageDto?.title}
                       </TypographyTitle>
@@ -277,7 +299,7 @@ const ReservationDetails = () => {
                             {t("SUB_TITLE")}
                           </Text>
                           <Text className="font-semibold">
-                            {isAr
+                            {lang
                               ? pkg.getPackageDto?.arSubTitle
                               : pkg.getPackageDto?.subTitle}
                           </Text>
@@ -443,7 +465,7 @@ const ReservationDetails = () => {
                           >
                             <div className="flex items-center justify-between">
                               <span className="font-semibold text-[#1D1B1B] capitalize">
-                                {isAr
+                                {lang
                                   ? (packageDto.arTitle as string)
                                   : (packageDto.title as string)}
                               </span>
@@ -552,86 +574,16 @@ const ReservationDetails = () => {
         </div>
       </main>
 
-      <Modal
-        title={t("ASSIGN_WORKERS")}
+      <AssignWorkerModal
         open={isModalOpen}
-        onOk={toggleModal}
-        onCancel={toggleModal}
-        zIndex={9999}
-        footer={
-          <div className="flex justify-center gap-2 p-4">
-            <Button
-              className="min-w-[150px] bg-mainColor text-white h-12 rounded-xl text-lg font-semibold hover:bg-mainColor/90! transition-all shadow-md"
-              onClick={toggleModal}
-            >
-              {t("SAVE")}
-            </Button>
-          </div>
-        }
-        className="rounded-3xl overflow-hidden"
-      >
-        <section className="my-4">
-          <div className="mb-6">
-            <Text type="secondary" className="mb-2 block">
-              {t("SELECT_WORKERS_DESCRIPTION") ||
-                "Search and select workers to assign to this reservation"}
-            </Text>
-            <Select
-              mode="multiple"
-              allowClear
-              className="w-full h-12"
-              placeholder={t("SELECT_WORKER") || "Please select worker"}
-              value={selectedOptions?.map(
-                (worker: DefaultOptionType) => worker.value,
-              )}
-              onChange={handleChange}
-              options={options}
-            />
-          </div>
-
-          <div className="mt-4 max-h-[300px] overflow-y-auto">
-            <TypographyTitle
-              level={5}
-              className="text-sm! text-gray-400! mb-3! uppercase tracking-widest"
-            >
-              {t("SELECTED_WORKERS") || "Selected Workers"}
-            </TypographyTitle>
-            <div className="flex flex-col gap-2">
-              {selectedOptions?.length > 0 ? (
-                selectedOptions?.map((worker: DefaultOptionType) => (
-                  <div
-                    key={worker.value}
-                    className="flex justify-between items-center bg-gray-50 p-3 px-4 rounded-xl border border-gray-100 hover:border-mainColor/30 transition-colors"
-                  >
-                    <span className="font-medium text-mainColor">
-                      {worker.label}
-                    </span>
-                    <Button
-                      type="text"
-                      danger
-                      icon={<FaTrash />}
-                      onClick={() => {
-                        setselectedOptions(
-                          (selectedOptions as DefaultOptionType[]).filter(
-                            (item) => item.value !== worker.value,
-                          ),
-                        );
-                      }}
-                      className="flex items-center justify-center hover:bg-red-50"
-                    />
-                  </div>
-                ))
-              ) : (
-                <div className="py-8 text-center border-2 border-dashed border-gray-100 rounded-2xl">
-                  <Text type="secondary">
-                    {t("NO_WORKERS_SELECTED") || "No workers selected"}
-                  </Text>
-                </div>
-              )}
-            </div>
-          </div>
-        </section>
-      </Modal>
+        close={toggleModal}
+        onConfirm={handleAssignWorker}
+        control={control}
+        handleSubmit={handleSubmit}
+        errors={errors}
+        setValue={setValue}
+        reset={reset}
+      />
     </>
   );
 };

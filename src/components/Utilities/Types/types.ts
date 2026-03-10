@@ -349,6 +349,10 @@ export type reservationDetailsData = {
   customerName: string;
   customerAddressId: number;
   customerAddressName: string;
+  phoneNumbers: {
+    phoneNumber: string;
+    id: number;
+  }[];
   idNumber?: string;
   phoneNumber?: string;
   email?: string;
@@ -416,7 +420,13 @@ export type reservationDetailsData = {
     };
   }[];
 };
-
+export type assignWorkerFormProps = {
+  workers:
+    | {
+        workerId: string | number;
+      }[]
+    | [];
+};
 export type holdReservationProps = {
   dateFrom: string;
   dateTo: string;

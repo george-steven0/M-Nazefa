@@ -255,5 +255,9 @@
     "PRICE_AFTER_DISCOUNT": "Price after discount",
     "NO_OF_RESERVATION": "no of reservations",
     "LAST_RESERVATION_DATE": "last reservation date",
-    "CREATION_DATE": "Creation Date"
+    "CREATION_DATE": "Creation Date",
+    "DOWNLOAD_PDF": "Download PDF",
+    "SELECT_WORKERS_DESCRIPTION": "Search and select workers to assign to this reservation",
+    "SELECTED_WORKERS": "Selected Workers",
+    "NO_WORKERS_SELECTED": "No workers selected"
 }
