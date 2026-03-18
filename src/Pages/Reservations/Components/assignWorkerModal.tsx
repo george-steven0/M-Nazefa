@@ -12,20 +12,8 @@ import {
   type UseFormReset,
   type UseFormSetValue,
 } from "react-hook-form";
-
-const options: SelectProps["options"] = [
-  { value: "1", label: "worker 1" },
-  { value: "2", label: "worker 2" },
-  { value: "3", label: "worker 3" },
-  { value: "4", label: "worker 4" },
-  { value: "5", label: "worker 5" },
-  { value: "6", label: "worker 6" },
-  { value: "7", label: "worker 7" },
-  { value: "8", label: "worker 8" },
-  { value: "9", label: "worker 9" },
-  { value: "10", label: "worker 10" },
-  { value: "11", label: "worker 11" },
-];
+import { useGetAllWorkersListQuery } from "../../../components/APIs/Seeders/SEEDERS_RTK_QUERY";
+import { useAppSelector } from "../../../components/APIs/store";
 
 type assignworkerProps = {
   open: boolean;
@@ -49,6 +37,22 @@ export default function AssignWorkerModal({
   reset,
 }: assignworkerProps) {
   const { t } = useTranslation();
+  const { lang } = useAppSelector((state) => state?.lang);
+
+  const {
+    data: workers,
+    isLoading,
+    isFetching,
+  } = useGetAllWorkersListQuery(undefined, {
+    skip: !open,
+  });
+
+  // console.log(workers?.data);
+
+  const options: SelectProps["options"] = workers?.data?.map((worker) => ({
+    value: worker.id,
+    label: lang === "ar" ? worker.arName : worker.name,
+  }));
 
   const [selectedOptions, setselectedOptions] = useState<
     DefaultOptionType | DefaultOptionType[] | undefined
@@ -115,6 +119,7 @@ export default function AssignWorkerModal({
                   allowClear
                   className="w-full h-auto [&_.ant-select-selector]:py-2"
                   placeholder={t("SELECT_WORKER") || "Please select worker"}
+                  loading={isLoading || isFetching}
                   value={field.value?.map(
                     (worker: DefaultOptionType) => worker.workerId,
                   )}

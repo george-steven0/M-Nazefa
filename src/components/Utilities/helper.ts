@@ -1,8 +1,9 @@
 import dayjs from "dayjs";
-// import utc from "dayjs/plugin/utc"; // Required for the 'Z' (UTC) output
 import type { FileType } from "./Types/types";
-
-// dayjs.extend(utc);
+import utc from "dayjs/plugin/utc"; // Required for the 'Z' (UTC) output
+import timezone from "dayjs/plugin/timezone";
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 export const getBase64 = (file: FileType): Promise<string> =>
   new Promise((resolve, reject) => {
@@ -45,7 +46,7 @@ export const cleanDeep = <T>(data: T): T => {
 
 export const fullDateFormat = (date: string) => {
   if (!date) return;
-  const format = dayjs(date)?.format("DD-MM-YYYY, h:mm A");
+  const format = dayjs.utc(date).local().format("DD-MM-YYYY, h:mm A");
   return format;
 };
 

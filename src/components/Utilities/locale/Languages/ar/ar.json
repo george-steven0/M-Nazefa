@@ -258,5 +258,8 @@
     "DOWNLOAD_PDF": "تحميل ملف PDF",
     "SELECT_WORKERS_DESCRIPTION": "ابحث واختر العمال لتعيينهم لهذا الحجز",
     "SELECTED_WORKERS": "العمال المختارين",
-    "NO_WORKERS_SELECTED": "لم يتم اختيار عمال"
+    "NO_WORKERS_SELECTED": "لم يتم اختيار عمال",
+    "WORKER_ADDED_SUCCESS": "تم إضافة العامل بنجاح",
+    "WORKER_EDITED_SUCCESS": "تم تعديل العامل بنجاح",
+    "WORKER_DELETED_SUCCESS": "تم حذف العامل بنجاح"
 }

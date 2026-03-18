@@ -420,6 +420,15 @@ export type reservationDetailsData = {
     };
   }[];
 };
+export type workersFormProps = {
+  id: string;
+  name: string;
+  arName: string;
+  phoneNumber: string;
+  nationalId: string;
+  isMale: boolean | string | undefined;
+};
+
 export type assignWorkerFormProps = {
   workers:
     | {

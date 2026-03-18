@@ -259,5 +259,8 @@
     "DOWNLOAD_PDF": "Download PDF",
     "SELECT_WORKERS_DESCRIPTION": "Search and select workers to assign to this reservation",
     "SELECTED_WORKERS": "Selected Workers",
-    "NO_WORKERS_SELECTED": "No workers selected"
+    "NO_WORKERS_SELECTED": "No workers selected",
+    "WORKER_ADDED_SUCCESS": "Worker added successfully",
+    "WORKER_EDITED_SUCCESS": "Worker edited successfully",
+    "WORKER_DELETED_SUCCESS": "Worker deleted successfully"
 }

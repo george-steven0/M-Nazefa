@@ -1,26 +1,23 @@
 // import { AiOutlineEye } from "react-icons/ai";
 import { BiEdit } from "react-icons/bi";
-import { Button, Table, type TableProps } from "antd";
+import { Button, type TablePaginationConfig, type TableProps } from "antd";
 import { useTranslation } from "react-i18next";
 import Title from "../../components/Common/Title/title";
 import { Outlet, useLocation } from "react-router-dom";
 import { useSearchBox } from "../../components/Common/Search/searchInput";
-import AddWorker from "./Components/addWorker";
 import { useState } from "react";
-import EditWorker from "./Components/editWorker";
+import type { workersFormProps } from "../../components/Utilities/Types/types";
+import { useGetAllWorkersQuery } from "../../components/APIs/Workers/WORKERS_QUERY";
+import useCustomDataTable from "../../components/Common/Datatable/dataTable";
+import WorkerFormModal from "./Components/workerFormModal";
+import { fullDateFormat } from "../../components/Utilities/helper";
 
-type workersPropsType = {
-  key: string | number;
-  id: string;
-  name: string;
-  gender: string;
-  phoneNumber: string;
-  joinDate: string;
-};
-const Actions = ({ data }: { data: workersPropsType }) => {
+const Actions = ({ data }: { data: workersFormProps }) => {
   // handle edit modal
-  const [openEditModal, setOpenEditModal] = useState(false);
+  const [openEditModal, setOpenEditModal] = useState<boolean>(false);
   const toggleEditModal = () => setOpenEditModal((prev) => !prev);
+
+  // console.log("actions", data);
 
   return (
     <>
@@ -38,10 +35,15 @@ const Actions = ({ data }: { data: workersPropsType }) => {
       /> */}
       </div>
 
-      <EditWorker open={openEditModal} close={toggleEditModal} id={data.id} />
+      <WorkerFormModal
+        open={openEditModal}
+        close={toggleEditModal}
+        data={data}
+      />
     </>
   );
 };
+
 const Workers = () => {
   const { t } = useTranslation();
   const { pathname } = useLocation();
@@ -49,7 +51,21 @@ const Workers = () => {
   const [openAddModal, setOpenAddModal] = useState(false);
   const toggleAddModal = () => setOpenAddModal((prev) => !prev);
 
-  const columns: TableProps<workersPropsType>["columns"] = [
+  const [pagination, setPagination] = useState({
+    current: 1,
+    pageSize: 10,
+  });
+
+  const {
+    data: workers,
+    isLoading,
+    isFetching,
+  } = useGetAllWorkersQuery({
+    page: pagination.current,
+    size: pagination.pageSize,
+  });
+
+  const columns: TableProps<workersFormProps>["columns"] = [
     {
       title: "ID",
       dataIndex: "id",
@@ -57,26 +73,33 @@ const Workers = () => {
       render: (text) => <p>{text}</p>,
     },
     {
-      title: "Name",
+      title: t("NAME_EN"),
       dataIndex: "name",
       key: "name",
       render: (text) => <span>{text}</span>,
     },
     {
-      title: "Gender",
-      dataIndex: "gender",
-      key: "gender",
+      title: t("NAME_AR"),
+      dataIndex: "arName",
+      key: "arName",
       render: (text) => <span>{text}</span>,
     },
     {
-      title: "Phone Number",
+      title: t("GENDER"),
+      dataIndex: "isMale",
+      key: "isMale",
+      render: (text) => <span>{text ? t("MALE") : t("FEMALE")}</span>,
+    },
+    {
+      title: t("PHONE_NUMBER"),
       dataIndex: "phoneNumber",
       key: "phoneNumber",
     },
     {
-      title: "Joining Date",
-      dataIndex: "joinDate",
-      key: "joinDate",
+      title: t("JOINING_DATE"),
+      dataIndex: "creationDate",
+      key: "creationDate",
+      render: (text) => <span>{fullDateFormat(text)}</span>,
     },
     // {
     //   title: "Status",
@@ -104,32 +127,25 @@ const Workers = () => {
     },
   ];
 
-  const data: workersPropsType[] = [
-    {
-      key: "1",
-      id: "1",
-      name: "John Brown",
-      phoneNumber: "+20115778532",
-      joinDate: "25-11-2023",
-      gender: "Male",
-    },
-    {
-      key: "2",
-      id: "2",
-      name: "Mike thunder",
-      phoneNumber: "+200000532",
-      joinDate: "10-11-2025",
-      gender: "Female",
-    },
-    {
-      key: "3",
-      id: "3",
-      name: "John Brown",
-      phoneNumber: "+20115778532",
-      joinDate: "05-11-2003",
-      gender: "Male",
-    },
-  ];
+  const data: workersFormProps[] = workers?.data || [];
+
+  const handleTableChange = (newPagination: TablePaginationConfig) => {
+    // console.log(pagination);
+
+    setPagination({
+      current: newPagination.current ?? 1,
+      pageSize: newPagination.pageSize ?? 10,
+    });
+  };
+
+  const { renderDataTable } = useCustomDataTable({
+    cols: columns,
+    data: data ?? [],
+    isLoading: isLoading || isFetching,
+    total: workers?.paginationHeader?.totalItems ?? 0,
+    pagination,
+    onChange: handleTableChange,
+  });
 
   const handleAddButton = () => {
     return (
@@ -173,20 +189,9 @@ const Workers = () => {
         {SearchBox()}
       </section>
 
-      <section className="mt-8">
-        <Table<workersPropsType>
-          columns={columns}
-          dataSource={data}
-          // onRow={(record) => ({
-          //   onClick: () => handleRowClick(record),
-          //   style: {
-          //     cursor: "pointer",
-          //   },
-          // })}
-        />
-      </section>
+      <section className="mt-8">{renderDataTable()}</section>
 
-      <AddWorker open={openAddModal} close={toggleAddModal} />
+      <WorkerFormModal open={openAddModal} close={toggleAddModal} />
     </div>
   );
 };

@@ -7,7 +7,7 @@ import type {
 } from "../../Utilities/Types/types";
 import { API } from "../apiSlice";
 
-const employees = API.injectEndpoints({
+const seeders = API.injectEndpoints({
   endpoints: (build) => ({
     //replace any type with the employee response type
     getCities: build.query<
@@ -167,6 +167,13 @@ const employees = API.injectEndpoints({
         method: "GET",
       }),
     }),
+
+    getAllWorkersList: build.query<APIResponse<seedersProps>, void>({
+      query: () => ({
+        url: `/Worker/GetAllWorkersDDL`,
+        method: "GET",
+      }),
+    }),
   }), // builder braces
 });
 export const {
@@ -185,4 +192,5 @@ export const {
   useGetApartmentClosingPeriodQuery,
   useGetExtraServicesListQuery,
   useGetAllPackagesListQuery,
-} = employees;
+  useGetAllWorkersListQuery,
+} = seeders;
