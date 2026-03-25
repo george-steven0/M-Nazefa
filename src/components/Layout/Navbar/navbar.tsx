@@ -19,6 +19,11 @@ import {
 } from "react-icons/md";
 import { FaMapLocation } from "react-icons/fa6";
 import { LuPackagePlus } from "react-icons/lu";
+import { userRoles } from "../../../Utilities/utilities";
+import {
+  PERMISSIONS,
+  ROLE_PERMISSIONS,
+} from "../../../Utilities/permissions.config";
 
 const Navbar = ({
   setToggle,
@@ -29,24 +34,37 @@ const Navbar = ({
   const { pathname } = useLocation();
   const navigate = useNavigate();
 
+  // console.log(userRoles);
+
+  const allowedPermissions = userRoles.flatMap(
+    (r) => ROLE_PERMISSIONS[r] || [],
+  );
+
   const navLinks = [
     {
       id: "dashboard",
       name: t("DASHBOARD"),
       path: "/dashboard",
       icon: dashboardIcon,
+      permissions: [PERMISSIONS.VIEW_DASHBOARD],
     },
     {
       id: "profile",
       name: t("PROFILE"),
       path: "/profile",
       icon: profileIcon,
+      permissions: [PERMISSIONS.PROFILE],
     },
     {
       id: "employees",
       name: t("EMPLOYEES"),
       path: "/employees",
       icon: employeesIcon,
+      permissions: [
+        PERMISSIONS.ADD_EMPLOYEE,
+        PERMISSIONS.EDIT_EMPLOYEE,
+        PERMISSIONS.VIEW_EMPLOYEE,
+      ],
     },
     {
       id: "roles",
@@ -54,6 +72,7 @@ const Navbar = ({
       path: "/roles",
       icon: <MdOutlinePermContactCalendar />,
       iconType: "fontIcon",
+      permissions: [PERMISSIONS.VIEW_ROLES],
     },
     {
       id: "area",
@@ -61,6 +80,7 @@ const Navbar = ({
       path: "/areas",
       icon: <FaMapLocation />,
       iconType: "fontIcon",
+      permissions: [PERMISSIONS.VIEW_AREAS],
     },
     {
       id: "memberships",
@@ -68,30 +88,48 @@ const Navbar = ({
       path: "/memberships",
       icon: <MdCardMembership />,
       iconType: "fontIcon",
+      permissions: [PERMISSIONS.VIEW_MEMBERSHIP],
     },
     {
       id: "clients",
       name: t("CLIENTS"),
       path: "/clients",
       icon: customersIcon,
+      permissions: [
+        PERMISSIONS.ADD_CLIENT,
+        PERMISSIONS.EDIT_CLIENT,
+        PERMISSIONS.VIEW_CLIENT,
+        PERMISSIONS.DELETE_CLIENT,
+      ],
     },
     {
       id: "workers",
       name: t("WORKERS"),
       path: "/workers",
       icon: employeesIcon,
+      permissions: [PERMISSIONS.VIEW_WORKERS],
     },
     {
       id: "services",
       name: t("SERVICES"),
       path: "/services",
       icon: customersIcon,
+      permissions: [
+        PERMISSIONS.ADD_SERVICE,
+        PERMISSIONS.EDIT_SERVICE,
+        PERMISSIONS.VIEW_SERVICE,
+      ],
     },
     {
       id: "packages",
       name: t("PACKAGES"),
       path: "/packages",
       icon: packagesIcon,
+      permissions: [
+        PERMISSIONS.ADD_PACKAGE,
+        PERMISSIONS.EDIT_PACKAGE,
+        PERMISSIONS.VIEW_PACKAGE,
+      ],
     },
     {
       id: "package_types",
@@ -99,6 +137,11 @@ const Navbar = ({
       path: "/package_types",
       icon: <LuPackagePlus />,
       iconType: "fontIcon",
+      permissions: [
+        PERMISSIONS.ADD_PACKAGE_TYPE,
+        PERMISSIONS.EDIT_PACKAGE_TYPE,
+        PERMISSIONS.VIEW_PACKAGE_TYPE,
+      ],
     },
     {
       id: "cleaning_area",
@@ -106,20 +149,37 @@ const Navbar = ({
       path: "/cleaning_area",
       icon: <MdOutlineCleaningServices />,
       iconType: "fontIcon",
+      permissions: [
+        PERMISSIONS.ADD_CLEANING_AREA,
+        PERMISSIONS.EDIT_CLEANING_AREA,
+        PERMISSIONS.VIEW_CLEANING_AREA,
+        PERMISSIONS.DELETE_CLEANING_AREA,
+      ],
     },
     {
       id: "reservations",
       name: t("RESERVATIONS"),
       path: "/reservations",
       icon: reservationIcon,
+      permissions: [
+        PERMISSIONS.ADD_RESERVATION,
+        PERMISSIONS.EDIT_RESERVATION,
+        PERMISSIONS.DELETE_RESERVATION,
+        PERMISSIONS.VIEW_RESERVATION,
+      ],
     },
     {
       id: "messages",
       name: t("MESSAGES"),
       path: "/messages",
       icon: messagesIcon,
+      permissions: [PERMISSIONS.VIEW_MESSAGES],
     },
   ];
+
+  const filteredNavLinks = navLinks.filter((link) =>
+    link.permissions.some((perm) => allowedPermissions.includes(perm)),
+  );
 
   useEffect(() => {
     setToggle(true);
@@ -138,7 +198,7 @@ const Navbar = ({
 
         <section className="navbar-links-wrapper mt-6 w-full max-h-[calc(100vh-18rem)] overflow-y-auto">
           <div className="flex flex-col gap-5 w-full pl-14">
-            {navLinks?.map((link) => (
+            {filteredNavLinks?.map((link) => (
               <NavLink
                 key={link?.id}
                 to={link?.path}

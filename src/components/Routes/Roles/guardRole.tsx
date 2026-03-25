@@ -1,9 +1,9 @@
 import { Navigate, Outlet, useMatches } from "react-router-dom";
 import {
   ROLE_PERMISSIONS,
-  type AppRole,
   type Permission,
 } from "../../../Utilities/permissions.config";
+import { userRoles } from "../../../Utilities/utilities";
 
 interface guardProps {
   children?: React.ReactNode;
@@ -17,19 +17,39 @@ export default function GuardRole({ children }: guardProps) {
   const matches = useMatches();
   if (!tk) return <Navigate to="/login" replace />;
 
-  const user = {
-    role: "super_admin",
-  };
-  const role = user.role as AppRole;
+  // const user = JSON.parse(localStorage.getItem("mNazRole") || "[]") as {
+  //   roleName: AppRole;
+  // }[];
+  // const role = user.map(
+  //   (u) =>
+  //     u.roleName
+  //       .replace(/([a-z])([A-Z])/g, "$1 $2")
+  //       .replace(/[\s-]+/g, "_")
+  //       .toLowerCase() as AppRole,
+  // );
 
-  const matchWithHandle = matches.find(
-    (m) => m.handle && (m.handle as routeHandle).permission,
-  );
-  const requiredPermission = (matchWithHandle?.handle as routeHandle)
-    ?.permission;
+  // console.log(role);
+
+  // const matchWithHandle = matches.find(
+  //   (m) => m.handle && (m.handle as routeHandle).permission,
+  // );
+
+  const currentMatch = matches[matches.length - 1];
+  const requiredPermission = (currentMatch?.handle as routeHandle)?.permission;
+
+  // console.log(currentMatch);
+
+  if (!requiredPermission) {
+    return children ? children : <Outlet />;
+  }
   // console.log(requiredPermission);
 
-  const allowedPermissions = ROLE_PERMISSIONS[role] || [];
+  const allowedPermissions = userRoles.flatMap(
+    (r) => ROLE_PERMISSIONS[r] || [],
+  );
+
+  // console.log(allowedPermissions);
+
   const hasPermission = allowedPermissions.includes(requiredPermission);
   // console.log(hasPermission);
 

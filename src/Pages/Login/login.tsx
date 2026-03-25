@@ -1,5 +1,8 @@
 import { Controller, useForm } from "react-hook-form";
-import type { loginProps } from "../../components/Utilities/Types/types";
+import type {
+  APIErrorProps,
+  loginProps,
+} from "../../components/Utilities/Types/types";
 import logo from "../../assets/imgs/logo-cropped.svg";
 import { Button, Input } from "antd";
 import { useLoginMutation } from "../../components/APIs/Auth/AUTH_QUERY";
@@ -24,13 +27,16 @@ const Login = () => {
       if (res?.isSuccess) {
         toast.success("Login Successfully");
         localStorage.setItem("mNazTk", res?.data?.token);
+        localStorage.setItem("mNazRole", JSON.stringify(res?.data?.rolesList));
         navigate("/dashboard");
       } else {
         toast.error(res?.errorMessages?.join("\n"));
       }
     } catch (error) {
-      const err = error;
-      console.log(err);
+      const err = error as APIErrorProps;
+      err?.data?.errorMessages?.forEach((message) => {
+        toast.error(message);
+      });
     }
   };
   return (

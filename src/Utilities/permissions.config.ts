@@ -73,6 +73,8 @@ export const ROLES = {
 
 export type AppRole = (typeof ROLES)[keyof typeof ROLES];
 
+// console.log(typeof ROLES);
+
 // 4) Role → Permission mapping
 export const ROLE_PERMISSIONS: Record<AppRole, Permission[]> = {
   customer_service: [
@@ -87,7 +89,6 @@ export const ROLE_PERMISSIONS: Record<AppRole, Permission[]> = {
 
     PERMISSIONS.VIEW_CLEANING_AREA,
 
-    PERMISSIONS.ADD_RESERVATION,
     PERMISSIONS.VIEW_RESERVATION,
 
     PERMISSIONS.VIEW_SERVICE,

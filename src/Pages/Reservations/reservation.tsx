@@ -181,14 +181,16 @@ export const Reservations = () => {
     setIsModalOpen(false);
   };
 
+  // console.log(holdReservationSuccess);
+
   useEffect(() => {
-    if (holdReservationSuccess) {
+    if (isModalOpen && holdReservationSuccess) {
       reset({
         dateFrom: holdReservation?.data?.[0]?.dateFrom,
         dateTo: holdReservation?.data?.[0]?.dateTo,
       });
     }
-  }, [holdReservation?.data, holdReservationSuccess, reset]);
+  }, [holdReservation?.data, holdReservationSuccess, reset, isModalOpen]);
 
   const handleHoldReservationSubmit = async (data: holdReservationProps) => {
     // console.log(data);
