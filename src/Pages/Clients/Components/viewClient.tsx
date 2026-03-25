@@ -366,7 +366,7 @@ const ViewClient = () => {
               {/* Entry Date */}
               <InfoRow
                 icon={<MdOutlineCalendarMonth size={16} />}
-                label={t("JOINING_DATE") || "Entry Date"}
+                label={t("JOINING_DATE") || "Joining Date"}
                 value={
                   customer?.entryDate ? (
                     dayjs(customer.entryDate).format("DD MMM YYYY")

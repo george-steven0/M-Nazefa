@@ -226,7 +226,7 @@ export const ReservationDetailsPdf = ({
             <View style={styles.row}>
               <View style={styles.col}>
                 <Text style={styles.label}>Phone Numbers</Text>
-                {data.phoneNumbers?.map((phone) => (
+                {data.customerPhoneNumbers?.map((phone) => (
                   <Text key={phone.id} style={styles.value}>
                     {phone.phoneNumber}
                   </Text>
