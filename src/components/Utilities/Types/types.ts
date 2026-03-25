@@ -147,10 +147,14 @@ export type clientFormPropsType = {
   id?: number | string;
   firstName: string;
   name?: string;
+  arName?: string;
   middleName: string;
   lastName: string;
   idNumber: string | number;
   phoneNumber?: string | number;
+  customerTypeName?: string;
+  noOfReservations?: string | number;
+  lastReservationDate?: string;
   phoneNumbers: { id?: string | number; phoneNumber: string | number }[];
   email: string;
   generalNotes: string;
@@ -349,9 +353,15 @@ export type reservationDetailsData = {
   customerName: string;
   customerAddressId: number;
   customerAddressName: string;
-  phoneNumbers: {
+  customerNationalId?: string;
+  customerPhoneNumbers: {
     phoneNumber: string;
     id: number;
+  }[];
+  reservationWorkers: {
+    workerId: number | string;
+    workerName: string;
+    workerArName: string;
   }[];
   idNumber?: string;
   phoneNumber?: string;
@@ -455,12 +465,17 @@ export type serviceFormProps = {
   packages?: {
     packageId: string | number;
   }[];
+  reservationWorkers?: {
+    workerId: string | number;
+    workerName: string;
+    workerArName: string;
+  }[];
 };
 
 export type messagesProps = {
   title: string;
   message: string;
-  customerId: string | number;
+  customerIds: string[] | number[];
 };
 
 export type LoginProps = {

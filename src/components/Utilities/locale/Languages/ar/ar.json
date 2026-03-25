@@ -5,6 +5,7 @@
     "PROFILE": "ملفي الشخصي",
     "SERVICES": "الخدمات",
     "WORKERS": "العمال",
+    "WORKER": "عامل",
     "MESSAGES": "الرسائل",
     "RESERVATIONS": "الحجوزات",
     "DELETE_CLIENT": "حذف العميل",
@@ -138,8 +139,10 @@
     "ADD_ROLE": "إضافة دور جديد",
     "EDIT_ROLE": "تعديل الدور",
     "ONLY_NUMBER": "يسمح بالأرقام فقط",
+    "VALID_PHONE": "رقم الهاتف يجب ان يكون 10 ارفام ولا يبدا بال0",
     "VALUE_LIMIT": "يجب أن تكون النسبة المئوية {{value}} أو أقل",
     "DEACTIVATE": "تعطيل",
+    "DEACTIVATED": "تم التعطيل",
     "ACTIVATE": "تفعيل",
     "INACTIVE": "غير نشط",
     "DEACTIVATE_SUCCESS": "تم تعطيل الموظف بنجاح.",
@@ -261,5 +264,8 @@
     "NO_WORKERS_SELECTED": "لم يتم اختيار عمال",
     "WORKER_ADDED_SUCCESS": "تم إضافة العامل بنجاح",
     "WORKER_EDITED_SUCCESS": "تم تعديل العامل بنجاح",
-    "WORKER_DELETED_SUCCESS": "تم حذف العامل بنجاح"
+    "WORKER_DELETED_SUCCESS": "تم حذف العامل بنجاح",
+    "NO_DATA_FOUND": "لا يوجد بيانات",
+    "WORKERS_DETAILS": "تفاصيل العمال",
+    "WORKERS_UPDATED_SUCCESSFULLY": "تم تحديث العمال بنجاح"
 }

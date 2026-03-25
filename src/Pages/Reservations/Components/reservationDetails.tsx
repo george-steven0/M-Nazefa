@@ -14,7 +14,10 @@ import {
 import { useState } from "react";
 import { FaCheckCircle, FaTimesCircle, FaDownload } from "react-icons/fa";
 import { useSearchParams } from "react-router-dom";
-import { useGetReservationByIdQuery } from "../../../components/APIs/Reservations/RESERVATION_QUERY";
+import {
+  useAssignWorkerToReservationMutation,
+  useGetReservationByIdQuery,
+} from "../../../components/APIs/Reservations/RESERVATION_QUERY";
 import { skipToken } from "@reduxjs/toolkit/query";
 import dayjs from "dayjs";
 
@@ -23,7 +26,11 @@ import { ReservationDetailsPdf } from "./reservationDetailsPdf";
 import AssignWorkerModal from "./assignWorkerModal";
 import { useAppSelector } from "../../../components/APIs/store";
 import { useForm } from "react-hook-form";
-import type { assignWorkerFormProps } from "../../../components/Utilities/Types/types";
+import type {
+  APIErrorProps,
+  assignWorkerFormProps,
+} from "../../../components/Utilities/Types/types";
+import { toast } from "react-toastify";
 
 const { Text, Title: TypographyTitle } = Typography;
 
@@ -51,9 +58,10 @@ const ReservationDetails = () => {
     isFetching,
   } = useGetReservationByIdQuery(id ? { id } : skipToken);
 
-  const reservation = reservationData?.data;
+  const [assignWorker, { isLoading: assignWorkerLoading }] =
+    useAssignWorkerToReservationMutation();
 
-  // console.log(reservation);
+  const reservation = reservationData?.data;
 
   const renderValue = (value: boolean | string | null | undefined) => {
     if (value === null || value === undefined || value === "") {
@@ -81,8 +89,24 @@ const ReservationDetails = () => {
   };
 
   const handleAssignWorker = async (data: assignWorkerFormProps) => {
-    console.log(data);
+    const payload = {
+      reservationId: id || "",
+      workerIds: data.workers?.map((w) => w.workerId as string),
+    };
+
+    try {
+      await assignWorker(payload).unwrap();
+      toast.success(t("WORKERS_UPDATED_SUCCESSFULLY"));
+      toggleModal();
+    } catch (error) {
+      const err = error as APIErrorProps;
+      err?.data?.errorMessages?.forEach((message) => {
+        toast.error(message);
+      });
+    }
   };
+
+  // console.log(reservationData?.data?.reservationWorkers);
 
   if (isLoading || isFetching) {
     return (
@@ -155,10 +179,14 @@ const ReservationDetails = () => {
                   {renderValue(reservation?.customerName)}
                 </Descriptions.Item>
                 <Descriptions.Item label={t("ID_NUMBER")}>
-                  {renderValue(reservation?.idNumber)}
+                  {renderValue(reservation?.customerNationalId)}
                 </Descriptions.Item>
                 <Descriptions.Item label={t("PHONE_NUMBER")}>
-                  {renderValue(reservation?.phoneNumber)}
+                  {renderValue(
+                    reservation?.customerPhoneNumbers
+                      ?.map((phone) => phone.phoneNumber)
+                      .join(", "),
+                  )}
                 </Descriptions.Item>
               </Descriptions>
             </Card>
@@ -187,11 +215,11 @@ const ReservationDetails = () => {
                       : null,
                   )}
                 </Descriptions.Item>
-                <Descriptions.Item label={t("AMOUNT")}>
+                {/* <Descriptions.Item label={t("AMOUNT")}>
                   <div className="text-mainOrange font-bold text-lg">
                     {reservation?.reservationAmount ?? 0} L.E
                   </div>
-                </Descriptions.Item>
+                </Descriptions.Item> */}
               </Descriptions>
             </Card>
 
@@ -250,6 +278,30 @@ const ReservationDetails = () => {
                 </Text>
                 {renderValue(reservation?.generalComments)}
               </div>
+            </div>
+          </Card>
+
+          <Card
+            className="rounded-2xl border-none shadow-sm hover:shadow-md transition-shadow"
+            title={
+              <span className="flex items-center gap-2 text-mainColor">
+                <span className="w-1.5 h-6 bg-mainOrange rounded-full" />
+                {t("WORKERS")}
+              </span>
+            }
+          >
+            <div className="flex items-center justify-between gap-5">
+              {reservation?.reservationWorkers?.map((worker) => (
+                <div key={worker.workerId} className="flex gap-2">
+                  <span className="w-[3px] h-6 bg-mainOrange rounded-full" />
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold">{t("WORKER")} : </span>
+                    <span>
+                      {lang === "ar" ? worker.workerArName : worker.workerName}
+                    </span>
+                  </div>
+                </div>
+              ))}
             </div>
           </Card>
 
@@ -583,6 +635,8 @@ const ReservationDetails = () => {
         errors={errors}
         setValue={setValue}
         reset={reset}
+        workers={reservation?.reservationWorkers}
+        loading={assignWorkerLoading}
       />
     </>
   );

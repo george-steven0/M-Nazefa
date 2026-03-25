@@ -1,6 +1,6 @@
 import { Button, Modal, Select, Typography, type SelectProps } from "antd";
 import type { DefaultOptionType } from "antd/es/select";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { FaTrash } from "react-icons/fa";
 import type { assignWorkerFormProps } from "../../../components/Utilities/Types/types";
@@ -24,6 +24,12 @@ type assignworkerProps = {
   errors: FieldErrors<assignWorkerFormProps>;
   setValue: UseFormSetValue<assignWorkerFormProps>;
   reset: UseFormReset<assignWorkerFormProps>;
+  workers?: {
+    workerId: string | number;
+    workerName: string;
+    workerArName: string;
+  }[];
+  loading: boolean;
 };
 
 export default function AssignWorkerModal({
@@ -35,6 +41,8 @@ export default function AssignWorkerModal({
   errors,
   setValue,
   reset,
+  workers: defaultWorkers,
+  loading,
 }: assignworkerProps) {
   const { t } = useTranslation();
   const { lang } = useAppSelector((state) => state?.lang);
@@ -47,7 +55,7 @@ export default function AssignWorkerModal({
     skip: !open,
   });
 
-  // console.log(workers?.data);
+  // console.log(defaultWorkers);
 
   const options: SelectProps["options"] = workers?.data?.map((worker) => ({
     value: worker.id,
@@ -57,6 +65,21 @@ export default function AssignWorkerModal({
   const [selectedOptions, setselectedOptions] = useState<
     DefaultOptionType | DefaultOptionType[] | undefined
   >([]);
+
+  useEffect(() => {
+    if (open && defaultWorkers && defaultWorkers.length > 0) {
+      const initialOptions = defaultWorkers.map((w) => ({
+        value: w.workerId,
+        label: lang === "ar" ? w.workerArName : w.workerName,
+      }));
+      setselectedOptions(initialOptions);
+
+      const initialFormValues = defaultWorkers.map((w) => ({
+        workerId: w.workerId as string | number,
+      }));
+      setValue("workers", initialFormValues);
+    }
+  }, [open, defaultWorkers, lang, setValue]);
 
   const handleChange = (
     _value: string[],
@@ -75,7 +98,7 @@ export default function AssignWorkerModal({
     setselectedOptions(filteredData);
 
     const formattedData = filteredData.map((worker) => ({
-      workerId: worker.value as string | number,
+      workerId: worker.value as string,
     }));
     setValue("workers", formattedData);
   };
@@ -182,7 +205,8 @@ export default function AssignWorkerModal({
           <section className="flex items-center justify-center w-full">
             <Button
               htmlType="submit"
-              className="min-w-[150px] mt-4 bg-mainColor text-white h-12 rounded-xl text-lg font-semibold hover:bg-mainColor/90! transition-all shadow-md"
+              loading={loading}
+              className="capitalize min-w-[150px] mt-4 bg-mainColor text-white h-12 rounded-xl text-lg font-semibold hover:bg-mainColor/90! transition-all shadow-md"
             >
               {t("SAVE")}
             </Button>

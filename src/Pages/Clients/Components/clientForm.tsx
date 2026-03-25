@@ -18,6 +18,7 @@ import type {
 import dayjs from "dayjs";
 import { FaMinus, FaPlus } from "react-icons/fa";
 import {
+  useAddNewClientMutation,
   useEditClientMutation,
   useGetCustomerByIdQuery,
 } from "../../../components/APIs/ClientQuery/CLIENTS_QUERY";
@@ -34,16 +35,19 @@ import { cleanDeep } from "../../../components/Utilities/helper";
 import { useGetAllMembershipsQuery } from "../../../components/APIs/Membership/MEMBERSHIP_QUERY";
 dayjs.extend(utc);
 
-const EditClient = () => {
+const ClientForm = () => {
   const { t } = useTranslation();
-  const [editClient, { isLoading }] = useEditClientMutation();
+  const [editClient, { isLoading: isEditLoading }] = useEditClientMutation();
+  const [addNewClient, { isLoading: isAddLoading }] = useAddNewClientMutation();
+
   const { lang } = useAppSelector((state) => state?.lang);
   const navigate = useNavigate();
   const [params] = useSearchParams();
-  const id = params.get("id");
+  const id = params.get("id") || null;
+  const whatsAppPrefix = "+20";
 
   const {
-    data,
+    data: clientById,
     isLoading: isGetLoading,
     isFetching,
   } = useGetCustomerByIdQuery(
@@ -54,7 +58,7 @@ const EditClient = () => {
   );
 
   const [isMembership, setIsMembership] = useState(
-    data?.data?.hasMembership ?? false,
+    clientById?.data?.hasMembership ?? false,
   );
 
   const {
@@ -71,21 +75,21 @@ const EditClient = () => {
     isFetching: isCustomerTypesFetching,
   } = useGetCustomerTypesQuery();
 
-  const defaultValues = {
-    firstName: data?.data.firstName ?? "",
-    middleName: data?.data.middleName ?? "",
-    lastName: data?.data.lastName ?? "",
-    email: data?.data.email ?? "",
-    idNumber: data?.data.idNumber ?? "",
-    hasMembership: data?.data.hasMembership ?? false,
-    memberShipNumber: data?.data.memberShipNumber ?? "",
-    generalNotes: data?.data.generalNotes ?? "",
-    membershipId: data?.data.membershipId ?? "",
-    customerTypeId: data?.data.customerTypeId ?? "",
-    isOld: data?.data?.isOld ?? false,
-    whatsAppNumber: data?.data?.whatsAppNumber ?? "",
-    entryDate: data?.data?.entryDate ?? undefined,
-    customerAddresses: data?.data?.address?.map((address) => ({
+  const editDefaultValues = {
+    firstName: clientById?.data.firstName ?? "",
+    middleName: clientById?.data.middleName ?? "",
+    lastName: clientById?.data.lastName ?? "",
+    email: clientById?.data.email ?? "",
+    idNumber: clientById?.data.idNumber ?? "",
+    hasMembership: clientById?.data.hasMembership ?? false,
+    memberShipNumber: clientById?.data.memberShipNumber ?? "",
+    generalNotes: clientById?.data.generalNotes ?? "",
+    membershipId: clientById?.data.membershipId ?? "",
+    customerTypeId: clientById?.data.customerTypeId ?? "",
+    isOld: clientById?.data?.isOld ?? false,
+    whatsAppNumber: clientById?.data?.whatsAppNumber ?? "",
+    entryDate: clientById?.data?.entryDate ?? undefined,
+    customerAddresses: clientById?.data?.address?.map((address) => ({
       id: address?.id,
       cityId: address?.cityId ?? "",
       AreaId: address?.areaId ?? "",
@@ -109,9 +113,9 @@ const EditClient = () => {
       hasPets: address?.hasPets ?? "",
       landLine: address?.landLine ?? "",
     })),
-    phoneNumbers: data?.data?.phoneNumbers ?? [],
+    phoneNumbers: clientById?.data?.phoneNumbers ?? [],
     favoriteList:
-      (data?.data?.favoriteList as unknown as string)
+      (clientById?.data?.favoriteList as unknown as string)
         ?.split("_")
         ?.map((val) => {
           return {
@@ -119,13 +123,45 @@ const EditClient = () => {
           };
         }) ?? [],
     NotRecommendedWorkerList:
-      (data?.data?.notRecommendedWorkerList as unknown as string)
+      (clientById?.data?.notRecommendedWorkerList as unknown as string)
         ?.split("_")
         ?.map((val) => {
           return {
             value: val,
           };
         }) ?? [],
+  };
+
+  const addDefaultValues = {
+    hasMembership: false,
+    customerAddresses: [
+      {
+        cityId: "",
+        AreaId: "",
+        street: "",
+        apartment: "",
+        floor: "",
+        // postalCode: "",
+        landmark: "",
+        fullDescription: "",
+        hasPets: false,
+      },
+    ],
+    phoneNumbers: [
+      {
+        phoneNumber: "",
+      },
+    ],
+    favoriteList: [
+      {
+        value: "",
+      },
+    ],
+    NotRecommendedWorkerList: [
+      {
+        value: "",
+      },
+    ],
   };
 
   // console.log(
@@ -165,17 +201,19 @@ const EditClient = () => {
   // console.log(data?.data?.address?.map((address) => address));
 
   useEffect(() => {
-    if (data?.data) {
-      reset(defaultValues);
-      if (data?.data?.hasMembership) {
+    if (clientById?.data) {
+      reset(editDefaultValues);
+      if (clientById?.data?.hasMembership) {
         setIsMembership(true);
-        setValue("membershipId", data?.data?.membershipId);
+        setValue("membershipId", clientById?.data?.membershipId);
       } else {
         setIsMembership(false);
-        setValue("membershipId", data?.data?.membershipId);
+        setValue("membershipId", clientById?.data?.membershipId);
       }
+    } else {
+      reset(addDefaultValues);
     }
-  }, [data, reset, setValue]);
+  }, [clientById, reset, setValue]);
 
   const { fields, append, remove } = useFieldArray({
     name: "customerAddresses",
@@ -260,6 +298,7 @@ const EditClient = () => {
     const formattedData = {
       ...data,
       id: id!,
+      whatsAppNumber: `${whatsAppPrefix?.replace("+", "")}${data?.whatsAppNumber}`,
       customerAddresses: data.customerAddresses.map((address) => ({
         id: address?.id || 0,
         ...address,
@@ -277,9 +316,15 @@ const EditClient = () => {
     // console.log(cleanData);
 
     try {
-      await editClient(cleanData).unwrap();
-      toast.success("Customer updated successfully");
-      navigate("/clients");
+      if (id) {
+        await editClient(cleanData).unwrap();
+        toast.success("Customer updated successfully");
+        navigate("/clients");
+      } else {
+        await addNewClient(cleanData).unwrap();
+        toast.success("Customer added successfully");
+        navigate("/clients");
+      }
     } catch (error) {
       const err = error as APIErrorProps;
       err?.data?.errorMessages?.forEach((message) => {
@@ -290,14 +335,18 @@ const EditClient = () => {
   };
 
   const resetForm = () => {
-    reset(defaultValues);
+    if (id) {
+      reset(editDefaultValues);
+    } else {
+      reset(addDefaultValues);
+    }
   };
 
   const membershipChange: CheckboxProps["onChange"] = (e) => {
     setIsMembership(e.target.checked);
     // console.log(e.target.checked);
     if (!e.target.checked) {
-      setValue("membershipId", data?.data?.membershipId);
+      setValue("membershipId", clientById?.data?.membershipId);
     }
   };
 
@@ -325,7 +374,7 @@ const EditClient = () => {
       ) : (
         <div className="add-client-wrapper">
           <section className="add-client-title-wrapper">
-            <Title title={t("EDIT_CLIENT")} subTitle />
+            <Title title={id ? t("EDIT_CLIENT") : t("ADD_CLIENT")} subTitle />
           </section>
 
           <section className="mt-8 form-wrapper">
@@ -782,22 +831,28 @@ const EditClient = () => {
                         rules={{
                           required: { value: true, message: t("REQUIRED") },
                           pattern: {
-                            value: /^\d+$/,
-                            message: t("ONLY_NUMBER"),
+                            value: /^[1-9]\d{9}$/,
+                            message: t("VALID_PHONE"),
                           },
                           minLength: {
-                            value: 11,
-                            message: t("MIN_LENGTH", { length: 11 }),
+                            value: 10,
+                            message: t("MIN_LENGTH", { length: 10 }),
                           },
                         }}
                         render={({ field }) => (
-                          <Input
-                            {...field}
-                            variant="filled"
-                            placeholder="Enter whats app number"
-                            className={`placeholder:capitalize border-[#C4C4C4] border rounded-md py-2 min-w-[250px]`}
-                            status={errors?.whatsAppNumber ? "error" : ""}
-                          />
+                          <Space.Compact className="items-stretch w-full">
+                            <span className="px-1 flex items-center bg-[#f5f5f5] border border-r-0 border-[#C4C4C4] rounded-l-md text-sm">
+                              {whatsAppPrefix}
+                            </span>
+                            <Input
+                              {...field}
+                              maxLength={10}
+                              variant="filled"
+                              placeholder="Enter whats app number"
+                              className={`placeholder:capitalize border-[#C4C4C4] border rounded-e-md py-2 min-w-[250px]`}
+                              status={errors?.whatsAppNumber ? "error" : ""}
+                            />
+                          </Space.Compact>
                         )}
                       />
                       {errors?.whatsAppNumber && (
@@ -891,6 +946,7 @@ const EditClient = () => {
                         handleRemoveAddress={handleRemoveAddress}
                         length={fields?.length}
                         t={t}
+                        setValue={setValue}
                       />
                     </div>
                   ))}
@@ -907,10 +963,10 @@ const EditClient = () => {
                 <Button
                   htmlType="submit"
                   variant="outlined"
-                  loading={isLoading}
+                  loading={isEditLoading || isAddLoading}
                   className="w-fit min-w-40 py-4 capitalize border border-mainColor/20 bg-transparent text-mainColor hover:bg-mainColor hover:text-white"
                 >
-                  {t("UPDATE")}
+                  {t(id ? "UPDATE" : "SUBMIT")}
                 </Button>
               </div>
             </form>
@@ -921,4 +977,4 @@ const EditClient = () => {
   );
 };
 
-export default EditClient;
+export default ClientForm;

@@ -50,6 +50,7 @@ const baseQueryWithReauth: BaseQueryFn<
 
 export const API = createApi({
   reducerPath: "api",
+  // keepUnusedDataFor: 0,
   // baseQuery: fetchBaseQuery({
   //   baseUrl: "https://api.madamenazifa.com", // Base URL
   //   prepareHeaders: (headers) => {

@@ -55,6 +55,9 @@ export const PERMISSIONS = {
   // EDIT_MEMBERSHIP: "edit_membership",
   VIEW_MEMBERSHIP: "view_membership",
   // DELETE_MEMBERSHIP: "delete_membership",
+
+  //Messages
+  VIEW_MESSAGES: "view_messages",
 } as const;
 
 // 2) Permission type
@@ -78,6 +81,8 @@ export const ROLE_PERMISSIONS: Record<AppRole, Permission[]> = {
     PERMISSIONS.EDIT_CLIENT,
     PERMISSIONS.VIEW_CLIENT,
 
+    PERMISSIONS.VIEW_MESSAGES,
+
     PERMISSIONS.VIEW_PACKAGE_TYPE,
 
     PERMISSIONS.VIEW_CLEANING_AREA,
@@ -98,6 +103,7 @@ export const ROLE_PERMISSIONS: Record<AppRole, Permission[]> = {
     PERMISSIONS.VIEW_CLIENT,
     PERMISSIONS.VIEW_PACKAGE_TYPE,
     PERMISSIONS.VIEW_CLEANING_AREA,
+    PERMISSIONS.VIEW_MESSAGES,
     // PERMISSIONS.VIEW_DASHBOARD,
   ],
 
@@ -132,6 +138,9 @@ export const ROLE_PERMISSIONS: Record<AppRole, Permission[]> = {
     PERMISSIONS.VIEW_RESERVATION,
     PERMISSIONS.EDIT_RESERVATION,
     PERMISSIONS.DELETE_RESERVATION,
+
+    //Messages
+    PERMISSIONS.VIEW_MESSAGES,
   ],
 
   super_admin: [

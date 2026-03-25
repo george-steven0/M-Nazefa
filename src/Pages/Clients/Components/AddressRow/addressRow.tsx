@@ -4,6 +4,7 @@ import {
   useWatch,
   type Control,
   type FieldErrors,
+  type UseFormSetValue,
 } from "react-hook-form";
 import type { clientFormPropsType } from "../../../../components/Utilities/Types/types";
 import type { TFunction } from "i18next";
@@ -30,6 +31,7 @@ type AddressRowProps = {
   lang: string | null | undefined;
   t: TFunction;
   length: number;
+  setValue: UseFormSetValue<clientFormPropsType>;
   handleRemoveAddress: (index: number) => void;
 };
 const AddressRow = ({
@@ -40,6 +42,7 @@ const AddressRow = ({
   handleRemoveAddress,
   t,
   length,
+  setValue,
 }: AddressRowProps) => {
   const {
     data: cities,
@@ -147,6 +150,10 @@ const AddressRow = ({
                 }))}
                 showSearch
                 optionFilterProp="label"
+                onChange={(e) => {
+                  field.onChange(e);
+                  setValue(`customerAddresses.${index}.AreaId`, "");
+                }}
                 // notFoundContent={
                 //   <p className="text-red-500">{t("NOT_FOUND")}</p>
                 // }
@@ -1110,7 +1117,7 @@ const AddressRow = ({
         <article className="col-span-full flex flex-col gap-2 capitalize text-xl text-[#1D1B1B] font-semibold">
           <div className="flex items-center gap-2 capitalize">
             <label>{t("FAVORITE_LIST")}</label>
-            {/* <Astrisk /> */}
+            <Astrisk />
             <Button
               shape="circle"
               size="small"
@@ -1126,9 +1133,9 @@ const AddressRow = ({
                 <Controller
                   control={control}
                   name={`favoriteList.${index}.value`}
-                  // rules={{
-                  //   required: { value: true, message: t("REQUIRED") },
-                  // }}
+                  rules={{
+                    required: { value: true, message: t("REQUIRED") },
+                  }}
                   render={({ field }) => (
                     <Space.Compact className="items-stretch w-full">
                       <Input

@@ -5,6 +5,7 @@
     "PROFILE": "my profile",
     "SERVICES": "services",
     "WORKERS": "workers",
+    "WORKER": "worker",
     "MESSAGES": "messages",
     "RESERVATIONS": "Reservations",
     "DELETE_CLIENT": "Delete client",
@@ -138,8 +139,10 @@
     "ADD_ROLE": "Add new role",
     "EDIT_ROLE": "Edit role",
     "ONLY_NUMBER": "Only numbers are allowed",
+    "VALID_PHONE": "Phone number must be 10 digits and not starting with 0",
     "VALUE_LIMIT": "Percentage value must be less than or equal to {{value}}",
     "DEACTIVATE": "Deactivate",
+    "DEACTIVATED": "Deactivated",
     "ACTIVATE": "Activate",
     "INACTIVE": "Inactive",
     "DEACTIVATE_SUCCESS": "Employee deactivated successfully.",
@@ -262,5 +265,8 @@
     "NO_WORKERS_SELECTED": "No workers selected",
     "WORKER_ADDED_SUCCESS": "Worker added successfully",
     "WORKER_EDITED_SUCCESS": "Worker edited successfully",
-    "WORKER_DELETED_SUCCESS": "Worker deleted successfully"
+    "WORKER_DELETED_SUCCESS": "Worker deleted successfully",
+    "NO_DATA_FOUND": "No data found",
+    "WORKERS_DETAILS": "Workers details",
+    "WORKERS_UPDATED_SUCCESSFULLY": "Workers updated successfully"
 }

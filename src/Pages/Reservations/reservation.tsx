@@ -19,6 +19,8 @@ import { useEffect, useState } from "react";
 import HoldReservationModal from "./Components/holdReservationModal";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
+import { useAppSelector } from "../../components/APIs/store";
+import { BsBoxSeam } from "react-icons/bs";
 
 const Actions = ({ data }: { data: serviceFormProps }) => {
   const navigate = useNavigate();
@@ -51,6 +53,7 @@ const Actions = ({ data }: { data: serviceFormProps }) => {
 export const Reservations = () => {
   const { t } = useTranslation();
   const { pathname } = useLocation();
+  const { lang } = useAppSelector((state) => state?.lang);
 
   const {
     control,
@@ -104,6 +107,12 @@ export const Reservations = () => {
       dataIndex: "reservationAmount",
       key: "reservationAmount",
       render: (text) => <p>{text} L.E</p>,
+    },
+    {
+      title: t("NO_WORKERS"),
+      dataIndex: "numberOfWorkers",
+      key: "numberOfWorkers",
+      render: (text) => <p>{text}</p>,
     },
     {
       title: "General Comments",
@@ -237,6 +246,41 @@ export const Reservations = () => {
             columns={columns}
             dataSource={data}
             loading={isLoading || isFetching}
+            expandable={{
+              expandedRowRender: (row) => (
+                <section className="flex flex-col gap-1">
+                  {/* <p className="capitalize text-lg font-semibold text-gray-800">
+                    {t("WORKERS_DETAILS")}:
+                  </p> */}
+                  <div className="flex justify-between flex-wrap gap-4">
+                    {row?.reservationWorkers &&
+                    row?.reservationWorkers?.length !== 0 ? (
+                      row?.reservationWorkers?.map((worker) => (
+                        <div key={worker.workerId} className="flex gap-2">
+                          <span className="w-[3px] h-6 bg-mainOrange rounded-full" />
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold text-gray-600">
+                              {t("WORKER")} :{" "}
+                            </span>
+                            <span className="text-gray-500">
+                              {lang === "ar"
+                                ? worker.workerArName
+                                : worker.workerName}
+                            </span>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="flex items-center gap-2 justify-center w-full text-gray-300 capitalize">
+                        <BsBoxSeam size={20} />
+
+                        <span>{t("NO_DATA_FOUND")}</span>
+                      </p>
+                    )}
+                  </div>
+                </section>
+              ),
+            }}
             // onRow={(record) => ({
             //   onClick: () => handleRowClick(record),
             //   style: {

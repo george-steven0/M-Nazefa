@@ -7,8 +7,9 @@ import AddEmployee from "../../Pages/Employees/Components/addEmployee";
 import EditEmployee from "../../Pages/Employees/Components/editEmployee";
 import ViewEmployee from "../../Pages/Employees/Components/viewEmployee";
 import Clients from "../../Pages/Clients/clients";
-import AddClient from "../../Pages/Clients/Components/addClient";
-import EditClient from "../../Pages/Clients/Components/editClient";
+// import AddClient from "../../Pages/Clients/Components/addClient";
+// import EditClient from "../../Pages/Clients/Components/editClient";
+import ClientForm from "../../Pages/Clients/Components/clientForm";
 import ViewClient from "../../Pages/Clients/Components/viewClient";
 import Packages from "../../Pages/Packages/packages";
 // import AddPackage from "../../Pages/Packages/Components/addPackage";
@@ -177,14 +178,16 @@ export const routes = createBrowserRouter([
             children: [
               {
                 path: "add-client",
-                element: <AddClient />,
+                // element: <AddClient />,
+                element: <ClientForm />,
                 handle: {
                   permission: PERMISSIONS.ADD_CLIENT,
                 },
               },
               {
                 path: "edit-client",
-                element: <EditClient />,
+                // element: <EditClient />,
+                element: <ClientForm />,
                 handle: {
                   permission: PERMISSIONS.EDIT_CLIENT,
                 },
@@ -267,6 +270,9 @@ export const routes = createBrowserRouter([
           {
             path: "messages",
             element: <Messages />,
+            handle: {
+              permission: PERMISSIONS.VIEW_MESSAGES,
+            },
           },
         ],
       },

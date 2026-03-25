@@ -29,7 +29,7 @@ const reservationQuery = API.injectEndpoints({
           ReservationId: id,
         },
       }),
-      providesTags: ["reservations"],
+      providesTags: (_result, _error, { id }) => [{ type: "reservations", id }],
     }),
 
     getHoldReservation: builder.query<APIResponse<holdReservationProps>, void>({
@@ -63,6 +63,20 @@ const reservationQuery = API.injectEndpoints({
       }),
       invalidatesTags: ["reservations"],
     }),
+
+    assignWorkerToReservation: builder.mutation<
+      APIResponse<reservationFormProps>,
+      { reservationId: string; workerIds: string[] }
+    >({
+      query: (data: { reservationId: string; workerIds: string[] }) => ({
+        url: "/Reservation/AssignWorkers",
+        method: "POST",
+        body: data,
+      }),
+      invalidatesTags: (_result, _error, { reservationId }) => [
+        { type: "reservations", id: reservationId },
+      ],
+    }),
   }), //builder braces
 });
 
@@ -72,4 +86,5 @@ export const {
   useGetReservationByIdQuery,
   useGetHoldReservationQuery,
   useAddHoldReservationMutation,
+  useAssignWorkerToReservationMutation,
 } = reservationQuery;
