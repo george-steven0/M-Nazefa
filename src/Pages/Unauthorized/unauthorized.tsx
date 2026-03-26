@@ -1,6 +1,7 @@
 import { Button, Result } from "antd";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
+import { getFirstAllowedPath } from "../../Utilities/utilities";
 
 const Unauthorized = () => {
   const navigate = useNavigate();
@@ -26,7 +27,7 @@ const Unauthorized = () => {
               type="primary"
               size="large"
               className="mt-4 h-14 min-w-[200px] rounded-full text-lg font-bold shadow-md transition-transform hover:scale-105 hover:shadow-lg bg-mainColor! hover:bg-mainColor/90!"
-              onClick={() => navigate("/")}
+              onClick={() => navigate(getFirstAllowedPath())}
             >
               {t("BACK_HOME")}
             </Button>

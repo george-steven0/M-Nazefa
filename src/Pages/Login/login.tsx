@@ -9,6 +9,7 @@ import { useLoginMutation } from "../../components/APIs/Auth/AUTH_QUERY";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import navVector from "../../assets/imgs/navbarVector.svg";
+import { getFirstAllowedPath } from "../../Utilities/utilities";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -28,7 +29,7 @@ const Login = () => {
         toast.success("Login Successfully");
         localStorage.setItem("mNazTk", res?.data?.token);
         localStorage.setItem("mNazRole", JSON.stringify(res?.data?.rolesList));
-        navigate("/dashboard");
+        navigate(getFirstAllowedPath());
       } else {
         toast.error(res?.errorMessages?.join("\n"));
       }

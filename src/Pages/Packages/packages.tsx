@@ -4,6 +4,7 @@ import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Button, Skeleton } from "antd";
 import PackageCard from "./Components/packageCard";
 import { useGetAllPackagesQuery } from "../../components/APIs/Packages/PACKAGES_QUERY";
+import { isAdmin, isSuperAdmin } from "../../Utilities/utilities";
 
 const Packages = () => {
   const { t } = useTranslation();
@@ -17,12 +18,14 @@ const Packages = () => {
   const handleAddButton = () => {
     return (
       <div className="flex items-center gap-2 md:gap-4">
-        <Button
-          onClick={() => navigate("add-package")}
-          className="bg-mainColor px-4 text-white py-5 capitalize text-sm"
-        >
-          {t("ADD_PACKAGE")}
-        </Button>
+        {(isAdmin() || isSuperAdmin()) && (
+          <Button
+            onClick={() => navigate("add-package")}
+            className="bg-mainColor px-4 text-white py-5 capitalize text-sm"
+          >
+            {t("ADD_PACKAGE")}
+          </Button>
+        )}
       </div>
     );
   };

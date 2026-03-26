@@ -7,7 +7,7 @@ import packagesIcon from "../../../assets/imgs/packagesIcon.svg";
 import reservationIcon from "../../../assets/imgs/reservationIcon.svg";
 import messagesIcon from "../../../assets/imgs/messagesIcon.svg";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import navVector from "../../../assets/imgs/navbarVector.svg";
 import { Button } from "antd";
 import { useTranslation } from "react-i18next";
@@ -19,7 +19,7 @@ import {
 } from "react-icons/md";
 import { FaMapLocation } from "react-icons/fa6";
 import { LuPackagePlus } from "react-icons/lu";
-import { userRoles } from "../../../Utilities/utilities";
+import { getUserRoles } from "../../../Utilities/utilities";
 import {
   PERMISSIONS,
   ROLE_PERMISSIONS,
@@ -35,10 +35,6 @@ const Navbar = ({
   const navigate = useNavigate();
 
   // console.log(userRoles);
-
-  const allowedPermissions = userRoles.flatMap(
-    (r) => ROLE_PERMISSIONS[r] || [],
-  );
 
   const navLinks = [
     {
@@ -177,9 +173,19 @@ const Navbar = ({
     },
   ];
 
-  const filteredNavLinks = navLinks.filter((link) =>
-    link.permissions.some((perm) => allowedPermissions.includes(perm)),
+  const allowedPermissions = useMemo(() => {
+    const userRoles = getUserRoles(); // ✅ fresh read on every navigation
+    return userRoles.flatMap((r) => ROLE_PERMISSIONS[r] || []);
+  }, [pathname]);
+
+  const filteredNavLinks = useMemo(
+    () =>
+      navLinks.filter((link) =>
+        link.permissions.some((perm) => allowedPermissions.includes(perm)),
+      ),
+    [allowedPermissions],
   );
+  // console.log(filteredNavLinks);
 
   useEffect(() => {
     setToggle(true);
@@ -203,10 +209,10 @@ const Navbar = ({
                 key={link?.id}
                 to={link?.path}
                 className={({ isActive }) =>
-                  `flex items-center gap-2 w-full p-3 rounded-tl-sm rounded-bl-sm capitalize ${
+                  `flex items-center gap-2 w-full p-3 rounded-tl-sm rounded-bl-sm capitalize text-[#ebebeb] transition-all duration-300 hover:bg-linear-to-r hover:from-mainColor hover:to-[#254F5F] hover:border-r-5 hover:border-r-white hover:opacity-100 ${
                     isActive
-                      ? "text-white from-mainColor to-[#254F5F] bg-linear-to-r border-r-5 border-r-white"
-                      : "text-mainGray"
+                      ? " from-mainColor to-[#254F5F] bg-linear-to-r border-r-5 border-r-white"
+                      : "opacity-30"
                   }`
                 }
               >

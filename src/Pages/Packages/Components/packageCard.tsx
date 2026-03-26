@@ -10,6 +10,7 @@ import defImg from "../../../assets/imgs/logo.svg";
 import { t } from "i18next";
 import { useTogglePackageMutation } from "../../../components/APIs/Packages/PACKAGES_QUERY";
 import { toast } from "react-toastify";
+import { isAdmin, isSuperAdmin } from "../../../Utilities/utilities";
 type packageCardProps = {
   id: number | string;
   data: packageCard;
@@ -21,6 +22,12 @@ const PackageCard = ({ id, data }: packageCardProps) => {
   // console.log(data);
 
   const handleTogglePackage = async (status: boolean) => {
+    if (!isAdmin() && !isSuperAdmin()) {
+      toast.error("You are not authorized to perform this action", {
+        toastId: "unauthorized",
+      });
+      return;
+    }
     const data = {
       packageId: id,
       isActive: status,
@@ -65,22 +72,25 @@ const PackageCard = ({ id, data }: packageCardProps) => {
         </div>
 
         <div className="card-toggle-btn">
-          <ConfigProvider
-            theme={{
-              token: {
-                colorPrimary: "#32D74B",
-              },
-            }}
-          >
-            <Switch
-              defaultChecked={isActive}
-              loading={isLoading}
-              onClick={(checked, e) => {
-                handleTogglePackage(checked);
-                e?.stopPropagation();
+          {isAdmin() || isSuperAdmin() ? (
+            <ConfigProvider
+              theme={{
+                token: {
+                  colorPrimary: "#32D74B",
+                },
               }}
-            />
-          </ConfigProvider>
+            >
+              <Switch
+                // defaultChecked={isActive}
+                loading={isLoading}
+                checked={isActive}
+                onChange={(checked, e) => {
+                  handleTogglePackage(checked);
+                  e?.stopPropagation();
+                }}
+              />
+            </ConfigProvider>
+          ) : null}
         </div>
 
         <div className="card-description">

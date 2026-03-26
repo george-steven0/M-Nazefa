@@ -15,6 +15,7 @@ import { LuPackageOpen } from "react-icons/lu";
 import { MdOutlineAddHome, MdOutlineDiscount } from "react-icons/md";
 import { HiOutlineUserGroup } from "react-icons/hi2";
 import { useState } from "react";
+import { isAdmin, isSuperAdmin } from "../../../Utilities/utilities";
 
 const ViewPackage = () => {
   const { t } = useTranslation();
@@ -54,25 +55,27 @@ const ViewPackage = () => {
       navigate(`/packages/edit-package?id=${id}`);
     };
     return (
-      <div className="flex flex-col gap-1">
-        <Button
-          onClick={handleNavigate}
-          className="bg-mainColor text-white py-5 min-w-[160px] capitalize"
-        >
-          {t("EDIT_PACKAGE")}
-        </Button>
-        <Button
-          loading={isDeactivateLoading}
-          onClick={() => handleTogglePackage(!packageById?.data?.isActive)}
-          className={`flex items-center gap-2 font-medium transition-colors duration-500 ${packageById?.data?.isActive ? "bg-mainRed/70 hover:bg-mainRed" : "bg-green-700/70 hover:bg-green-700"} border-none text-white py-5 min-w-[160px] capitalize`}
-        >
-          {packageById?.data?.isActive ? (
-            <span>{t("DEACTIVATE")}</span>
-          ) : (
-            <span>{t("ACTIVATE")}</span>
-          )}
-        </Button>
-      </div>
+      (isAdmin() || isSuperAdmin()) && (
+        <div className="flex flex-col gap-1">
+          <Button
+            onClick={handleNavigate}
+            className="bg-mainColor text-white py-5 min-w-[160px] capitalize"
+          >
+            {t("EDIT_PACKAGE")}
+          </Button>
+          <Button
+            loading={isDeactivateLoading}
+            onClick={() => handleTogglePackage(!packageById?.data?.isActive)}
+            className={`flex items-center gap-2 font-medium transition-colors duration-500 ${packageById?.data?.isActive ? "bg-mainRed/70 hover:bg-mainRed" : "bg-green-700/70 hover:bg-green-700"} border-none text-white py-5 min-w-[160px] capitalize`}
+          >
+            {packageById?.data?.isActive ? (
+              <span>{t("DEACTIVATE")}</span>
+            ) : (
+              <span>{t("ACTIVATE")}</span>
+            )}
+          </Button>
+        </div>
+      )
     );
   };
 

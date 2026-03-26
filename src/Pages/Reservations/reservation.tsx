@@ -21,6 +21,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import { useAppSelector } from "../../components/APIs/store";
 import { BsBoxSeam } from "react-icons/bs";
+import { isAdmin, isSuperAdmin } from "../../Utilities/utilities";
 
 const Actions = ({ data }: { data: serviceFormProps }) => {
   const navigate = useNavigate();
@@ -142,12 +143,14 @@ export const Reservations = () => {
           {t("ADD_RESERVATION")}
         </Button>
 
-        <Button
-          onClick={openHoldReservationModal}
-          className="text-white bg-mainOrange "
-        >
-          {t("AVAILABLE_APPOINTMENTS")}
-        </Button>
+        {(isAdmin() || isSuperAdmin()) && (
+          <Button
+            onClick={openHoldReservationModal}
+            className="text-white bg-mainOrange "
+          >
+            {t("AVAILABLE_APPOINTMENTS")}
+          </Button>
+        )}
       </div>
     );
   };

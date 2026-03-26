@@ -78,34 +78,26 @@ export type AppRole = (typeof ROLES)[keyof typeof ROLES];
 // 4) Role → Permission mapping
 export const ROLE_PERMISSIONS: Record<AppRole, Permission[]> = {
   customer_service: [
-    PERMISSIONS.PROFILE,
+    //Clients
     PERMISSIONS.ADD_CLIENT,
     PERMISSIONS.EDIT_CLIENT,
     PERMISSIONS.VIEW_CLIENT,
 
-    PERMISSIONS.VIEW_MESSAGES,
-
-    PERMISSIONS.VIEW_PACKAGE_TYPE,
-
-    PERMISSIONS.VIEW_CLEANING_AREA,
-
+    //Reservations
+    PERMISSIONS.ADD_RESERVATION,
     PERMISSIONS.VIEW_RESERVATION,
 
+    //Service
     PERMISSIONS.VIEW_SERVICE,
-    PERMISSIONS.VIEW_PACKAGE,
 
-    PERMISSIONS.VIEW_DASHBOARD,
+    //Packages
+    PERMISSIONS.VIEW_PACKAGE,
   ],
 
   data_entry: [
-    PERMISSIONS.PROFILE,
     PERMISSIONS.ADD_CLIENT,
     PERMISSIONS.EDIT_CLIENT,
     PERMISSIONS.VIEW_CLIENT,
-    PERMISSIONS.VIEW_PACKAGE_TYPE,
-    PERMISSIONS.VIEW_CLEANING_AREA,
-    PERMISSIONS.VIEW_MESSAGES,
-    // PERMISSIONS.VIEW_DASHBOARD,
   ],
 
   admin: [
@@ -121,7 +113,8 @@ export const ROLE_PERMISSIONS: Record<AppRole, Permission[]> = {
     PERMISSIONS.VIEW_PACKAGE,
     PERMISSIONS.VIEW_PACKAGE_TYPE,
 
-    PERMISSIONS.VIEW_CLEANING_AREA,
+    //Cleaning area
+    // PERMISSIONS.VIEW_CLEANING_AREA,
 
     //EMPLOYEES
 
@@ -137,25 +130,13 @@ export const ROLE_PERMISSIONS: Record<AppRole, Permission[]> = {
 
     // Reservations
     PERMISSIONS.VIEW_RESERVATION,
+    PERMISSIONS.ADD_RESERVATION,
     PERMISSIONS.EDIT_RESERVATION,
     PERMISSIONS.DELETE_RESERVATION,
 
     //Messages
-    PERMISSIONS.VIEW_MESSAGES,
+    // PERMISSIONS.VIEW_MESSAGES,
   ],
 
-  super_admin: [
-    // Super admin gets everything admin has
-    ...[], // we'll inherit below
-  ],
+  super_admin: Object.values(PERMISSIONS),
 };
-
-// 5) Inherit admin permissions for super admin
-ROLE_PERMISSIONS.super_admin = [
-  ...ROLE_PERMISSIONS.admin,
-  PERMISSIONS.VIEW_DASHBOARD,
-  PERMISSIONS.VIEW_ROLES,
-  PERMISSIONS.VIEW_AREAS,
-  PERMISSIONS.VIEW_WORKERS,
-  PERMISSIONS.VIEW_MEMBERSHIP,
-];

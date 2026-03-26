@@ -5,6 +5,7 @@ import { Outlet } from "react-router-dom";
 import { Button, Skeleton } from "antd";
 import ServiceCard from "./Components/serviceCard";
 import { useGetAllServicesQuery } from "../../components/APIs/Services/SERVICES_QUERY";
+import { isAdmin, isSuperAdmin } from "../../Utilities/utilities";
 
 const Services = () => {
   const { t } = useTranslation();
@@ -31,12 +32,14 @@ const Services = () => {
   const handleTitleComponent = () => {
     return (
       <div className="flex items-center justify-between">
-        <Button
-          onClick={handleNavigateAdd}
-          className="bg-mainColor text-white py-5 min-w-[150px] capitalize"
-        >
-          {t("ADD_SERVICE")}
-        </Button>
+        {(isSuperAdmin() || isAdmin()) && (
+          <Button
+            onClick={handleNavigateAdd}
+            className="bg-mainColor text-white py-5 min-w-[150px] capitalize"
+          >
+            {t("ADD_SERVICE")}
+          </Button>
+        )}
       </div>
     );
   };
