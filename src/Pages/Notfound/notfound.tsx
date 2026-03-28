@@ -1,12 +1,10 @@
 import { Button, Result } from "antd";
 import { useNavigate } from "react-router-dom";
+import { getFirstAllowedPath } from "../../Utilities/utilities";
 
 export default function Notfound() {
   const navigate = useNavigate();
 
-  const handleNavigation = () => {
-    navigate("/");
-  };
   return (
     <div className="flex flex-col gap-5 h-screen items-center justify-center">
       {/* <h1 className="text-4xl text-mainColor">404 Page Not found</h1>
@@ -23,7 +21,7 @@ export default function Notfound() {
         subTitle="Sorry, the page you visited does not exist."
         extra={
           <Button
-            onClick={handleNavigation}
+            onClick={() => navigate(getFirstAllowedPath())}
             type="primary"
             className=" py-5 min-w-xl"
           >
