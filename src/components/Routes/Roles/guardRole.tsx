@@ -15,9 +15,13 @@ type routeHandle = {
 
 export default function GuardRole({ children }: guardProps) {
   const tk = localStorage.getItem("mNazTk");
+  const roles = localStorage.getItem("mNazRole");
   const matches = useMatches();
 
-  if (!tk) return <Navigate to="/login" replace />;
+  if (!tk || !roles) {
+    localStorage.clear();
+    return <Navigate to="/login" replace />;
+  }
 
   const currentMatch = matches[matches.length - 1];
   const requiredPermission = (currentMatch?.handle as routeHandle)?.permission;
