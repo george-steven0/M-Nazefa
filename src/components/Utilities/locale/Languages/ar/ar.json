@@ -267,5 +267,11 @@
     "WORKER_DELETED_SUCCESS": "تم حذف العامل بنجاح",
     "NO_DATA_FOUND": "لا يوجد بيانات",
     "WORKERS_DETAILS": "تفاصيل العمال",
-    "WORKERS_UPDATED_SUCCESSFULLY": "تم تحديث العمال بنجاح"
+    "WORKERS_UPDATED_SUCCESSFULLY": "تم تحديث العمال بنجاح",
+    "OVERVIEW": "نظره عامة",
+    "PEOPLE": "الاشخاص",
+    "SERVICE_PACKAGES": "الباقات و الخدمات",
+    "SETTINGS": "الاعدادات",
+    "OPERATIONS": "العمليات",
+    "ACCESS_CONTROL": "التحكم بالوصول"
 }

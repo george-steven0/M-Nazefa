@@ -268,5 +268,11 @@
     "WORKER_DELETED_SUCCESS": "Worker deleted successfully",
     "NO_DATA_FOUND": "No data found",
     "WORKERS_DETAILS": "Workers details",
-    "WORKERS_UPDATED_SUCCESSFULLY": "Workers updated successfully"
+    "WORKERS_UPDATED_SUCCESSFULLY": "Workers updated successfully",
+    "OVERVIEW": "Overview",
+    "PEOPLE": "People",
+    "SERVICE_PACKAGES": "Services & packages",
+    "SETTINGS": "Settings",
+    "OPERATIONS": "Operations",
+    "ACCESS_CONTROL": "Acess control"
 }
