@@ -78,6 +78,7 @@ export type AppRole = (typeof ROLES)[keyof typeof ROLES];
 // 4) Role → Permission mapping
 export const ROLE_PERMISSIONS: Record<AppRole, Permission[]> = {
   customer_service: [
+    PERMISSIONS.PROFILE,
     //Clients
     PERMISSIONS.ADD_CLIENT,
     PERMISSIONS.EDIT_CLIENT,
@@ -95,6 +96,7 @@ export const ROLE_PERMISSIONS: Record<AppRole, Permission[]> = {
   ],
 
   data_entry: [
+    PERMISSIONS.PROFILE,
     PERMISSIONS.ADD_CLIENT,
     PERMISSIONS.EDIT_CLIENT,
     PERMISSIONS.VIEW_CLIENT,

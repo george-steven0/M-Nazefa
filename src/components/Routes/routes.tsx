@@ -1,7 +1,6 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import App from "../../App";
 import Notfound from "../../Pages/Notfound/notfound";
-import CommingSoon from "../../Pages/CommingSoon/commingSoon";
 import Employees from "../../Pages/Employees/employees";
 import AddEmployee from "../../Pages/Employees/Components/addEmployee";
 import EditEmployee from "../../Pages/Employees/Components/editEmployee";
@@ -39,6 +38,7 @@ import PackageForm from "../../Pages/Packages/Components/packageForm";
 import PackageTypes from "../../Pages/PackageTypes/packageTypes";
 import CLeaningArea from "../../Pages/CleaningArea/cleaningArea";
 import ReservationForm from "../../Pages/Reservations/Components/reservationForm";
+import Profile from "../../Pages/Profile/profile";
 
 export const routes = createBrowserRouter([
   // Guest Routes
@@ -76,7 +76,7 @@ export const routes = createBrowserRouter([
           // Profile placeholder
           {
             path: "profile",
-            element: <CommingSoon />,
+            element: <Profile />,
             handle: {
               permission: PERMISSIONS.PROFILE,
             },

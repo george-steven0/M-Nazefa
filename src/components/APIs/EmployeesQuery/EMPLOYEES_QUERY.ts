@@ -32,7 +32,7 @@ const employees = API.injectEndpoints({
           };
         },
         providesTags: [{ type: "employees", id: "LIST" }],
-      }
+      },
     ),
 
     getEmployeeById: build.query<
@@ -109,7 +109,15 @@ const employees = API.injectEndpoints({
         { type: "employees", id: data?.employeeId as string },
       ],
     }),
-  }),
+
+    getUser: build.query<SingleAPIResponse<singleEmployeeProps>, void>({
+      query: () => {
+        return {
+          url: `/Employee/GetUser`,
+        };
+      },
+    }),
+  }), // builder end here
 });
 
 export const {
@@ -119,4 +127,5 @@ export const {
   useEditEmployeeMutation,
   useChangePasswordMutation,
   useDeactivateEmployeeMutation,
+  useGetUserQuery,
 } = employees;

@@ -64,6 +64,18 @@ const reservationQuery = API.injectEndpoints({
       invalidatesTags: ["reservations"],
     }),
 
+    toggleReservationStatus: builder.mutation<
+      APIResponse<reservationFormProps>,
+      { reservationId: string; isActive: boolean }
+    >({
+      query: (data: { reservationId: string; isActive: boolean }) => ({
+        url: "/Reservation/DeactivateReservation",
+        method: "POST",
+        body: data,
+      }),
+      invalidatesTags: ["reservations"],
+    }),
+
     assignWorkerToReservation: builder.mutation<
       APIResponse<reservationFormProps>,
       { reservationId: string; workerIds: string[] }
@@ -87,4 +99,5 @@ export const {
   useGetHoldReservationQuery,
   useAddHoldReservationMutation,
   useAssignWorkerToReservationMutation,
+  useToggleReservationStatusMutation,
 } = reservationQuery;

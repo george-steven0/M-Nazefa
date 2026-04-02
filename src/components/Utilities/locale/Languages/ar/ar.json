@@ -251,6 +251,7 @@
     "DATE_FROM": "تاريخ البدء",
     "DATE_TO": "تاريخ الانتهاء",
     "CANCEL": "إلغاء",
+    "CANCELLED": "تم الإلغاء",
     "AVAILABLE_APPOINTMENTS": "المواعيد المتاحة",
     "RESERVATION_SUMMARY": "ملخص الحجز",
     "SUBTOTAL": "المجموع الجزئي",
@@ -273,5 +274,6 @@
     "SERVICE_PACKAGES": "الباقات و الخدمات",
     "SETTINGS": "الاعدادات",
     "OPERATIONS": "العمليات",
-    "ACCESS_CONTROL": "التحكم بالوصول"
+    "ACCESS_CONTROL": "التحكم بالوصول",
+    "STATUS": "الحالة"
 }

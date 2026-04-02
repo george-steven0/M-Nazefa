@@ -12,6 +12,7 @@ import {
   useAddHoldReservationMutation,
   useGetAllReservationsQuery,
   useGetHoldReservationQuery,
+  useToggleReservationStatusMutation,
 } from "../../components/APIs/Reservations/RESERVATION_QUERY";
 import dayjs from "dayjs";
 import { AiOutlineEye } from "react-icons/ai";
@@ -56,6 +57,27 @@ export const Reservations = () => {
   const { pathname } = useLocation();
   const { lang } = useAppSelector((state) => state?.lang);
 
+  const [toggleReservationStatus] = useToggleReservationStatusMutation();
+
+  const [loadingSwitchId, setLoadingSwitchId] = useState<string | null>(null);
+
+  const handleToggleReservationStatus = async (reservationId: string) => {
+    try {
+      setLoadingSwitchId(reservationId);
+      await toggleReservationStatus({
+        reservationId,
+        isActive: false,
+      }).unwrap();
+      toast.success("Reservation Cancelled Successfully");
+    } catch (error) {
+      const err = error as APIErrorProps;
+      err?.data?.errorMessages?.forEach((message) => {
+        toast.error(message);
+      });
+    } finally {
+      setLoadingSwitchId(null);
+    }
+  };
   const {
     control,
     handleSubmit,
@@ -120,6 +142,28 @@ export const Reservations = () => {
       dataIndex: "generalComments",
       key: "generalComments",
       render: (text) => <span>{text}</span>,
+    },
+    {
+      title: t("STATUS"),
+      // dataIndex: "isActive",
+      key: "isActive",
+      render: (row) => (
+        <span>
+          {row?.isActive ? (
+            <Button
+              onClick={() => handleToggleReservationStatus(row?.id)}
+              className="text-white bg-red-500 border-red-500/30"
+              loading={loadingSwitchId === row?.id}
+            >
+              {t("CANCEL")}
+            </Button>
+          ) : (
+            <span className="text-gray-500/80 border border-gray-300 px-2 py-1 rounded-md cursor-not-allowed">
+              {t("CANCELLED")}
+            </span>
+          )}
+        </span>
+      ),
     },
     {
       title: "Actions",
