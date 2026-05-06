@@ -152,7 +152,7 @@ export const Reservations = () => {
           {row?.isActive ? (
             <Button
               onClick={() => handleToggleReservationStatus(row?.id)}
-              className="text-white bg-red-500 border-red-500/30"
+              className="text-red-500 bg-transparent border-red-500 hover:bg-red-500 hover:text-white transition-all duration-300"
               loading={loadingSwitchId === row?.id}
             >
               {t("CANCEL")}

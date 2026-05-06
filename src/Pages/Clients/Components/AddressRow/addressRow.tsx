@@ -6,7 +6,10 @@ import {
   type FieldErrors,
   type UseFormSetValue,
 } from "react-hook-form";
-import type { clientFormPropsType } from "../../../../components/Utilities/Types/types";
+import type {
+  clientFormPropsType,
+  seedersProps,
+} from "../../../../components/Utilities/Types/types";
 import type { TFunction } from "i18next";
 import { Button, Select, Input, Checkbox, Space } from "antd";
 import { FaMinus, FaPlus, FaTrashAlt } from "react-icons/fa";
@@ -33,6 +36,8 @@ type AddressRowProps = {
   length: number;
   setValue: UseFormSetValue<clientFormPropsType>;
   handleRemoveAddress: (index: number) => void;
+  workers?: seedersProps[];
+  workerLoading?: boolean;
 };
 const AddressRow = ({
   index,
@@ -43,6 +48,8 @@ const AddressRow = ({
   t,
   length,
   setValue,
+  workers,
+  workerLoading,
 }: AddressRowProps) => {
   const {
     data: cities,
@@ -92,7 +99,7 @@ const AddressRow = ({
     remove: removeFavList,
   } = useFieldArray({
     control,
-    name: "favoriteList",
+    name: "customerFavourites.favoriteList",
   });
 
   const {
@@ -101,8 +108,30 @@ const AddressRow = ({
     remove: removeNotRecommendedList,
   } = useFieldArray({
     control,
-    name: "NotRecommendedWorkerList",
+    name: "customerFavourites.notRecommendedWorkerList",
   });
+
+  const favValues =
+    useWatch({
+      control,
+      name: "customerFavourites.favoriteList",
+    }) || [];
+  const notFavValues =
+    useWatch({
+      control,
+      name: "customerFavourites.notRecommendedWorkerList",
+    }) || [];
+
+  const allSelectedWorkers = [
+    ...favValues.map(
+      (item) => (item as unknown as { workerId: string })?.workerId,
+    ),
+    ...notFavValues.map(
+      (item) => (item as unknown as { workerId: string })?.workerId,
+    ),
+  ].filter((v) => Boolean(v));
+
+  // console.log(allSelectedWorkers);
 
   return (
     <>
@@ -1123,7 +1152,7 @@ const AddressRow = ({
               size="small"
               className="bg-green-600/20 text-green-600 border-none"
               icon={<FaPlus size={12} />}
-              onClick={() => appendFavList({ value: "" })}
+              onClick={() => appendFavList({ workerId: null })}
             />
           </div>
 
@@ -1132,13 +1161,13 @@ const AddressRow = ({
               <div key={field?.id}>
                 <Controller
                   control={control}
-                  name={`favoriteList.${index}.value`}
+                  name={`customerFavourites.favoriteList.${index}.workerId`}
                   rules={{
                     required: { value: true, message: t("REQUIRED") },
                   }}
                   render={({ field }) => (
                     <Space.Compact className="items-stretch w-full">
-                      <Input
+                      {/* <Input
                         {...field}
                         variant="filled"
                         placeholder="Enter Key word"
@@ -1156,6 +1185,47 @@ const AddressRow = ({
                             ? "error"
                             : ""
                         }
+                      /> */}
+
+                      <Select
+                        {...field}
+                        className="min-h-10 border-[#C4C4C4] border rounded-md w-full"
+                        placeholder="Select worker"
+                        variant="filled"
+                        status={
+                          (
+                            errors?.customerFavourites?.favoriteList?.[
+                              index
+                            ] as unknown as {
+                              workerId: string;
+                            }
+                          )?.workerId
+                            ? "error"
+                            : ""
+                        }
+                        loading={workerLoading}
+                        options={workers
+                          ?.filter((worker) => {
+                            if (!worker.id) return false;
+                            const currentValue = (
+                              favValues?.[index] as unknown as {
+                                workerId: string;
+                              }
+                            )?.workerId;
+                            return (
+                              worker.id === currentValue ||
+                              !allSelectedWorkers.includes(worker.id)
+                            );
+                          })
+                          .map((worker) => ({
+                            value: worker.id,
+                            label: lang === "ar" ? worker.arName : worker.name,
+                          }))}
+                        showSearch
+                        optionFilterProp="label"
+                        onChange={(e) => {
+                          field.onChange(e);
+                        }}
                       />
                       <span>
                         {favListFields?.length > 1 ? (
@@ -1171,21 +1241,25 @@ const AddressRow = ({
                   )}
                 />
                 {(
-                  errors?.favoriteList?.[index] as unknown as {
-                    value: {
+                  errors?.customerFavourites?.favoriteList?.[
+                    index
+                  ] as unknown as {
+                    workerId: {
                       message: string;
                     };
                   }
-                )?.value?.message && (
+                )?.workerId?.message && (
                   <p className="text-red-500 text-xs mt-1 capitalize font-normal">
                     {
                       (
-                        errors?.favoriteList?.[index] as unknown as {
-                          value: {
+                        errors?.customerFavourites?.favoriteList?.[
+                          index
+                        ] as unknown as {
+                          workerId: {
                             message: string;
                           };
                         }
-                      )?.value?.message
+                      )?.workerId?.message
                     }
                   </p>
                 )}
@@ -1209,7 +1283,7 @@ const AddressRow = ({
               size="small"
               className="bg-green-600/20 text-green-600 border-none"
               icon={<FaPlus size={12} />}
-              onClick={() => appendNotRecommendedList({ value: "" })}
+              onClick={() => appendNotRecommendedList({ workerId: null })}
             />
           </div>
 
@@ -1218,13 +1292,13 @@ const AddressRow = ({
               <div key={field?.id}>
                 <Controller
                   control={control}
-                  name={`NotRecommendedWorkerList.${index}.value`}
+                  name={`customerFavourites.notRecommendedWorkerList.${index}.workerId`}
                   // rules={{
                   //   required: { value: true, message: t("REQUIRED") },
                   // }}
                   render={({ field }) => (
                     <Space.Compact className="items-stretch w-full">
-                      <Input
+                      {/* <Input
                         {...field}
                         variant="filled"
                         placeholder="Enter not recommended worker"
@@ -1244,6 +1318,50 @@ const AddressRow = ({
                             ? "error"
                             : ""
                         }
+                      /> */}
+
+                      <Select
+                        {...field}
+                        className="min-h-10 border-[#C4C4C4] border rounded-md w-full"
+                        placeholder="Select worker"
+                        variant="filled"
+                        status={
+                          (
+                            errors?.customerFavourites
+                              ?.notRecommendedWorkerList?.[
+                              index
+                            ] as unknown as {
+                              workerId: string;
+                            }
+                          )?.workerId
+                            ? "error"
+                            : ""
+                        }
+                        loading={workerLoading}
+                        options={workers
+                          ?.filter((worker) => {
+                            if (!worker.id) return false;
+
+                            const currentValue = (
+                              notFavValues?.[index] as unknown as {
+                                workerId: string;
+                              }
+                            )?.workerId;
+
+                            return (
+                              worker.id === currentValue ||
+                              !allSelectedWorkers.includes(worker.id)
+                            );
+                          })
+                          .map((worker) => ({
+                            value: worker.id,
+                            label: lang === "ar" ? worker.arName : worker.name,
+                          }))}
+                        showSearch
+                        optionFilterProp="label"
+                        onChange={(e) => {
+                          field.onChange(e);
+                        }}
                       />
 
                       <span>
@@ -1260,19 +1378,21 @@ const AddressRow = ({
                   )}
                 />
                 {(
-                  errors?.NotRecommendedWorkerList?.[index] as unknown as {
-                    value: string;
+                  errors?.customerFavourites?.notRecommendedWorkerList?.[
+                    index
+                  ] as unknown as {
+                    workerId: string;
                   }
-                )?.value && (
+                )?.workerId && (
                   <p className="text-red-500 text-xs mt-1 capitalize font-normal">
                     {
                       (
-                        errors?.NotRecommendedWorkerList?.[
+                        errors?.customerFavourites?.notRecommendedWorkerList?.[
                           index
                         ] as unknown as {
-                          value: string;
+                          workerId: string;
                         }
-                      )?.value
+                      )?.workerId
                     }
                   </p>
                 )}

@@ -6,33 +6,62 @@ import PackageChart from "./Components/Charts/packageChart";
 import RecentCustomers from "./Components/RecentBlocks/recentCustomers";
 import CustomersPieChart from "./Components/RecentBlocks/recentCustomersPieChart";
 import CustomersBarChart from "./Components/RecentBlocks/recentCustomersBarChart";
+import {
+  useGetMonthlyTotalReservationQuery,
+  useGetMostRecentCustomersQuery,
+  useGetMostUsedPackagesQuery,
+  useGetTodayTotalReservationQuery,
+  useGetTotalCustomersQuery,
+} from "../../components/APIs/Dashboard/DASHBOARD_QUERY";
+import { Skeleton } from "antd";
 
 const Dashboard = () => {
   const { t } = useTranslation();
+
+  const { data: totalCustomers, isLoading: isLoadingTotalCustomers } =
+    useGetTotalCustomersQuery();
+
+  const { data: mostRecentCustomers, isLoading: isLoadingMostRecentCustomers } =
+    useGetMostRecentCustomersQuery();
+
+  const {
+    data: todayTotalReservation,
+    isLoading: isLoadingTodayTotalReservation,
+  } = useGetTodayTotalReservationQuery();
+
+  const {
+    data: monthlyTotalReservation,
+    isLoading: isLoadingMonthlyTotalReservation,
+  } = useGetMonthlyTotalReservationQuery();
+
+  const { data: mostUsedPackages, isLoading: isLoadingMostUsedPackages } =
+    useGetMostUsedPackagesQuery();
+
+  // console.log(totalCustomers?.data);
 
   const tabsList = [
     {
       id: 1,
       label: t("CURRENT_TOTAL_RESERVATION"),
-      value: "12426",
-      perecent: "22",
-      type: "up",
-      currency: true,
+      value: todayTotalReservation?.data || 0,
+      // perecent: "22",
+      // type: "up",
+      currency: false,
     },
     {
       id: 2,
       label: t("MONTHLY_TOTAL_RESERVATION"),
-      value: "248623",
-      perecent: "43",
-      type: "down",
+      value: monthlyTotalReservation?.data || 0,
+      // perecent: "43",
+      // type: "down",
       currency: true,
     },
     {
       id: 3,
       label: t("OUR_CLIENTS"),
-      value: "25048",
-      perecent: "10",
-      type: "up",
+      value: totalCustomers?.data || 0,
+      // perecent: "10",
+      // type: "up",
       currency: false,
     },
   ];
@@ -44,14 +73,32 @@ const Dashboard = () => {
 
       <div className="main-content-wrapper mt-8 flex flex-col gap-10">
         <section className="tabs-container grid grid-cols-1 lg:grid-cols-3 gap-5">
-          {tabsList?.map((data) => (
-            <HeaderCards key={data?.id} data={data} />
-          ))}
+          {isLoadingTodayTotalReservation ||
+          isLoadingMonthlyTotalReservation ||
+          isLoadingTotalCustomers ? (
+            <div className="col-span-full grid grid-cols-1 lg:grid-cols-3 gap-5 w-full">
+              {Array.from({ length: 3 }).map((_, index) => (
+                <Skeleton
+                  key={index}
+                  active
+                  className="h-full"
+                  paragraph={{ rows: 2 }}
+                  title={false}
+                />
+              ))}
+            </div>
+          ) : (
+            tabsList?.map((data) => <HeaderCards key={data?.id} data={data} />)
+          )}
         </section>
 
         <section className="packages-chart-container flex flex-wrap lg:flex-nowrap items-start gap-5 lg:h-[300px]">
           <div className="most-sold-packages-wrapper basis-full lg:basis-[32%] h-full grow">
-            <MostPackages t={t} />
+            <MostPackages
+              t={t}
+              data={mostUsedPackages?.data}
+              isLoading={isLoadingMostUsedPackages}
+            />
           </div>
 
           <div className="packages-line-chart-wrapper basis-full lg:basis-[68%] h-full grow">
@@ -61,7 +108,11 @@ const Dashboard = () => {
 
         <section className="recent-wrappers flex flex-col lg:flex-row flex-wrap xl:flex-nowrap items-stretch gap-5">
           <article className="border border-mainBorderLight py-3 px-5 rounded-lg basis-full lg:basis-[48%] xl:basis-[32%] grow">
-            <RecentCustomers t={t} />
+            <RecentCustomers
+              t={t}
+              data={mostRecentCustomers?.data}
+              isLoading={isLoadingMostRecentCustomers}
+            />
           </article>
 
           <article className="border border-mainBorderLight py-3 px-5 rounded-lg basis-full lg:basis-[48%] xl:basis-[25%] grow">

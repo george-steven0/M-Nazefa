@@ -4,9 +4,9 @@ type headerCardPropsType = {
   data: {
     id: number | string;
     label: string;
-    value: string;
-    perecent: string;
-    type: string;
+    value?: string | number;
+    perecent?: string;
+    type?: string;
     currency?: boolean;
   };
 };
@@ -17,21 +17,23 @@ const HeaderCards = ({ data }: headerCardPropsType) => {
         <p className="text-lg text-[#71717A]">{data?.label}</p>
         <p className="text-xl text-[#18181B] font-bold flex items-center">
           <span>{data?.currency ? <BiDollar /> : ""}</span>
-          <span>{parseInt(data?.value)?.toLocaleString()}</span>
+          <span>{data?.value?.toLocaleString()}</span>
         </p>
       </div>
 
-      <div
-        className={`flex items-center gap-1 ${
-          data?.type === "up" ? "text-green-600" : "text-red-600"
-        }`}
-      >
-        <span>{data?.type === "up" ? "+" : "-"}</span>
-        <span>{data?.perecent}%</span>
-        <span>
-          {data?.type === "up" ? <BsArrowUpShort /> : <BsArrowDownShort />}
-        </span>
-      </div>
+      {data?.type && data?.perecent && (
+        <div
+          className={`flex items-center gap-1 ${
+            data?.type === "up" ? "text-green-600" : "text-red-600"
+          }`}
+        >
+          <span>{data?.type === "up" ? "+" : "-"}</span>
+          <span>{data?.perecent}%</span>
+          <span>
+            {data?.type === "up" ? <BsArrowUpShort /> : <BsArrowDownShort />}
+          </span>
+        </div>
+      )}
     </article>
   );
 };

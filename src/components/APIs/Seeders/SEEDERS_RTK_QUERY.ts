@@ -1,6 +1,7 @@
 import type {
   APIResponse,
   clientFormPropsType,
+  customerAddressDDLProps,
   seedersProps,
   SingleAPIResponse,
   transportationFeesProps,
@@ -118,7 +119,7 @@ const seeders = API.injectEndpoints({
     }),
 
     getAllCustomerAddresses: build.query<
-      APIResponse<clientFormPropsType>,
+      APIResponse<customerAddressDDLProps>,
       { id: string }
     >({
       query: ({ id }) => ({
@@ -139,6 +140,7 @@ const seeders = API.injectEndpoints({
         url: `/TransportationFee/GetAllTransportationFees`,
         method: "GET",
       }),
+      providesTags: ["transportationFees"],
     }),
 
     getApartmentClosingPeriod: build.query<APIResponse<seedersProps>, void>({

@@ -52,16 +52,10 @@ const clients = API.injectEndpoints({
           customerAddresses: data.customerAddresses.map((address) => ({
             ...address,
           })),
-          favoriteList: data?.favoriteList
-            ?.map((item) => (typeof item === "object" ? item?.value : item))
-            ?.join("_"),
-          NotRecommendedWorkerList: data?.NotRecommendedWorkerList?.map(
-            (item) => (typeof item === "object" ? item?.value : item),
-          ).join("_"),
           entryDate: dayjs(data?.entryDate).format("YYYY-MM-DDTHH:mm:ss"),
         };
 
-        // console.log(formattedData);
+        console.log("formattedData", formattedData);
 
         return {
           url: `/Customer/AddCustomer`,
@@ -72,7 +66,7 @@ const clients = API.injectEndpoints({
           // },
         };
       },
-      invalidatesTags: [{ type: "clients", id: "LIST" }],
+      invalidatesTags: [{ type: "clients", id: "LIST" }, "dashboardMetrics"],
     }),
 
     editClient: build.mutation<
@@ -85,12 +79,6 @@ const clients = API.injectEndpoints({
           customerAddresses: data.customerAddresses.map((address) => ({
             ...address,
           })),
-          favoriteList: data?.favoriteList
-            ?.map((item) => (typeof item === "object" ? item?.value : item))
-            ?.join("_"),
-          NotRecommendedWorkerList: data?.NotRecommendedWorkerList?.map(
-            (item) => (typeof item === "object" ? item?.value : item),
-          ).join("_"),
           entryDate: dayjs(data?.entryDate).format("YYYY-MM-DDTHH:mm:ss"),
         };
         // console.log(formattedData);

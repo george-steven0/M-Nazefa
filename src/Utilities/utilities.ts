@@ -40,6 +40,7 @@ const NAV_ROUTES = [
   { path: "/package_types", permission: PERMISSIONS.VIEW_PACKAGE_TYPE },
   { path: "/cleaning_area", permission: PERMISSIONS.VIEW_CLEANING_AREA },
   { path: "/reservations", permission: PERMISSIONS.VIEW_RESERVATION },
+  { path: "/complaints", permission: PERMISSIONS.VIEW_COMPLAINTS },
   { path: "/messages", permission: PERMISSIONS.VIEW_MESSAGES },
 ];
 

@@ -1,6 +1,11 @@
 import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
 import dayjs from "dayjs";
-import type { reservationDetailsData } from "../../../components/Utilities/Types/types";
+import type {
+  clientFormPropsType,
+  reservationDetailsData,
+} from "../../../components/Utilities/Types/types";
+
+type pdfAddress = NonNullable<clientFormPropsType["address"]>[number];
 
 // Register standard fonts if needed, but Helvetica is default
 const styles = StyleSheet.create({
@@ -166,8 +171,12 @@ const styles = StyleSheet.create({
 
 export const ReservationDetailsPdf = ({
   data,
+  customer,
+  address,
 }: {
   data: reservationDetailsData;
+  customer?: clientFormPropsType;
+  address?: pdfAddress;
 }) => {
   if (!data)
     return (
@@ -207,74 +216,261 @@ export const ReservationDetailsPdf = ({
           </View>
         </View>
 
-        {/* Customer & Address Info */}
-        <View style={styles.flexRow}>
-          <View style={[styles.col, styles.card]}>
-            <Text style={styles.sectionTitle}>Customer Information</Text>
-            <View style={styles.row}>
-              <View style={styles.col}>
-                <Text style={styles.label}>Full Name</Text>
-                <Text style={styles.value}>{data.customerName || "N/A"}</Text>
-              </View>
+        {/* Customer Information */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Customer Information</Text>
+          <View style={styles.row}>
+            <View style={styles.col}>
+              <Text style={styles.label}>First Name</Text>
+              <Text style={styles.value}>
+                {customer?.firstName ||
+                  data.customerName?.split(" ")[0] ||
+                  "N/A"}
+              </Text>
             </View>
-            <View style={styles.row}>
-              <View style={styles.col}>
-                <Text style={styles.label}>Customer ID</Text>
-                <Text style={styles.value}>{data.customerId || "N/A"}</Text>
-              </View>
+            <View style={styles.col}>
+              <Text style={styles.label}>Middle Name</Text>
+              <Text style={styles.value}>{customer?.middleName || "N/A"}</Text>
             </View>
-            <View style={styles.row}>
-              <View style={styles.col}>
-                <Text style={styles.label}>Phone Numbers</Text>
-                {data.customerPhoneNumbers?.map((phone) => (
-                  <Text key={phone.id} style={styles.value}>
-                    {phone.phoneNumber}
-                  </Text>
-                ))}
-              </View>
+            <View style={styles.col}>
+              <Text style={styles.label}>Last Name</Text>
+              <Text style={styles.value}>{customer?.lastName || "N/A"}</Text>
             </View>
           </View>
+          <View style={styles.row}>
+            <View style={styles.col}>
+              <Text style={styles.label}>National ID</Text>
+              <Text style={styles.value}>
+                {(customer?.idNumber as string) ||
+                  data.customerNationalId ||
+                  "N/A"}
+              </Text>
+            </View>
+            <View style={styles.col}>
+              <Text style={styles.label}>Phone</Text>
+              <Text style={styles.value}>
+                {customer?.phoneNumbers?.map((p) => p.phoneNumber).join(", ") ||
+                  data.customerPhoneNumbers
+                    ?.map((p) => p.phoneNumber)
+                    .join(", ") ||
+                  "N/A"}
+              </Text>
+            </View>
+            <View style={styles.col}>
+              <Text style={styles.label}>Email</Text>
+              <Text style={styles.value}>{customer?.email || "N/A"}</Text>
+            </View>
+          </View>
+          <View style={styles.row}>
+            <View style={styles.col}>
+              <Text style={styles.label}>Customer Type</Text>
+              <Text style={styles.value}>
+                {customer?.customerTypeName || "N/A"}
+              </Text>
+            </View>
+            <View style={styles.col}>
+              <Text style={styles.label}>Has Membership</Text>
+              <Text style={styles.value}>
+                {customer?.hasMembership ? "Yes" : "No"}
+              </Text>
+            </View>
+            <View style={styles.col}>
+              <Text style={styles.label}>Membership Number</Text>
+              <Text style={styles.value}>
+                {customer?.memberShipNumber || "N/A"}
+              </Text>
+            </View>
+          </View>
+          <View style={styles.row}>
+            <View style={styles.col}>
+              <Text style={styles.label}>WhatsApp</Text>
+              <Text style={styles.value}>
+                {(customer?.whatsAppNumber as string) || "N/A"}
+              </Text>
+            </View>
+            <View style={styles.col}>
+              <Text style={styles.label}>Old Customer</Text>
+              <Text style={styles.value}>{customer?.isOld ? "Yes" : "No"}</Text>
+            </View>
+            <View style={styles.col}>
+              <Text style={styles.label}>No. of Reservations</Text>
+              <Text style={styles.value}>
+                {(customer?.noOfReservations as string) || "0"}
+              </Text>
+            </View>
+          </View>
+          <View style={styles.row}>
+            <View style={styles.col}>
+              <Text style={styles.label}>Last Reservation Date</Text>
+              <Text style={styles.value}>
+                {customer?.lastReservationDate
+                  ? dayjs(customer.lastReservationDate).format("DD/MM/YYYY")
+                  : "N/A"}
+              </Text>
+            </View>
+            <View style={styles.col}>
+              <Text style={styles.label}>Customer Favourites</Text>
+              <Text style={styles.value}>
+                {`${customer?.customerFavourites?.favoriteList?.length || 0} Fav / ${customer?.customerFavourites?.notRecommendedWorkerList?.length || 0} Not Rec`}
+              </Text>
+            </View>
+            <View style={styles.col}>
+              <Text style={styles.label}>General Notes</Text>
+              <Text style={styles.value}>
+                {customer?.generalNotes || "N/A"}
+              </Text>
+            </View>
+          </View>
+        </View>
 
-          <View style={[styles.col, styles.cardNoMargin]}>
-            <Text style={styles.sectionTitle}>Address & Building</Text>
-            <View style={styles.row}>
-              <View style={styles.col}>
-                <Text style={styles.label}>Area / Address Name</Text>
-                <Text style={styles.value}>
-                  {data.customerAddressName || "N/A"}
-                </Text>
-              </View>
+        {/* Selected Address Details */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Selected Address Details</Text>
+          <View style={styles.row}>
+            <View style={styles.col}>
+              <Text style={styles.label}>Address</Text>
+              <Text style={styles.value}>
+                {data.customerAddressName || "N/A"}
+              </Text>
             </View>
-            <View style={styles.row}>
-              <View style={styles.col}>
-                <Text style={styles.label}>Building Details</Text>
-                <Text style={styles.value}>
-                  Insects: {data.insects ? "Yes" : "No"} | Rodents:{" "}
-                  {data.rodents ? "Yes" : "No"}
-                </Text>
-              </View>
+            <View style={styles.col}>
+              <Text style={styles.label}>City</Text>
+              <Text style={styles.value}>
+                {data.cityName || address?.cityName?.toString() || "N/A"}
+              </Text>
             </View>
-            <View style={styles.row}>
-              <View style={styles.col}>
-                <Text style={styles.label}>Apartment Closing</Text>
-                <Text style={styles.value}>
-                  {data.apartmentClosingPeriod || "N/A"}
-                </Text>
-              </View>
+            <View style={styles.col}>
+              <Text style={styles.label}>Area</Text>
+              <Text style={styles.value}>
+                {data.areaName || address?.areaName?.toString() || "N/A"}
+              </Text>
             </View>
-            <View style={styles.row}>
-              <View style={styles.col}>
-                <Text style={styles.label}>Comments</Text>
-                <Text style={styles.value}>
-                  {data.generalComments || "N/A"}
-                </Text>
-              </View>
+          </View>
+          <View style={styles.row}>
+            <View style={styles.col}>
+              <Text style={styles.label}>Street</Text>
+              <Text style={styles.value}>{address?.street || "N/A"}</Text>
+            </View>
+            <View style={styles.col}>
+              <Text style={styles.label}>Apartment</Text>
+              <Text style={styles.value}>{address?.apartment || "N/A"}</Text>
+            </View>
+            <View style={styles.col}>
+              <Text style={styles.label}>Floor</Text>
+              <Text style={styles.value}>
+                {address?.floor?.toString() || "N/A"}
+              </Text>
+            </View>
+          </View>
+          <View style={styles.row}>
+            <View style={styles.col}>
+              <Text style={styles.label}>Landmark</Text>
+              <Text style={styles.value}>
+                {address?.landMark || address?.landmark || "N/A"}
+              </Text>
+            </View>
+            <View style={[styles.col, { flex: 2 }]}>
+              <Text style={styles.label}>Description</Text>
+              <Text style={styles.value}>
+                {address?.fullDescription || "N/A"}
+              </Text>
+            </View>
+          </View>
+          <View style={styles.row}>
+            <View style={styles.col}>
+              <Text style={styles.label}>Notes</Text>
+              <Text style={styles.value}>{address?.notes || "N/A"}</Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Building Details */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Building Details</Text>
+          <View style={styles.row}>
+            <View style={styles.col}>
+              <Text style={styles.label}>Space</Text>
+              <Text style={styles.value}>{address?.space || "N/A"}</Text>
+            </View>
+            <View style={styles.col}>
+              <Text style={styles.label}>Kitchens</Text>
+              <Text style={styles.value}>
+                {address?.numberOfKitchens?.toString() || "0"}
+              </Text>
+            </View>
+            <View style={styles.col}>
+              <Text style={styles.label}>Bedrooms</Text>
+              <Text style={styles.value}>
+                {address?.numberOfBedrooms?.toString() || "0"}
+              </Text>
+            </View>
+            <View style={styles.col}>
+              <Text style={styles.label}>Bathrooms</Text>
+              <Text style={styles.value}>
+                {address?.numberOfBathrooms?.toString() || "0"}
+              </Text>
+            </View>
+          </View>
+          <View style={styles.row}>
+            <View style={styles.col}>
+              <Text style={styles.label}>Living Rooms</Text>
+              <Text style={styles.value}>
+                {address?.numberOfLivingRooms?.toString() || "0"}
+              </Text>
+            </View>
+            <View style={styles.col}>
+              <Text style={styles.label}>Reception Rooms</Text>
+              <Text style={styles.value}>
+                {address?.numberOfReceptionrooms?.toString() || "0"}
+              </Text>
+            </View>
+            <View style={styles.col}>
+              <Text style={styles.label}>Floors</Text>
+              <Text style={styles.value}>
+                {address?.noOfFloors?.toString() ||
+                  address?.numberOfFloors?.toString() ||
+                  "0"}
+              </Text>
+            </View>
+            <View style={styles.col}>
+              <Text style={styles.label}>Windows</Text>
+              <Text style={styles.value}>
+                {address?.numberOfWindows?.toString() || "0"}
+              </Text>
+            </View>
+          </View>
+          <View style={styles.row}>
+            <View style={styles.col}>
+              <Text style={styles.label}>Has Pets</Text>
+              <Text style={styles.value}>
+                {address?.hasPets ? "Yes" : "No"}
+              </Text>
+            </View>
+            <View style={styles.col}>
+              <Text style={styles.label}>Insects</Text>
+              <Text style={styles.value}>{data.insects ? "Yes" : "No"}</Text>
+            </View>
+            <View style={styles.col}>
+              <Text style={styles.label}>Rodents</Text>
+              <Text style={styles.value}>{data.rodents ? "Yes" : "No"}</Text>
+            </View>
+            <View style={styles.col}>
+              <Text style={styles.label}>Apartment Closing</Text>
+              <Text style={styles.value}>
+                {data.apartmentClosingPeriod || "N/A"}
+              </Text>
+            </View>
+          </View>
+          <View style={styles.row}>
+            <View style={styles.col}>
+              <Text style={styles.label}>General Comments</Text>
+              <Text style={styles.value}>{data.generalComments || "N/A"}</Text>
             </View>
           </View>
         </View>
 
         {/* Packages Section */}
-        <View style={styles.packagesSection}>
+        <View style={styles.packagesSection} break wrap>
           <Text style={styles.sectionTitle}>Selected Packages</Text>
 
           {(data.getPackageDtoList || []).map((pkg, index: number) => {

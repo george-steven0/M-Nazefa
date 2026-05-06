@@ -142,6 +142,11 @@ type addressProps = {
   landmark: string;
   landMark?: string;
   fullDescription: string;
+  notes?: string;
+  cityName?: string;
+  cityArName?: string;
+  areaName?: string;
+  areaArName?: string;
 };
 export type clientFormPropsType = {
   id?: number | string;
@@ -170,21 +175,33 @@ export type clientFormPropsType = {
   entryDate: string;
   customerAddresses: (addressProps & buildingProps)[];
   address?: (addressProps & buildingProps)[];
-  favoriteList?:
-    | {
-        value: string;
-      }[]
-    | string[];
-  NotRecommendedWorkerList?:
-    | {
-        value: string;
-      }[]
-    | string[];
-  notRecommendedWorkerList?:
-    | {
-        value: string;
-      }[]
-    | string[];
+  customerFavourites: {
+    favoriteList?:
+      | {
+          workerId: number | string | null;
+        }[]
+      | number[];
+    notRecommendedWorkerList?:
+      | {
+          workerId: number | string | null;
+        }[]
+      | number[];
+  };
+  // favoriteList?:
+  //   | {
+  //       value: string | null;
+  //     }[]
+  //   | string[];
+  // NotRecommendedWorkerList?:
+  //   | {
+  //       value: string | null;
+  //     }[]
+  //   | string[];
+  // notRecommendedWorkerList?:
+  //   | {
+  //       value: string | null;
+  //     }[]
+  //   | string[];
 };
 
 export type buildingProps = {
@@ -324,10 +341,12 @@ export type reservationFormProps = {
   customerId: string | number;
   customerAddressId: string | number | null;
   duration: string[];
+  customerName?: string;
   insects: string | boolean;
   rodents: string | boolean;
   reservationDate: string;
   transportationFeesId: string | number;
+  onSpot: boolean;
   apartmentClosingPeriodId: string | number;
   generalComments: string;
   cityId?: string | null;
@@ -363,6 +382,24 @@ export type reservationDetailsData = {
     workerName: string;
     workerArName: string;
   }[];
+  // customer extra info
+  firstName?: string;
+  middleName?: string;
+  lastName?: string;
+  customerTypeName?: string;
+  hasMembership?: boolean;
+  memberShipNumber?: string;
+  whatsAppNumber?: string | number;
+  isOld?: boolean;
+  noOfReservations?: string | number;
+  lastReservationDate?: string;
+  generalNotes?: string;
+  customerFavourites?: {
+    favoriteList?: { workerId: number | string | null }[] | number[];
+    notRecommendedWorkerList?:
+      | { workerId: number | string | null }[]
+      | number[];
+  };
   idNumber?: string;
   phoneNumber?: string;
   email?: string;
@@ -372,6 +409,17 @@ export type reservationDetailsData = {
   apartment?: string;
   floor?: string;
   postalCode?: string;
+  // address extra info
+  landMark?: string;
+  fullDescription?: string;
+  notes?: string;
+  numberOfKitchens?: string | number;
+  numberOfBedrooms?: string | number;
+  numberOfLivingRooms?: string | number;
+  numberOfBathrooms?: string | number;
+  numberOfReceptionrooms?: string | number;
+  noOfFloors?: string | number;
+  hasPets?: boolean;
   rodents: boolean;
   insects: boolean;
   generalComments: string;
@@ -387,6 +435,9 @@ export type reservationDetailsData = {
   visitDuration?: string;
   startTime?: string;
   endTime?: string;
+  cityName?: string;
+  areaName?: string;
+  onSpot: boolean;
   getPackageDtoList: {
     count: number;
     packageAmount: number;
@@ -539,4 +590,107 @@ export type extraServiceProps = {
   name: string;
   arName: string;
   price: string | number;
+};
+
+export type customerAddressDDLProps = {
+  id: string | number;
+  name?: string;
+  cityId?: string | number;
+  areaId?: string | number;
+  street?: string;
+  apartment?: string;
+  floor?: string | number;
+  landMark?: string;
+  fullDescription?: string;
+  notes?: string;
+  space?: string | number;
+  numberOfKitchens?: string | number;
+  numberOfBedrooms?: string | number;
+  numberOfLivingRooms?: string | number;
+  numberOfBathrooms?: string | number;
+  numberOfReceptionrooms?: string | number;
+  noOfFloors?: string | number;
+  hasPets?: boolean;
+  numberOfWindows?: string | number;
+};
+
+export type reservationCustomerDataProps = {
+  id?: string | number;
+  firstName?: string;
+  middleName?: string;
+  lastName?: string;
+  idNumber?: string | number;
+  email?: string;
+  phoneNumbers?: { id?: string | number; phoneNumber: string | number }[];
+  generalNotes?: string;
+  customerTypeName?: string;
+  hasMembership?: boolean;
+  memberShipNumber?: string;
+  whatsAppNumber?: string | number;
+  isOld?: boolean;
+  noOfReservations?: string | number;
+  lastReservationDate?: string;
+  customerFavourites?: {
+    favoriteList?: { workerId: number | string | null }[] | number[];
+    notRecommendedWorkerList?:
+      | { workerId: number | string | null }[]
+      | number[];
+  };
+};
+
+export type transportationFeesFormProps = {
+  id?: string | number;
+  fee: string | number;
+  cityId: string | number;
+  areaId: string | number;
+  areaName?: string;
+  areaArName?: string;
+  cityName?: string;
+  cityArName?: string;
+};
+
+export type mostRecentCustomersProps = {
+  id: number;
+  name: string;
+  arName: string;
+};
+
+export type mostUsedPackage = {
+  id: number;
+  name: string;
+  usageCount: number;
+  usagePercent: number;
+};
+
+export type complaintFormProps = {
+  reservationId: string | number;
+  comment: string;
+};
+
+export type complaintResponseProps = {
+  id: string | number;
+  reservationId: string | number;
+  comment: string;
+  createdAt?: string;
+};
+
+export type workerManagementFormProps = {
+  startDate: string;
+  endDate: string;
+  workersNo: number;
+  notes?: string;
+};
+
+export type workerManagementResponseProps = {
+  id: string | number;
+  startDate: string;
+  endDate: string;
+  workersNo: number;
+  notes?: string;
+  creationDate?: string;
+};
+
+export type workerManagementFilterParams = {
+  from: string;
+  to: string;
 };

@@ -16,8 +16,10 @@ import { FaCheckCircle, FaTimesCircle, FaDownload } from "react-icons/fa";
 import { useSearchParams } from "react-router-dom";
 import {
   useAssignWorkerToReservationMutation,
+  useConfirmReservationMutation,
   useGetReservationByIdQuery,
 } from "../../../components/APIs/Reservations/RESERVATION_QUERY";
+import { useGetCustomerByIdQuery } from "../../../components/APIs/ClientQuery/CLIENTS_QUERY";
 import { skipToken } from "@reduxjs/toolkit/query";
 import dayjs from "dayjs";
 
@@ -39,6 +41,9 @@ const ReservationDetails = () => {
   const [params] = useSearchParams();
   const id = params.get("id");
   const { lang } = useAppSelector((state) => state?.lang);
+
+  const [confirmReservation, { isLoading: isConfirmLoading }] =
+    useConfirmReservationMutation();
 
   const {
     control,
@@ -62,6 +67,23 @@ const ReservationDetails = () => {
     useAssignWorkerToReservationMutation();
 
   const reservation = reservationData?.data;
+
+  const {
+    data: customer,
+    isLoading: customerLoading,
+    isFetching: customerIsFetching,
+  } = useGetCustomerByIdQuery(
+    reservation?.customerId
+      ? { id: reservation.customerId.toString() }
+      : skipToken,
+  );
+
+  const customerData = customer?.data;
+  const selectedAddress = customerData?.address?.find(
+    (a) => a.id === reservation?.customerAddressId,
+  );
+
+  // console.log(selectedAddress);
 
   const renderValue = (value: boolean | string | null | undefined) => {
     if (value === null || value === undefined || value === "") {
@@ -108,7 +130,7 @@ const ReservationDetails = () => {
 
   // console.log(reservationData?.data?.reservationWorkers);
 
-  if (isLoading || isFetching) {
+  if (isLoading || isFetching || customerLoading || customerIsFetching) {
     return (
       <main className="p-4">
         <header>
@@ -118,6 +140,21 @@ const ReservationDetails = () => {
       </main>
     );
   }
+
+  const handleConfirmReservation = async () => {
+    try {
+      await confirmReservation({ reservationId: Number(id) }).unwrap();
+      toast.success(t("RESERVATION_CONFIRMED_SUCCESSFULLY"));
+      reset();
+    } catch (error) {
+      const err = error as APIErrorProps;
+      err?.data?.errorMessages?.forEach((message) => {
+        toast.error(message);
+      });
+    }
+  };
+
+  // console.log(customer?.data);
 
   return (
     <>
@@ -132,9 +169,15 @@ const ReservationDetails = () => {
             />
             <div className="flex gap-3">
               {reservation && (
-                <div className="flex items-center gap-3">
+                <div className="flex items-stretch gap-3">
                   <PDFDownloadLink
-                    document={<ReservationDetailsPdf data={reservation} />}
+                    document={
+                      <ReservationDetailsPdf
+                        data={reservation}
+                        customer={customerData}
+                        address={selectedAddress}
+                      />
+                    }
                     fileName={`reservation-${reservation.id}.pdf`}
                   >
                     {({ loading }: { loading: boolean }) => (
@@ -142,7 +185,7 @@ const ReservationDetails = () => {
                         type="primary"
                         icon={<FaDownload />}
                         loading={loading}
-                        className="bg-mainColor hover:bg-mainColor/90! border-none px-4 py-3 h-auto rounded-md flex items-center justify-center font-semibold"
+                        className="bg-mainColor hover:bg-mainColor/90! border-none px-4 py-3 h-full rounded-md flex items-center justify-center font-semibold"
                       >
                         {loading ? "Loading..." : t("DOWNLOAD_PDF")}
                       </Button>
@@ -156,6 +199,16 @@ const ReservationDetails = () => {
                   >
                     {t("ASSIGN_WORKERS")}
                   </Button>
+
+                  {!reservation.onSpot && (
+                    <Button
+                      loading={isConfirmLoading}
+                      onClick={handleConfirmReservation}
+                      className="h-full capitalize font-semibold border border-green-600 text-green-600 bg-green-600/20 hover:bg-green-600/40"
+                    >
+                      Confirm Reservation
+                    </Button>
+                  )}
                 </div>
               )}
             </div>
@@ -164,33 +217,7 @@ const ReservationDetails = () => {
 
         <div className="px-4 lg:px-8 flex flex-col gap-6">
           {/* Top Info Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Card
-              className="rounded-2xl border-none shadow-sm hover:shadow-md transition-shadow"
-              title={
-                <span className="flex items-center gap-2 text-mainColor">
-                  <span className="w-1.5 h-6 bg-mainOrange rounded-full" />
-                  {t("CUSTOMER_INFO")}
-                </span>
-              }
-            >
-              <Descriptions column={1} size="small" colon={false}>
-                <Descriptions.Item label={t("FULL_NAME")}>
-                  {renderValue(reservation?.customerName)}
-                </Descriptions.Item>
-                <Descriptions.Item label={t("ID_NUMBER")}>
-                  {renderValue(reservation?.customerNationalId)}
-                </Descriptions.Item>
-                <Descriptions.Item label={t("PHONE_NUMBER")}>
-                  {renderValue(
-                    reservation?.customerPhoneNumbers
-                      ?.map((phone) => phone.phoneNumber)
-                      .join(", "),
-                  )}
-                </Descriptions.Item>
-              </Descriptions>
-            </Card>
-
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card
               className="rounded-2xl border-none shadow-sm hover:shadow-md transition-shadow"
               title={
@@ -200,7 +227,7 @@ const ReservationDetails = () => {
                 </span>
               }
             >
-              <Descriptions column={1} size="small" colon={false}>
+              <Descriptions column={2} size="small" colon={false}>
                 <Descriptions.Item label={t("DATE")}>
                   {renderValue(
                     reservation?.reservationDate
@@ -215,11 +242,6 @@ const ReservationDetails = () => {
                       : null,
                   )}
                 </Descriptions.Item>
-                {/* <Descriptions.Item label={t("AMOUNT")}>
-                  <div className="text-mainOrange font-bold text-lg">
-                    {reservation?.reservationAmount ?? 0} L.E
-                  </div>
-                </Descriptions.Item> */}
               </Descriptions>
             </Card>
 
@@ -228,20 +250,167 @@ const ReservationDetails = () => {
               title={
                 <span className="flex items-center gap-2 text-mainColor">
                   <span className="w-1.5 h-6 bg-mainOrange rounded-full" />
-                  {t("ADDRESS")}
+                  {t("APARTMENT")}
                 </span>
               }
             >
-              <Descriptions column={1} size="small" colon={false}>
-                <Descriptions.Item label={t("AREA")}>
-                  {renderValue(reservation?.customerAddressName)}
+              <Descriptions column={2} size="small" colon={false}>
+                <Descriptions.Item label={t("INSECTS")}>
+                  {renderValue(reservation?.insects)}
                 </Descriptions.Item>
-                <Descriptions.Item label={t("CITY")}>
-                  {renderValue(reservation?.city)}
+                <Descriptions.Item label={t("RODENTS")}>
+                  {renderValue(reservation?.rodents)}
+                </Descriptions.Item>
+                <Descriptions.Item
+                  label={t("APARTMENT_CLOSING_PERIOD")}
+                  span={2}
+                >
+                  {renderValue(reservation?.apartmentClosingPeriod)}
                 </Descriptions.Item>
               </Descriptions>
             </Card>
           </div>
+
+          {/* Customer Info */}
+          <Card
+            className="rounded-2xl border-none shadow-sm hover:shadow-md transition-shadow"
+            title={
+              <span className="flex items-center gap-2 text-mainColor">
+                <span className="w-1.5 h-6 bg-mainOrange rounded-full" />
+                {t("CUSTOMER_INFO")}
+              </span>
+            }
+          >
+            <Descriptions
+              column={{ xs: 1, sm: 2, lg: 3 }}
+              size="small"
+              colon={false}
+            >
+              <Descriptions.Item label={t("FIRST_NAME")}>
+                {renderValue(
+                  customerData?.firstName ||
+                    reservation?.customerName?.split(" ")[0],
+                )}
+              </Descriptions.Item>
+              <Descriptions.Item label={t("MIDDLE_NAME")}>
+                {renderValue(customerData?.middleName)}
+              </Descriptions.Item>
+              <Descriptions.Item label={t("LAST_NAME")}>
+                {renderValue(customerData?.lastName)}
+              </Descriptions.Item>
+              <Descriptions.Item label={t("ID_NUMBER")}>
+                {renderValue(
+                  (customerData?.idNumber as string) ||
+                    reservation?.customerNationalId,
+                )}
+              </Descriptions.Item>
+              <Descriptions.Item label={t("PHONE_NUMBER")}>
+                {renderValue(
+                  customerData?.phoneNumbers
+                    ?.map((phone) => phone.phoneNumber)
+                    .join(", ") ||
+                    reservation?.customerPhoneNumbers
+                      ?.map((phone) => phone.phoneNumber)
+                      .join(", "),
+                )}
+              </Descriptions.Item>
+              <Descriptions.Item label={t("EMAIL")}>
+                {renderValue(customerData?.email)}
+              </Descriptions.Item>
+              <Descriptions.Item label={t("CUSTOMER_TYPE")}>
+                {renderValue(customerData?.customerTypeName)}
+              </Descriptions.Item>
+              <Descriptions.Item label={t("HAS_MEMBERSHIP")}>
+                {renderValue(customerData?.hasMembership)}
+              </Descriptions.Item>
+              <Descriptions.Item label={t("MEMBERSHIP_NUMBER")}>
+                {renderValue(customerData?.memberShipNumber)}
+              </Descriptions.Item>
+              <Descriptions.Item label={t("WHATSAPP_NUMBER")}>
+                {renderValue(customerData?.whatsAppNumber as string)}
+              </Descriptions.Item>
+              <Descriptions.Item label={t("IS_OLD_CUSTOMER")}>
+                {renderValue(customerData?.isOld)}
+              </Descriptions.Item>
+              <Descriptions.Item label={t("NO_OF_RESERVATIONS")}>
+                {renderValue(customerData?.noOfReservations as string)}
+              </Descriptions.Item>
+              <Descriptions.Item label={t("LAST_RESERVATION_DATE")}>
+                {renderValue(
+                  customerData?.lastReservationDate
+                    ? dayjs(customerData.lastReservationDate).format(
+                        "DD/MM/YYYY",
+                      )
+                    : null,
+                )}
+              </Descriptions.Item>
+              {/* <Descriptions.Item label={t("CUSTOMER_FAVOURITES")}>
+                {renderValue(
+                  `${customerData?.customerFavourites?.favoriteList?.length || 0} Fav / ${customerData?.customerFavourites?.notRecommendedWorkerList?.length || 0} Not Rec`,
+                )}
+              </Descriptions.Item> */}
+              <Descriptions.Item label={t("GENERAL_NOTES")} span={3}>
+                {renderValue(customerData?.generalNotes)}
+              </Descriptions.Item>
+            </Descriptions>
+          </Card>
+
+          {/* Address Details */}
+          <Card
+            className="rounded-2xl border-none shadow-sm hover:shadow-md transition-shadow"
+            title={
+              <span className="flex items-center gap-2 text-mainColor">
+                <span className="w-1.5 h-6 bg-mainOrange rounded-full" />
+                {t("SELECTED_ADDRESS_DETAILS")}
+              </span>
+            }
+          >
+            <Descriptions
+              column={{ xs: 1, sm: 2, lg: 3 }}
+              size="small"
+              colon={false}
+            >
+              <Descriptions.Item label={t("ADDRESS")}>
+                {renderValue(reservation?.customerAddressName)}
+              </Descriptions.Item>
+              <Descriptions.Item label={t("CITY")}>
+                {renderValue(
+                  lang === "en"
+                    ? selectedAddress?.cityName
+                    : selectedAddress?.cityArName,
+                  //   reservation?.cityName || selectedAddress?.cityName?.toString(),
+                )}
+              </Descriptions.Item>
+              <Descriptions.Item label={t("AREA")}>
+                {renderValue(
+                  lang === "en"
+                    ? selectedAddress?.areaName
+                    : selectedAddress?.areaArName,
+                  //   reservation?.areaName || selectedAddress?.areaName?.toString(),
+                )}
+              </Descriptions.Item>
+              <Descriptions.Item label={t("STREET")}>
+                {renderValue(selectedAddress?.street)}
+              </Descriptions.Item>
+              <Descriptions.Item label={t("APARTMENT")}>
+                {renderValue(selectedAddress?.apartment)}
+              </Descriptions.Item>
+              <Descriptions.Item label={t("FLOOR")}>
+                {renderValue(selectedAddress?.floor?.toString())}
+              </Descriptions.Item>
+              <Descriptions.Item label={t("LANDMARK")}>
+                {renderValue(
+                  selectedAddress?.landMark || selectedAddress?.landmark,
+                )}
+              </Descriptions.Item>
+              <Descriptions.Item label={t("DESCRIPTION")} span={2}>
+                {renderValue(selectedAddress?.fullDescription)}
+              </Descriptions.Item>
+              <Descriptions.Item label={t("NOTES")} span={3}>
+                {renderValue(selectedAddress?.notes)}
+              </Descriptions.Item>
+            </Descriptions>
+          </Card>
 
           {/* Building Details */}
           <Card
@@ -256,21 +425,73 @@ const ReservationDetails = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-4">
               <div className="flex flex-col">
                 <Text type="secondary" className="text-xs mb-1">
-                  {t("INSECTS")}
+                  {t("SPACE")}
                 </Text>
-                {renderValue(reservation?.insects)}
+                {renderValue(selectedAddress?.space)}
               </div>
               <div className="flex flex-col">
                 <Text type="secondary" className="text-xs mb-1">
-                  {t("RODENTS")}
+                  {t("NUMBER_OF_KITCHENS")}
                 </Text>
-                {renderValue(reservation?.rodents)}
+                {renderValue(
+                  selectedAddress?.numberOfKitchens?.toString() ?? null,
+                )}
               </div>
               <div className="flex flex-col">
                 <Text type="secondary" className="text-xs mb-1">
-                  {t("APARTMENT_CLOSING_PERIOD")}
+                  {t("NUMBER_OF_BEDROOMS")}
                 </Text>
-                {renderValue(reservation?.apartmentClosingPeriod)}
+                {renderValue(
+                  selectedAddress?.numberOfBedrooms?.toString() ?? null,
+                )}
+              </div>
+              <div className="flex flex-col">
+                <Text type="secondary" className="text-xs mb-1">
+                  {t("NUMBER_OF_BATHROOMS")}
+                </Text>
+                {renderValue(
+                  selectedAddress?.numberOfBathrooms?.toString() ?? null,
+                )}
+              </div>
+              <div className="flex flex-col">
+                <Text type="secondary" className="text-xs mb-1">
+                  {t("NUMBER_OF_LIVING_ROOMS")}
+                </Text>
+                {renderValue(
+                  selectedAddress?.numberOfLivingRooms?.toString() ?? null,
+                )}
+              </div>
+              <div className="flex flex-col">
+                <Text type="secondary" className="text-xs mb-1">
+                  {t("NUMBER_OF_RECEPTION_ROOMS")}
+                </Text>
+                {renderValue(
+                  selectedAddress?.numberOfReceptionrooms?.toString() ?? null,
+                )}
+              </div>
+              <div className="flex flex-col">
+                <Text type="secondary" className="text-xs mb-1">
+                  {t("NUMBER_OF_FLOORS")}
+                </Text>
+                {renderValue(
+                  selectedAddress?.noOfFloors?.toString() ??
+                    selectedAddress?.numberOfFloors?.toString() ??
+                    null,
+                )}
+              </div>
+              <div className="flex flex-col">
+                <Text type="secondary" className="text-xs mb-1">
+                  {t("NUMBER_OF_WINDOWS")}
+                </Text>
+                {renderValue(
+                  selectedAddress?.numberOfWindows?.toString() ?? null,
+                )}
+              </div>
+              <div className="flex flex-col">
+                <Text type="secondary" className="text-xs mb-1">
+                  {t("HAS_PETS")}
+                </Text>
+                {renderValue(selectedAddress?.hasPets)}
               </div>
               <div className="flex flex-col">
                 <Text type="secondary" className="text-xs mb-1">
@@ -290,18 +511,27 @@ const ReservationDetails = () => {
               </span>
             }
           >
-            <div className="flex items-center justify-between gap-5">
-              {reservation?.reservationWorkers?.map((worker) => (
-                <div key={worker.workerId} className="flex gap-2">
-                  <span className="w-[3px] h-6 bg-mainOrange rounded-full" />
-                  <div className="flex items-center gap-2">
-                    <span className="font-bold">{t("WORKER")} : </span>
-                    <span>
-                      {lang === "ar" ? worker.workerArName : worker.workerName}
-                    </span>
+            <div className="flex items-center justify-start gap-5">
+              {reservation?.reservationWorkers &&
+              reservation?.reservationWorkers?.length > 0 ? (
+                reservation?.reservationWorkers?.map((worker) => (
+                  <div key={worker.workerId} className="flex gap-2">
+                    <span className="w-[3px] h-6 bg-mainOrange rounded-full" />
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold">{t("WORKER")} : </span>
+                      <span>
+                        {lang === "ar"
+                          ? worker.workerArName
+                          : worker.workerName}
+                      </span>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))
+              ) : (
+                <p className="flex items-center justify-center w-full">
+                  {t("NA")}
+                </p>
+              )}
             </div>
           </Card>
 

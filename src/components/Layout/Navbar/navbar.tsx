@@ -7,21 +7,22 @@ import packagesIcon from "../../../assets/imgs/packagesIcon.svg";
 import reservationIcon from "../../../assets/imgs/reservationIcon.svg";
 import messagesIcon from "../../../assets/imgs/messagesIcon.svg";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import navVector from "../../../assets/imgs/navbarVector.svg";
 import { Button, Collapse } from "antd";
 import { useTranslation } from "react-i18next";
 import { FaSignOutAlt } from "react-icons/fa";
+import { RiCustomerService2Fill } from "react-icons/ri";
+
 import {
   MdCardMembership,
   MdOutlineCleaningServices,
   MdOutlinePermContactCalendar,
 } from "react-icons/md";
-import { FaMapLocation } from "react-icons/fa6";
+import { FaMapLocation, FaVanShuttle } from "react-icons/fa6";
 import { LuPackagePlus } from "react-icons/lu";
 import {
   AiOutlineDashboard,
-  AiOutlineCalendar,
   AiOutlineTeam,
   AiOutlineAppstore,
   // AiOutlineSetting,
@@ -33,6 +34,8 @@ import {
   type Permission,
   ROLE_PERMISSIONS,
 } from "../../../Utilities/permissions.config";
+import { PiClockUser } from "react-icons/pi";
+import { IoSettingsOutline } from "react-icons/io5";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -202,6 +205,14 @@ const Navbar = ({
             permissions: [PERMISSIONS.VIEW_AREAS],
           },
           {
+            id: "transportations",
+            name: t("TRANSPORTATION_FEES"),
+            path: "/transportations",
+            icon: <FaVanShuttle />,
+            iconType: "fontIcon",
+            permissions: [PERMISSIONS.VIEW_TRANSPORTATION],
+          },
+          {
             id: "cleaning_area",
             name: t("CLEANING_AREA"),
             path: "/cleaning_area",
@@ -214,20 +225,21 @@ const Navbar = ({
               PERMISSIONS.DELETE_CLEANING_AREA,
             ],
           },
-          {
-            id: "messages",
-            name: t("MESSAGES"),
-            path: "/messages",
-            icon: messagesIcon,
-            permissions: [PERMISSIONS.VIEW_MESSAGES],
-          },
         ],
       },
       {
-        id: "ACCESS_CONTROL",
-        name: t("ACCESS_CONTROL") || "Access control",
-        icon: <AiOutlineCalendar />,
+        id: "SETTINGS",
+        name: t("SETTINGS") || "Settings",
+        icon: <IoSettingsOutline />,
         children: [
+          {
+            id: "worker_management",
+            name: t("WORKER_MANAGEMENT"),
+            path: "/worker-management",
+            icon: <PiClockUser />,
+            iconType: "fontIcon",
+            permissions: [PERMISSIONS.VIEW_WORKER_MANAGEMENT],
+          },
           {
             id: "roles",
             name: t("ROLES"),
@@ -235,6 +247,21 @@ const Navbar = ({
             icon: <MdOutlinePermContactCalendar />,
             iconType: "fontIcon",
             permissions: [PERMISSIONS.VIEW_ROLES],
+          },
+          {
+            id: "complaints",
+            name: t("COMPLAINTS"),
+            path: "/complaints",
+            icon: <RiCustomerService2Fill />,
+            iconType: "fontIcon",
+            permissions: [PERMISSIONS.VIEW_COMPLAINTS],
+          },
+          {
+            id: "messages",
+            name: t("MESSAGES"),
+            path: "/messages",
+            icon: messagesIcon,
+            permissions: [PERMISSIONS.VIEW_MESSAGES],
           },
         ],
       },
@@ -269,14 +296,26 @@ const Navbar = ({
       .filter((group) => group.children.length > 0);
   }, [allowedPermissions, navGroups]);
 
+  const [openKeys, setOpenKeys] = useState<string | string[]>([]);
+
   /** Auto-expand the group that contains the current active route */
-  const activeKeys = useMemo(() => {
+  useEffect(() => {
+    let found = false;
     for (const group of visibleGroups) {
-      if (group.children.some((link) => pathname.startsWith(link.path))) {
-        return [group.id];
+      if (
+        group.children.some(
+          (link) =>
+            pathname === link.path || pathname.startsWith(`${link.path}/`),
+        )
+      ) {
+        setOpenKeys([group.id]);
+        found = true;
+        break;
       }
     }
-    return [];
+    if (!found) {
+      setOpenKeys([]);
+    }
   }, [pathname, visibleGroups]);
 
   // ── Side-effects ─────────────────────────────────────────────────────────
@@ -296,13 +335,17 @@ const Navbar = ({
     <NavLink
       key={link.id}
       to={link.path}
-      className={({ isActive }) =>
-        `flex items-center gap-2 w-full p-2.5 rounded-tl-sm rounded-bl-sm capitalize text-[#ebebeb] transition-all duration-300 hover:bg-linear-to-r hover:from-mainColor hover:to-[#254F5F] hover:border-r-5 hover:border-r-white hover:opacity-100 ${
-          isActive
-            ? " from-mainColor to-[#254F5F] bg-linear-to-r border-r-5 border-r-white"
+      className={({ isActive }) => {
+        const isLinkActive =
+          pathname === link.path ||
+          pathname.startsWith(`${link.path}/`) ||
+          isActive;
+        return `flex items-center gap-2 w-full p-2.5 rounded-tl-sm rounded-bl-sm capitalize text-[#ebebeb] transition-all duration-300 hover:bg-linear-to-r hover:from-mainColor hover:to-[#254F5F] hover:border-r-5 hover:border-r-white hover:opacity-100 ${
+          isLinkActive
+            ? " from-mainColor to-[#254F5F] bg-linear-to-r border-r-5 border-r-white opacity-100"
             : "opacity-40"
-        }`
-      }
+        }`;
+      }}
     >
       {link.iconType === "fontIcon" ? (
         <span className="text-xl">{link.icon}</span>
@@ -341,7 +384,8 @@ const Navbar = ({
           <Collapse
             accordion
             ghost
-            defaultActiveKey={activeKeys}
+            activeKey={openKeys}
+            onChange={(key) => setOpenKeys(key)}
             expandIconPosition="end"
             className="navbar-accordion w-full [&_.ant-collapse-header]:text-white/40 [&_.ant-collapse-expand-icon]:text-white/40 [&_.ant-collapse-item-active>.ant-collapse-header]:text-white [&_.ant-collapse-item-active>.ant-collapse-header_.ant-collapse-expand-icon]:text-white [&_.ant-collapse-header]:transition-colors [&_.ant-collapse-header]:duration-300"
             items={collapseItems}

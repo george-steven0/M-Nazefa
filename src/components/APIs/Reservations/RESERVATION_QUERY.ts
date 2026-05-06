@@ -18,6 +18,18 @@ const reservationQuery = API.injectEndpoints({
       providesTags: ["reservations"],
     }),
 
+    confirmReservation: builder.mutation<
+      APIResponse<reservationFormProps>,
+      { reservationId: string | number }
+    >({
+      query: (data: { reservationId: string | number }) => ({
+        url: "/Reservation/ConfirmReservation",
+        method: "POST",
+        body: data,
+      }),
+      invalidatesTags: ["reservations"],
+    }),
+
     getReservationById: builder.query<
       SingleAPIResponse<reservationDetailsData>,
       { id: string }
@@ -61,7 +73,7 @@ const reservationQuery = API.injectEndpoints({
         method: "POST",
         body: data,
       }),
-      invalidatesTags: ["reservations"],
+      invalidatesTags: ["reservations", "dashboardMetrics"],
     }),
 
     toggleReservationStatus: builder.mutation<
@@ -100,4 +112,5 @@ export const {
   useAddHoldReservationMutation,
   useAssignWorkerToReservationMutation,
   useToggleReservationStatusMutation,
+  useConfirmReservationMutation,
 } = reservationQuery;

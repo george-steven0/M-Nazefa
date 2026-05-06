@@ -4,9 +4,10 @@ import Title from "../../../components/Common/Title/title";
 import { useTranslation } from "react-i18next";
 import type {
   APIErrorProps,
+  reservationCustomerDataProps,
   reservationFormProps,
 } from "../../../components/Utilities/Types/types";
-import { Button, Collapse, DatePicker, Input, Select } from "antd";
+import { Button, Checkbox, Collapse, DatePicker, Input, Select } from "antd";
 import dayjs from "dayjs";
 import { useEffect } from "react";
 import {
@@ -57,6 +58,7 @@ const ReservationForm = () => {
     formState: { errors },
   } = useForm<reservationFormProps>({
     defaultValues: {
+      onSpot: true,
       addReservationPackagesDtos: [
         {
           packageId: "",
@@ -108,6 +110,19 @@ const ReservationForm = () => {
 
   const cityId = watch("cityId");
   const areaId = watch("areaId");
+  const customerAddressId = watch("customerAddressId");
+
+  // const selectedAddress = addresses?.data?.find(
+  //   (a) => a.id === customerAddressId,
+  // );
+
+  const selectedAddress = customer?.data?.address?.find(
+    (a) => a.id === customerAddressId,
+  );
+
+  // console.log(selectedAddress);
+
+  const customerData: reservationCustomerDataProps | undefined = customer?.data;
 
   const {
     data: areas,
@@ -179,6 +194,8 @@ const ReservationForm = () => {
 
   useEffect(() => {
     if (customer) {
+      console.log(customer);
+
       setValue("firstName", customer.data?.firstName || t("NA"));
       setValue("middleName", customer.data?.middleName || t("NA"));
       setValue("lastName", customer.data?.lastName || t("NA"));
@@ -208,6 +225,8 @@ const ReservationForm = () => {
       insects: data?.insects === "true",
       rodents: data?.rodents === "true",
     };
+
+    console.log(formattedData);
 
     try {
       await addReservation(formattedData).unwrap();
@@ -264,6 +283,13 @@ const ReservationForm = () => {
                         setValue("customerAddressId", null);
                         //   handleChange(e);
                       }}
+                      showSearch
+                      optionFilterProp="label"
+                      filterOption={(input, option) =>
+                        (option?.label ?? "")
+                          .toLowerCase()
+                          .includes(input.toLowerCase())
+                      }
                       options={customers?.data?.map((customer) => ({
                         value: customer.id,
                         label: customer.name,
@@ -309,6 +335,13 @@ const ReservationForm = () => {
                         field.onChange(e);
                         //   handleChange(e);
                       }}
+                      showSearch
+                      optionFilterProp="label"
+                      filterOption={(input, option) =>
+                        (option?.label ?? "")
+                          .toLowerCase()
+                          .includes(input.toLowerCase())
+                      }
                       options={addresses?.data?.map((address) => ({
                         value: address.id,
                         label: address.name || "---",
@@ -322,6 +355,29 @@ const ReservationForm = () => {
                     {errors?.customerAddressId?.message}
                   </p>
                 ) : null}
+              </div>
+
+              <div className="onSpot-flag">
+                <div className="flex flex-col w-fit items-start gap-2 capitalize">
+                  <label className="cursor-pointer w-fit" htmlFor="onSpot">
+                    {t("ON_SPOT")}
+                  </label>
+
+                  <Controller
+                    control={control}
+                    name={`onSpot`}
+                    render={({ field }) => (
+                      <Checkbox
+                        id="onSpot"
+                        checked={!!field?.value}
+                        {...field}
+                        className="h-auto scale-150"
+                        defaultChecked={true}
+                        onChange={(e) => field.onChange(e.target.checked)}
+                      />
+                    )}
+                  />
+                </div>
               </div>
             </section>
 
@@ -506,6 +562,484 @@ const ReservationForm = () => {
                 />
 
                 {errors?.email ? <p>{errors?.email?.message}</p> : null}
+              </div>
+
+              <div>
+                <label>{t("GENERAL_NOTES")}</label>
+                <Input
+                  variant="filled"
+                  value={customerData?.generalNotes || t("NA")}
+                  readOnly
+                  disabled={
+                    !customerId ||
+                    customerLoading ||
+                    customerIsFetching ||
+                    !selectedAddress ||
+                    !selectedAddress
+                  }
+                  className="placeholder:capitalize"
+                />
+              </div>
+              <div>
+                <label>{t("CUSTOMER_TYPE")}</label>
+                <Input
+                  variant="filled"
+                  value={customerData?.customerTypeName || t("NA")}
+                  readOnly
+                  disabled={
+                    !customerId ||
+                    customerLoading ||
+                    customerIsFetching ||
+                    !selectedAddress ||
+                    !selectedAddress
+                  }
+                  className="placeholder:capitalize"
+                />
+              </div>
+              <div>
+                <label>{t("HAS_MEMBERSHIP")}</label>
+                <Input
+                  variant="filled"
+                  value={customerData?.hasMembership ? t("YES") : t("NO")}
+                  readOnly
+                  disabled={
+                    !customerId ||
+                    customerLoading ||
+                    customerIsFetching ||
+                    !selectedAddress ||
+                    !selectedAddress
+                  }
+                  className="placeholder:capitalize"
+                />
+              </div>
+              {/* <div>
+                <label>{t("MEMBERSHIP")}</label>
+                <Input
+                  variant="filled"
+                  value={
+                    customerData?.membership
+                      ? JSON.stringify(customerData.membership)
+                      : t("NA")
+                  }
+                  readOnly
+                  disabled={
+                    !customerId ||
+                    customerLoading ||
+                    customerIsFetching ||
+                    !selectedAddress ||
+                    !selectedAddress
+                  }
+                  className="placeholder:capitalize"
+                />
+              </div> */}
+              <div>
+                <label>{t("MEMBERSHIP_NUMBER")}</label>
+                <Input
+                  variant="filled"
+                  value={customerData?.memberShipNumber || t("NA")}
+                  readOnly
+                  disabled={
+                    !customerId ||
+                    customerLoading ||
+                    customerIsFetching ||
+                    !selectedAddress ||
+                    !selectedAddress
+                  }
+                  className="placeholder:capitalize"
+                />
+              </div>
+              <div>
+                <label>{t("WHATS_APP_NUMBER")}</label>
+                <Input
+                  variant="filled"
+                  value={customerData?.whatsAppNumber || t("NA")}
+                  readOnly
+                  disabled={
+                    !customerId ||
+                    customerLoading ||
+                    customerIsFetching ||
+                    !selectedAddress ||
+                    !selectedAddress
+                  }
+                  className="placeholder:capitalize"
+                />
+              </div>
+              <div>
+                <label>{t("OLD_CUSTOMER")}</label>
+                <Input
+                  variant="filled"
+                  value={customerData?.isOld ? t("YES") : t("NO")}
+                  readOnly
+                  disabled={
+                    !customerId ||
+                    customerLoading ||
+                    customerIsFetching ||
+                    !selectedAddress ||
+                    !selectedAddress
+                  }
+                  className="placeholder:capitalize"
+                />
+              </div>
+              <div>
+                <label>{t("NUMBER_OF_RESERVATIONS")}</label>
+                <Input
+                  variant="filled"
+                  value={customerData?.noOfReservations?.toString() || "0"}
+                  readOnly
+                  disabled={
+                    !customerId ||
+                    customerLoading ||
+                    customerIsFetching ||
+                    !selectedAddress ||
+                    !selectedAddress
+                  }
+                  className="placeholder:capitalize"
+                />
+              </div>
+              <div>
+                <label>{t("LAST_RESERVATION_DATE")}</label>
+                <Input
+                  variant="filled"
+                  value={
+                    customerData?.lastReservationDate
+                      ? dayjs(customerData?.lastReservationDate).format(
+                          "DD/MM/YYYY",
+                        )
+                      : t("NA")
+                  }
+                  readOnly
+                  disabled={
+                    !customerId ||
+                    customerLoading ||
+                    customerIsFetching ||
+                    !selectedAddress ||
+                    !selectedAddress
+                  }
+                  className="placeholder:capitalize"
+                />
+              </div>
+              {/* <div>
+                <label>{t("CUSTOMER_FAVOURITES")}</label>
+                <Input
+                  variant="filled"
+                  value={`${customerData?.customerFavourites?.favoriteList?.length || 0} Fav / ${customerData?.customerFavourites?.notRecommendedWorkerList?.length || 0} Not Rec`}
+                  readOnly
+                  disabled={
+                    !customerId ||
+                    customerLoading ||
+                    customerIsFetching ||
+                    !selectedAddress ||
+                    !selectedAddress
+                  }
+                  className="placeholder:capitalize"
+                />
+              </div>
+
+              <div>
+                <label>{t("CUSTOMER_FAVOURITES")}</label>
+                <Input
+                  variant="filled"
+                  value={`${customerData?.customerFavourites?.favoriteList?.length || 0} Fav / ${customerData?.customerFavourites?.notRecommendedWorkerList?.length || 0} Not Rec`}
+                  readOnly
+                  disabled={
+                    !customerId ||
+                    customerLoading ||
+                    customerIsFetching ||
+                    !selectedAddress ||
+                    !selectedAddress
+                  }
+                  className="placeholder:capitalize"
+                />
+              </div> */}
+            </section>
+
+            <section className="address-details-section">
+              <div className="address-details-title capitalize col-span-full text-xl text-[#1D1B1B] font-semibold">
+                {t("SELECTED_ADDRESS_DETAILS")}
+              </div>
+              <div>
+                <label>{t("CITY")}</label>
+                <Input
+                  variant="filled"
+                  value={
+                    lang === "en"
+                      ? selectedAddress?.cityName?.toString()
+                      : selectedAddress?.cityArName || t("NA")
+                  }
+                  readOnly
+                  disabled={
+                    !customerId ||
+                    customerLoading ||
+                    customerIsFetching ||
+                    !selectedAddress ||
+                    !selectedAddress
+                  }
+                  className="placeholder:capitalize"
+                />
+              </div>
+              <div>
+                <label>{t("AREA")}</label>
+                <Input
+                  variant="filled"
+                  value={
+                    lang === "en"
+                      ? selectedAddress?.areaName?.toString()
+                      : selectedAddress?.areaArName || t("NA")
+                  }
+                  readOnly
+                  disabled={
+                    !customerId ||
+                    customerLoading ||
+                    customerIsFetching ||
+                    !selectedAddress ||
+                    !selectedAddress
+                  }
+                  className="placeholder:capitalize"
+                />
+              </div>
+              <div>
+                <label>{t("STREET")}</label>
+                <Input
+                  variant="filled"
+                  value={selectedAddress?.street || t("NA")}
+                  readOnly
+                  disabled={
+                    !customerId ||
+                    customerLoading ||
+                    customerIsFetching ||
+                    !selectedAddress ||
+                    !selectedAddress
+                  }
+                  className="placeholder:capitalize"
+                />
+              </div>
+              <div>
+                <label>{t("APARTMENT")}</label>
+                <Input
+                  variant="filled"
+                  value={selectedAddress?.apartment || t("NA")}
+                  readOnly
+                  disabled={
+                    !customerId ||
+                    customerLoading ||
+                    customerIsFetching ||
+                    !selectedAddress ||
+                    !selectedAddress
+                  }
+                  className="placeholder:capitalize"
+                />
+              </div>
+              <div>
+                <label>{t("FLOOR")}</label>
+                <Input
+                  variant="filled"
+                  value={selectedAddress?.floor?.toString() || t("NA")}
+                  readOnly
+                  disabled={
+                    !customerId ||
+                    customerLoading ||
+                    customerIsFetching ||
+                    !selectedAddress ||
+                    !selectedAddress
+                  }
+                  className="placeholder:capitalize"
+                />
+              </div>
+              <div>
+                <label>{t("LANDMARK")}</label>
+                <Input
+                  variant="filled"
+                  value={selectedAddress?.landMark || t("NA")}
+                  readOnly
+                  disabled={
+                    !customerId ||
+                    customerLoading ||
+                    customerIsFetching ||
+                    !selectedAddress ||
+                    !selectedAddress
+                  }
+                  className="placeholder:capitalize"
+                />
+              </div>
+              <div>
+                <label>{t("DESCRIPTION")}</label>
+                <Input
+                  variant="filled"
+                  value={selectedAddress?.fullDescription || t("NA")}
+                  readOnly
+                  disabled={
+                    !customerId ||
+                    customerLoading ||
+                    customerIsFetching ||
+                    !selectedAddress ||
+                    !selectedAddress
+                  }
+                  className="placeholder:capitalize"
+                />
+              </div>
+              <div>
+                <label>{t("NOTES")}</label>
+                <Input
+                  variant="filled"
+                  value={selectedAddress?.notes || t("NA")}
+                  readOnly
+                  disabled={
+                    !customerId ||
+                    customerLoading ||
+                    customerIsFetching ||
+                    !selectedAddress ||
+                    !selectedAddress
+                  }
+                  className="placeholder:capitalize"
+                />
+              </div>
+              <div>
+                <label>{t("SPACE")}</label>
+                <Input
+                  variant="filled"
+                  value={selectedAddress?.space || t("NA")}
+                  readOnly
+                  disabled={
+                    !customerId ||
+                    customerLoading ||
+                    customerIsFetching ||
+                    !selectedAddress ||
+                    !selectedAddress
+                  }
+                  className="placeholder:capitalize"
+                />
+              </div>
+              <div>
+                <label>{t("NUMBER_OF_KITCHENS")}</label>
+                <Input
+                  variant="filled"
+                  value={selectedAddress?.numberOfKitchens?.toString() || "0"}
+                  readOnly
+                  disabled={
+                    !customerId ||
+                    customerLoading ||
+                    customerIsFetching ||
+                    !selectedAddress ||
+                    !selectedAddress
+                  }
+                  className="placeholder:capitalize"
+                />
+              </div>
+              <div>
+                <label>{t("NUMBER_OF_BEDROOMS")}</label>
+                <Input
+                  variant="filled"
+                  value={selectedAddress?.numberOfBedrooms?.toString() || "0"}
+                  readOnly
+                  disabled={
+                    !customerId ||
+                    customerLoading ||
+                    customerIsFetching ||
+                    !selectedAddress ||
+                    !selectedAddress
+                  }
+                  className="placeholder:capitalize"
+                />
+              </div>
+              <div>
+                <label>{t("NUMBER_OF_LIVINGROOMS")}</label>
+                <Input
+                  variant="filled"
+                  value={
+                    selectedAddress?.numberOfLivingRooms?.toString() || "0"
+                  }
+                  readOnly
+                  disabled={
+                    !customerId ||
+                    customerLoading ||
+                    customerIsFetching ||
+                    !selectedAddress ||
+                    !selectedAddress
+                  }
+                  className="placeholder:capitalize"
+                />
+              </div>
+              <div>
+                <label>{t("NUMBER_OF_BATHROOMS")}</label>
+                <Input
+                  variant="filled"
+                  value={selectedAddress?.numberOfBathrooms?.toString() || "0"}
+                  readOnly
+                  disabled={
+                    !customerId ||
+                    customerLoading ||
+                    customerIsFetching ||
+                    !selectedAddress ||
+                    !selectedAddress
+                  }
+                  className="placeholder:capitalize"
+                />
+              </div>
+              <div>
+                <label>{t("NUMBER_OF_RECIPTIONROOMS")}</label>
+                <Input
+                  variant="filled"
+                  value={
+                    selectedAddress?.numberOfReceptionrooms?.toString() || "0"
+                  }
+                  readOnly
+                  disabled={
+                    !customerId ||
+                    customerLoading ||
+                    customerIsFetching ||
+                    !selectedAddress ||
+                    !selectedAddress
+                  }
+                  className="placeholder:capitalize"
+                />
+              </div>
+              <div>
+                <label>{t("NUMBER_OF_FLOORS")}</label>
+                <Input
+                  variant="filled"
+                  value={selectedAddress?.noOfFloors?.toString() || "0"}
+                  readOnly
+                  disabled={
+                    !customerId ||
+                    customerLoading ||
+                    customerIsFetching ||
+                    !selectedAddress ||
+                    !selectedAddress
+                  }
+                  className="placeholder:capitalize"
+                />
+              </div>
+              <div>
+                <label>{t("NUMBER_OF_WINDOWS")}</label>
+                <Input
+                  variant="filled"
+                  value={selectedAddress?.numberOfWindows?.toString() || "0"}
+                  readOnly
+                  disabled={
+                    !customerId ||
+                    customerLoading ||
+                    customerIsFetching ||
+                    !selectedAddress ||
+                    !selectedAddress
+                  }
+                  className="placeholder:capitalize"
+                />
+              </div>
+              <div>
+                <label>{t("PETS")}</label>
+                <Input
+                  variant="filled"
+                  value={selectedAddress?.hasPets ? t("YES") : t("NO")}
+                  readOnly
+                  disabled={
+                    !customerId ||
+                    customerLoading ||
+                    customerIsFetching ||
+                    !selectedAddress ||
+                    !selectedAddress
+                  }
+                  className="placeholder:capitalize"
+                />
               </div>
             </section>
 

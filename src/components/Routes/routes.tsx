@@ -39,6 +39,9 @@ import PackageTypes from "../../Pages/PackageTypes/packageTypes";
 import CLeaningArea from "../../Pages/CleaningArea/cleaningArea";
 import ReservationForm from "../../Pages/Reservations/Components/reservationForm";
 import Profile from "../../Pages/Profile/profile";
+import TransportationFees from "../../Pages/Transportations/transportations";
+import Complaints from "../../Pages/Complaints/complaints";
+import WorkerManagement from "../../Pages/WorkerManagement/workerManagement";
 
 export const routes = createBrowserRouter([
   // Guest Routes
@@ -264,6 +267,32 @@ export const routes = createBrowserRouter([
               },
               { path: "reservation-details", element: <ReservationDetails /> },
             ],
+          },
+
+          {
+            path: "transportations",
+            element: <TransportationFees />,
+            handle: {
+              permission: PERMISSIONS.VIEW_TRANSPORTATION,
+            },
+          },
+
+          // Complaints
+          {
+            path: "complaints",
+            element: <Complaints />,
+            handle: {
+              permission: PERMISSIONS.VIEW_COMPLAINTS,
+            },
+          },
+
+          // Worker Management
+          {
+            path: "worker-management",
+            element: <WorkerManagement />,
+            handle: {
+              permission: PERMISSIONS.VIEW_WORKER_MANAGEMENT,
+            },
           },
 
           // Messages

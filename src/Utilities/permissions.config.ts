@@ -58,6 +58,15 @@ export const PERMISSIONS = {
 
   //Messages
   VIEW_MESSAGES: "view_messages",
+
+  //Transportation
+  VIEW_TRANSPORTATION: "view_transportation",
+
+  //Complaints
+  VIEW_COMPLAINTS: "view_complaints",
+
+  //Worker Management
+  VIEW_WORKER_MANAGEMENT: "view_worker_management",
 } as const;
 
 // 2) Permission type
@@ -135,6 +144,9 @@ export const ROLE_PERMISSIONS: Record<AppRole, Permission[]> = {
     PERMISSIONS.ADD_RESERVATION,
     PERMISSIONS.EDIT_RESERVATION,
     PERMISSIONS.DELETE_RESERVATION,
+
+    //Transportation
+    PERMISSIONS.VIEW_TRANSPORTATION,
 
     //Messages
     // PERMISSIONS.VIEW_MESSAGES,

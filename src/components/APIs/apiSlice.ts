@@ -84,6 +84,10 @@ export const API = createApi({
     "reservations",
     "holdReservation",
     "workers",
+    "transportationFees",
+    "dashboardMetrics",
+    "complaints",
+    "workerManagement",
   ],
   endpoints: () => ({}),
 });

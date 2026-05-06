@@ -28,7 +28,10 @@ import AddressRow from "./AddressRow/addressRow";
 import { useAppSelector } from "../../../components/APIs/store";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
-import { useGetCustomerTypesQuery } from "../../../components/APIs/Seeders/SEEDERS_RTK_QUERY";
+import {
+  useGetAllWorkersListQuery,
+  useGetCustomerTypesQuery,
+} from "../../../components/APIs/Seeders/SEEDERS_RTK_QUERY";
 import TextArea from "antd/es/input/TextArea";
 import Astrisk from "../../../components/Common/Astrisk/astrisk";
 import { cleanDeep } from "../../../components/Utilities/helper";
@@ -39,6 +42,11 @@ const ClientForm = () => {
   const { t } = useTranslation();
   const [editClient, { isLoading: isEditLoading }] = useEditClientMutation();
   const [addNewClient, { isLoading: isAddLoading }] = useAddNewClientMutation();
+  const {
+    data: workers,
+    isLoading: isWorkersLoading,
+    isFetching: isWorkersFetching,
+  } = useGetAllWorkersListQuery();
 
   const { lang } = useAppSelector((state) => state?.lang);
   const navigate = useNavigate();
@@ -87,7 +95,11 @@ const ClientForm = () => {
     membershipId: clientById?.data.membershipId ?? "",
     customerTypeId: clientById?.data.customerTypeId ?? "",
     isOld: clientById?.data?.isOld ?? false,
-    whatsAppNumber: clientById?.data?.whatsAppNumber ?? "",
+    whatsAppNumber: clientById?.data?.whatsAppNumber
+      ?.toString()
+      .startsWith("20")
+      ? clientById?.data?.whatsAppNumber?.toString().slice(2)
+      : clientById?.data?.whatsAppNumber,
     entryDate: clientById?.data?.entryDate ?? undefined,
     customerAddresses: clientById?.data?.address?.map((address) => ({
       id: address?.id,
@@ -114,22 +126,28 @@ const ClientForm = () => {
       landLine: address?.landLine ?? "",
     })),
     phoneNumbers: clientById?.data?.phoneNumbers ?? [],
-    favoriteList:
-      (clientById?.data?.favoriteList as unknown as string)
-        ?.split("_")
-        ?.map((val) => {
+    customerFavourites: {
+      favoriteList:
+        clientById?.data?.customerFavourites?.favoriteList?.map((val) => {
           return {
-            value: val,
+            workerId:
+              typeof val === "object"
+                ? (val?.workerId as unknown as number)
+                : val,
           };
         }) ?? [],
-    NotRecommendedWorkerList:
-      (clientById?.data?.notRecommendedWorkerList as unknown as string)
-        ?.split("_")
-        ?.map((val) => {
-          return {
-            value: val,
-          };
-        }) ?? [],
+      notRecommendedWorkerList:
+        clientById?.data?.customerFavourites?.notRecommendedWorkerList?.map(
+          (val) => {
+            return {
+              workerId:
+                typeof val === "object"
+                  ? (val?.workerId as unknown as number)
+                  : val,
+            };
+          },
+        ) ?? [],
+    },
   };
 
   const addDefaultValues = {
@@ -152,16 +170,20 @@ const ClientForm = () => {
         phoneNumber: "",
       },
     ],
-    favoriteList: [
-      {
-        value: "",
-      },
-    ],
-    NotRecommendedWorkerList: [
-      {
-        value: "",
-      },
-    ],
+    // favoriteList: [
+    //   {
+    //     value: null,
+    //   },
+    // ],
+    // NotRecommendedWorkerList: [
+    //   {
+    //     value: null,
+    //   },
+    // ],
+    customerFavourites: {
+      favoriteList: [{ workerId: null }],
+      notRecommendedWorkerList: [{ workerId: null }],
+    },
   };
 
   // console.log(
@@ -180,24 +202,19 @@ const ClientForm = () => {
     handleSubmit,
     reset,
     setValue,
+    // getValues,
     formState: { errors },
   } = useForm<clientFormPropsType>({
     defaultValues: {
       customerAddresses: [],
-      favoriteList: [
-        {
-          value: "",
-        },
-      ],
-      NotRecommendedWorkerList: [
-        {
-          value: "",
-        },
-      ],
+      customerFavourites: {
+        favoriteList: [],
+        notRecommendedWorkerList: [],
+      },
     },
   });
 
-  // console.log(getValues("customerAddresses"));
+  // console.log(getValues());
   // console.log(data?.data?.address?.map((address) => address));
 
   useEffect(() => {
@@ -303,17 +320,21 @@ const ClientForm = () => {
         id: address?.id || 0,
         ...address,
       })),
-      favoriteList: data?.favoriteList?.map((item) =>
-        typeof item === "object" ? item?.value : item,
-      ),
-      notRecommendedWorkers: data?.NotRecommendedWorkerList?.map((item) =>
-        typeof item === "object" ? item?.value : item,
-      ),
+      customerFavourites: {
+        favoriteList: (data?.customerFavourites?.favoriteList
+          ?.map((val) => (typeof val === "object" ? val?.workerId : val))
+          ?.filter(Boolean) ?? []) as number[],
+        notRecommendedWorkerList:
+          (data?.customerFavourites?.notRecommendedWorkerList
+            ?.map((val) => (typeof val === "object" ? val?.workerId : val))
+            ?.filter(Boolean) ?? []) as number[],
+      },
+
       entryDate: dayjs(data?.entryDate).format("YYYY-MM-DDTHH:mm:ss"),
     };
 
     const cleanData = cleanDeep(formattedData);
-    // console.log(cleanData);
+    // console.log("cleanData: ", cleanData);
 
     try {
       if (id) {
@@ -947,6 +968,8 @@ const ClientForm = () => {
                         length={fields?.length}
                         t={t}
                         setValue={setValue}
+                        workers={workers?.data || []}
+                        workerLoading={isWorkersLoading || isWorkersFetching}
                       />
                     </div>
                   ))}
@@ -957,6 +980,7 @@ const ClientForm = () => {
                 <Button
                   className="bg-lightGray text-black hover:bg-gray-300"
                   onClick={resetForm}
+                  disabled={isAddLoading || isEditLoading}
                 >
                   {t("RESET")}
                 </Button>
