@@ -23,25 +23,26 @@ import { toast } from "react-toastify";
 import { useAppSelector } from "../../components/APIs/store";
 import { BsBoxSeam } from "react-icons/bs";
 import { isAdmin, isSuperAdmin } from "../../Utilities/utilities";
+import { BiEdit } from "react-icons/bi";
 
 const Actions = ({ data }: { data: serviceFormProps }) => {
   const navigate = useNavigate();
-  //   const handleNavigateEdit = () => {
-  //     navigate(`edit-reservation?id=${data?.id}`);
-  //     console.log(data);
-  //   };
+  const handleNavigateEdit = () => {
+    navigate(`edit-reservation?id=${data?.id}`);
+    // console.log(data);
+  };
   const handleNavigateView = () => {
     navigate(`reservation-details?id=${data?.id}`);
     // console.log(data);
   };
   return (
     <div className="flex items-center gap-2">
-      {/* <Button
+      <Button
         shape="circle"
         className="hover:bg-mainColor/60 hover:text-white hover:border-transparent size-10 [&>span]:flex [&>span]:items-center"
         onClick={handleNavigateEdit}
         icon={<BiEdit size={20} />}
-      /> */}
+      />
       <Button
         className="hover:bg-mainGray/60 hover:text-white hover:border-transparent size-10 [&>span]:flex [&>span]:items-center"
         shape="circle"

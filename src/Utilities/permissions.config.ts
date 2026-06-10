@@ -67,6 +67,7 @@ export const PERMISSIONS = {
 
   //Worker Management
   VIEW_WORKER_MANAGEMENT: "view_worker_management",
+  VIEW_RESERVATION_PAYMENTS: "view_reservation_payments",
 } as const;
 
 // 2) Permission type
@@ -96,6 +97,7 @@ export const ROLE_PERMISSIONS: Record<AppRole, Permission[]> = {
     //Reservations
     PERMISSIONS.ADD_RESERVATION,
     PERMISSIONS.VIEW_RESERVATION,
+    PERMISSIONS.VIEW_RESERVATION_PAYMENTS,
 
     //Service
     PERMISSIONS.VIEW_SERVICE,
@@ -144,6 +146,7 @@ export const ROLE_PERMISSIONS: Record<AppRole, Permission[]> = {
     PERMISSIONS.ADD_RESERVATION,
     PERMISSIONS.EDIT_RESERVATION,
     PERMISSIONS.DELETE_RESERVATION,
+    PERMISSIONS.VIEW_RESERVATION_PAYMENTS,
 
     //Transportation
     PERMISSIONS.VIEW_TRANSPORTATION,

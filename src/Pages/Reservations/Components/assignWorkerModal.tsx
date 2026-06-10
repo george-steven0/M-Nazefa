@@ -143,6 +143,7 @@ export default function AssignWorkerModal({
                   className="w-full h-auto [&_.ant-select-selector]:py-2"
                   placeholder={t("SELECT_WORKER") || "Please select worker"}
                   loading={isLoading || isFetching}
+                  disabled={isLoading || isFetching}
                   value={field.value?.map(
                     (worker: DefaultOptionType) => worker.workerId,
                   )}

@@ -42,6 +42,7 @@ import Profile from "../../Pages/Profile/profile";
 import TransportationFees from "../../Pages/Transportations/transportations";
 import Complaints from "../../Pages/Complaints/complaints";
 import WorkerManagement from "../../Pages/WorkerManagement/workerManagement";
+import PayemntsDetails from "../../Pages/Reservations/Components/payemntsDeatils";
 
 export const routes = createBrowserRouter([
   // Guest Routes
@@ -267,6 +268,13 @@ export const routes = createBrowserRouter([
               },
               { path: "reservation-details", element: <ReservationDetails /> },
             ],
+          },
+          {
+            path: "/reservations/reservation-payemnts",
+            element: <PayemntsDetails />,
+            handle: {
+              permission: PERMISSIONS.VIEW_RESERVATION_PAYMENTS,
+            },
           },
 
           {

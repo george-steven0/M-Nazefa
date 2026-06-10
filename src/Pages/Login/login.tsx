@@ -29,6 +29,7 @@ const Login = () => {
         toast.success("Login Successfully");
         localStorage.setItem("mNazTk", res?.data?.token);
         localStorage.setItem("mNazRole", JSON.stringify(res?.data?.rolesList));
+        localStorage.setItem("uid", res?.data?.id ?? "");
         navigate(getFirstAllowedPath());
       } else {
         toast.error(res?.errorMessages?.join("\n"));

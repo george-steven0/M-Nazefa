@@ -65,6 +65,7 @@ export type loginProps = {
   password: string;
 };
 export type loginResponseProps = {
+  id?: string;
   token: string;
   email: string;
   fullName: string;
@@ -345,7 +346,8 @@ export type reservationFormProps = {
   insects: string | boolean;
   rodents: string | boolean;
   reservationDate: string;
-  transportationFeesId: string | number;
+  transportationFeesId: string | number | null;
+  fee?: string | number | null;
   onSpot: boolean;
   apartmentClosingPeriodId: string | number;
   generalComments: string;
@@ -359,6 +361,12 @@ export type reservationFormProps = {
       packageExtraServiceId: string | number;
     }[];
   }[];
+  getTransportationFeesDetails?: {
+    fee: number | string;
+    cityId: string | null;
+    areaId: string | null;
+    id: string | number;
+  };
 } & clientFormPropsType &
   appointmentProps &
   buildingProps &
@@ -438,6 +446,7 @@ export type reservationDetailsData = {
   cityName?: string;
   areaName?: string;
   onSpot: boolean;
+  isConfirmed : boolean;
   getPackageDtoList: {
     count: number;
     packageAmount: number;
@@ -480,6 +489,12 @@ export type reservationDetailsData = {
       }[];
     };
   }[];
+  getTransportationFeesDetails?: {
+    fee: number | string;
+    cityId: string | null;
+    areaId: string | null;
+    id: string | number;
+  };
 };
 export type workersFormProps = {
   id: string;
@@ -693,4 +708,13 @@ export type workerManagementResponseProps = {
 export type workerManagementFilterParams = {
   from: string;
   to: string;
+};
+
+export type reservationPaymentsProps = {
+  reservationId: string | number;
+  type: string;
+  amount: number;
+  operationDate: string;
+  paymentMethod: string;
+  note: string;
 };

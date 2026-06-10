@@ -13,7 +13,7 @@ import {
 } from "antd";
 import { useState } from "react";
 import { FaCheckCircle, FaTimesCircle, FaDownload } from "react-icons/fa";
-import { useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   useAssignWorkerToReservationMutation,
   useConfirmReservationMutation,
@@ -33,11 +33,13 @@ import type {
   assignWorkerFormProps,
 } from "../../../components/Utilities/Types/types";
 import { toast } from "react-toastify";
+import PayemntsModal from "./payemntsDeatils";
 
 const { Text, Title: TypographyTitle } = Typography;
 
 const ReservationDetails = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [params] = useSearchParams();
   const id = params.get("id");
   const { lang } = useAppSelector((state) => state?.lang);
@@ -154,6 +156,10 @@ const ReservationDetails = () => {
     }
   };
 
+  const handleNavigateToPayments = () => {
+    navigate(`/reservations/reservation-payemnts?id=${id}`);
+  };
+
   // console.log(customer?.data);
 
   return (
@@ -165,11 +171,18 @@ const ReservationDetails = () => {
               title={t("CUSTOMER_RESERVATION_DETAILS")}
               subTitle
               component={null}
-              className="m-0"
+              className="m-0 [&>span]:text-xl"
             />
             <div className="flex gap-3">
               {reservation && (
-                <div className="flex items-stretch gap-3">
+                <div className="flex items-stretch gap-3 [&>button]:h-full [&>button]:py-2 [&>button]:px-3">
+                  <Button
+                    onClick={handleNavigateToPayments}
+                    className="bg-mainOrange text-white font-semibold capitalize"
+                  >
+                    {t("VIEW_PAYEMNTS")}
+                  </Button>
+
                   <PDFDownloadLink
                     document={
                       <ReservationDetailsPdf
@@ -200,7 +213,7 @@ const ReservationDetails = () => {
                     {t("ASSIGN_WORKERS")}
                   </Button>
 
-                  {!reservation.onSpot && (
+                  {(reservation?.onSpot && !reservation?.isConfirmed) && (
                     <Button
                       loading={isConfirmLoading}
                       onClick={handleConfirmReservation}
@@ -868,6 +881,8 @@ const ReservationDetails = () => {
         workers={reservation?.reservationWorkers}
         loading={assignWorkerLoading}
       />
+
+      <PayemntsModal />
     </>
   );
 };

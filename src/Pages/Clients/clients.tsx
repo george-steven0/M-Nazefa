@@ -80,7 +80,7 @@ const Clients = () => {
       dataIndex: "name",
       key: "name",
       render: (_, data) => (
-        <span>{data?.firstName + " " + data?.lastName}</span>
+        <span>{data?.firstName + " " + data?.middleName + " "+ data?.lastName}</span>
       ),
     },
     {
@@ -98,6 +98,7 @@ const Clients = () => {
     {
       title: t("ID_NUMBER"),
       dataIndex: "idNumber",
+      render: (text) => <span>{text || t('NA')}</span>,
       key: "idNumber",
     },
 
@@ -111,7 +112,7 @@ const Clients = () => {
     {
       title: t("LAST_RESERVATION_DATE"),
       dataIndex: "lastReservationDate",
-      render: (text) => <span>{fullDateFormat(text) || ""}</span>,
+      render: (text) => <span>{fullDateFormat(text) || t('NA')}</span>,
       key: "lastReservationDate",
     },
 

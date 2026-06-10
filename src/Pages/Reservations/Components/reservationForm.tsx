@@ -7,8 +7,18 @@ import type {
   reservationCustomerDataProps,
   reservationFormProps,
 } from "../../../components/Utilities/Types/types";
-import { Button, Checkbox, Collapse, DatePicker, Input, Select } from "antd";
+import {
+  Button,
+  Checkbox,
+  Collapse,
+  DatePicker,
+  Input,
+  Select,
+  Skeleton,
+} from "antd";
 import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+dayjs.extend(utc);
 import { useEffect } from "react";
 import {
   useGetAllCustomerAddressesQuery,
@@ -29,10 +39,12 @@ import TextArea from "antd/es/input/TextArea";
 import {
   useAddReservationMutation,
   useGetHoldReservationQuery,
+  useGetReservationByIdQuery,
+  useUpdateReservationMutation,
 } from "../../../components/APIs/Reservations/RESERVATION_QUERY";
 import { toast } from "react-toastify";
 import Astrisk from "../../../components/Common/Astrisk/astrisk";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 // const extraOptions = [
 //   "EXTRA_BATHROOM",
@@ -47,8 +59,26 @@ const ReservationForm = () => {
   const { lang } = useAppSelector((state) => state?.lang);
   const navigate = useNavigate();
 
+  const [searchParams] = useSearchParams();
+  const reservatinId = searchParams.get("id") || null;
+  const isEditMode = !!reservatinId;
+
+  const {
+    data: reservationDetails,
+    isFetching: reservationDetailsIsFetching,
+    isLoading: reservationDetailsLoading,
+  } = useGetReservationByIdQuery(
+    reservatinId ? { id: reservatinId } : skipToken,
+  );
+
+  // console.log(reservationDetails);
+
   const [addReservation, { isLoading: isAddReservationLoading }] =
     useAddReservationMutation();
+
+  const [updateReservation, { isLoading: isEditReservationLoading }] =
+    useUpdateReservationMutation();
+
   const {
     control,
     handleSubmit,
@@ -125,11 +155,13 @@ const ReservationForm = () => {
   const customerData: reservationCustomerDataProps | undefined = customer?.data;
 
   const {
-    data: areas,
+    // data: areas,
+    currentData:newAreas,
     isFetching: isAreasFetching,
     isLoading: isAreasLoading,
   } = useGetAreasQuery(cityId ? { cityId, filter: "true" } : skipToken);
 
+  
   // transportation fees
   const {
     data: transportationFees,
@@ -192,9 +224,10 @@ const ReservationForm = () => {
 
   // const [selectedRadio, setSelectedRadio] = useState(0);
 
+  // Populate personal info from customer lookup (add mode & when customer changes)
   useEffect(() => {
     if (customer) {
-      console.log(customer);
+      // console.log(customer);
 
       setValue("firstName", customer.data?.firstName || t("NA"));
       setValue("middleName", customer.data?.middleName || t("NA"));
@@ -208,10 +241,52 @@ const ReservationForm = () => {
     }
   }, [customer, setValue, t]);
 
+  // Populate form with existing reservation data in edit mode
+  useEffect(() => {
+    if (isEditMode && reservationDetails?.data) {
+      const d = reservationDetails.data;
+
+      reset({
+        customerId: d.customerId,
+        customerAddressId: d.customerAddressId,
+        reservationDate: d.reservationDate ? dayjs.utc(d.reservationDate).local() : "",
+        insects: d.insects ? "true" : "false",
+        rodents: d.rodents ? "true" : "false",
+        apartmentClosingPeriodId: d.apartmentClosingPeriodId,
+        generalComments: d.generalComments || "",
+        onSpot: d.onSpot ?? true,
+        addReservationPackagesDtos: d.getPackageDtoList?.map((pkg) => ({
+          packageId: pkg.getPackageDto?.id,
+          count: pkg.count || 1,
+          packageAmount: pkg.packageAmount || pkg.getPackageDto?.price || "",
+          reservationPackageExtraServices:
+            pkg.reservationPackageExtraServices?.length > 0
+              ? pkg.reservationPackageExtraServices.map((es) => ({
+                  packageExtraServiceId: es.id,
+                }))
+              : [{ packageExtraServiceId: undefined }],
+        })) || [
+          {
+            packageId: "",
+            count: 1,
+            packageAmount: "",
+            reservationPackageExtraServices: [
+              { packageExtraServiceId: undefined },
+            ],
+          },
+        ],
+        areaId: d?.getTransportationFeesDetails?.areaId || "",
+        cityId: d?.getTransportationFeesDetails?.cityId || "",
+        fee: d?.getTransportationFeesDetails?.fee || "",
+        transportationFeesId: d?.getTransportationFeesDetails?.id || "",
+      } as unknown as reservationFormProps);
+    }
+  }, [isEditMode, reservationDetails, reset]);
+
   const handleSubmitForm = async (data: reservationFormProps) => {
     const formattedData = {
       ...data,
-      reservationDate: dayjs(data?.reservationDate)?.toISOString(),
+      reservationDate: dayjs(data?.reservationDate)?.utc()?.toISOString(),
       addReservationPackagesDtos: data?.addReservationPackagesDtos?.map(
         (item) => ({
           ...item,
@@ -226,11 +301,19 @@ const ReservationForm = () => {
       rodents: data?.rodents === "true",
     };
 
-    console.log(formattedData);
+    // console.log(formattedData);
 
     try {
-      await addReservation(formattedData).unwrap();
-      toast.success("Reservation added successfully");
+      if (isEditMode) {
+        await updateReservation({
+          ...formattedData,
+          id: reservatinId!,
+        } as reservationFormProps).unwrap();
+        toast.success("Reservation updated successfully");
+      } else {
+        await addReservation(formattedData).unwrap();
+        toast.success("Reservation added successfully");
+      }
       navigate("/reservations");
       reset();
     } catch (error) {
@@ -239,380 +322,390 @@ const ReservationForm = () => {
         toast.error(message);
       });
     }
-
-    // console.log(formattedData);
   };
+
+  // const ex = useWatch({name: 'addReservationPackagesDtos',control:control})
+
+  // console.log(ex)
 
   return (
     <main className="px-6">
-      <header>
-        <Title title={t("ADD_RESERVATION")} subTitle />
+      <header className="mb-4">
+        <Title
+          title={isEditMode ? t("EDIT_RESERVATION") : t("ADD_RESERVATION")}
+          subTitle
+        />
       </header>
 
-      <section className="mt-4 form-container">
-        <form onSubmit={handleSubmit(handleSubmitForm)} noValidate>
-          <div className="flex flex-col gap-15 [&>section]:grid [&>section]:grid-cols-1 [&>section]:md:grid-cols-2 [&>section]:lg:grid-cols-3 [&>section]:gap-5 [&>section>div>label]:block [&>section>div>label]:mb-1 [&>section>div>label]:capitalize [&>section>div>label]:font-medium [&>section>div>input]:border-[#C4C4C4] [&>section>div>select]:border-[#C4C4C4] [&>section>div>input]:py-2 [&>section>div>select]:py-2 [&>section>div>p]:mt-1 [&>section>div>p]:text-xs [&>section>div>p]:text-mainRed">
-            <section className="customer-selection-wrapper ">
-              <div className="col-span-2 lg:col-span-1 text-xl text-[#1D1B1B]">
-                <label className="font-semibold">
-                  {t("SELECT_CUSTOMER")}
-                  <Astrisk />
-                </label>
-
-                <Controller
-                  control={control}
-                  name="customerId"
-                  rules={{
-                    required: {
-                      value: true,
-                      message: t("REQUIRED"),
-                    },
-                  }}
-                  render={({ field }) => (
-                    <Select
-                      {...field}
-                      loading={customersLoading || customersIsFetching}
-                      className="min-h-10 border-[#C4C4C4] border rounded-md capitalize [&>.ant-select-selector]:capitalize"
-                      variant="filled"
-                      status={errors?.customerId ? "error" : ""}
-                      // defaultValue="male"
-                      placeholder="Select Customer"
-                      style={{ width: "100%" }}
-                      onChange={(e) => {
-                        field.onChange(e);
-                        setValue("customerAddressId", null);
-                        //   handleChange(e);
-                      }}
-                      showSearch
-                      optionFilterProp="label"
-                      filterOption={(input, option) =>
-                        (option?.label ?? "")
-                          .toLowerCase()
-                          .includes(input.toLowerCase())
-                      }
-                      options={customers?.data?.map((customer) => ({
-                        value: customer.id,
-                        label: customer.name,
-                      }))}
-                    />
-                  )}
-                />
-
-                {errors?.customerId ? (
-                  <p className="font-light">{errors?.customerId?.message}</p>
-                ) : null}
-              </div>
-
-              <div className="col-span-2 lg:col-span-1 text-xl text-[#1D1B1B]">
-                <label className="font-semibold">
-                  {t("SELECT_ADDRESS")}
-                  <Astrisk />
-                </label>
-
-                <Controller
-                  control={control}
-                  name="customerAddressId"
-                  rules={{
-                    required: {
-                      value: true,
-                      message: t("REQUIRED"),
-                    },
-                  }}
-                  render={({ field }) => (
-                    <Select
-                      {...field}
-                      disabled={
-                        !customerId || customerLoading || customerIsFetching
-                      }
-                      loading={addressesLoading || addressesIsFetching}
-                      className="min-h-10 border-[#C4C4C4] border rounded-md capitalize [&>.ant-select-selector]:capitalize"
-                      variant="filled"
-                      status={errors?.customerAddressId ? "error" : ""}
-                      // defaultValue="male"
-                      placeholder="Select Address"
-                      style={{ width: "100%" }}
-                      onChange={(e) => {
-                        field.onChange(e);
-                        //   handleChange(e);
-                      }}
-                      showSearch
-                      optionFilterProp="label"
-                      filterOption={(input, option) =>
-                        (option?.label ?? "")
-                          .toLowerCase()
-                          .includes(input.toLowerCase())
-                      }
-                      options={addresses?.data?.map((address) => ({
-                        value: address.id,
-                        label: address.name || "---",
-                      }))}
-                    />
-                  )}
-                />
-
-                {errors?.customerAddressId ? (
-                  <p className="font-light">
-                    {errors?.customerAddressId?.message}
-                  </p>
-                ) : null}
-              </div>
-
-              <div className="onSpot-flag">
-                <div className="flex flex-col w-fit items-start gap-2 capitalize">
-                  <label className="cursor-pointer w-fit" htmlFor="onSpot">
-                    {t("ON_SPOT")}
+      {reservationDetailsIsFetching || reservationDetailsLoading ? (
+        <Skeleton active paragraph={{ rows: 16 }} />
+      ) : (
+        <section className="mt-4 form-container">
+          <form onSubmit={handleSubmit(handleSubmitForm)} noValidate>
+            <div className="flex flex-col gap-15 [&>section]:grid [&>section]:grid-cols-1 [&>section]:md:grid-cols-2 [&>section]:lg:grid-cols-3 [&>section]:gap-5 [&>section>div>label]:block [&>section>div>label]:mb-1 [&>section>div>label]:capitalize [&>section>div>label]:font-medium [&>section>div>input]:border-[#C4C4C4] [&>section>div>select]:border-[#C4C4C4] [&>section>div>input]:py-2 [&>section>div>select]:py-2 [&>section>div>p]:mt-1 [&>section>div>p]:text-xs [&>section>div>p]:text-mainRed">
+              <section className="customer-selection-wrapper ">
+                <div className="col-span-2 lg:col-span-1 text-xl text-[#1D1B1B]">
+                  <label className="font-semibold">
+                    {t("SELECT_CUSTOMER")}
+                    <Astrisk />
                   </label>
 
                   <Controller
                     control={control}
-                    name={`onSpot`}
+                    name="customerId"
+                    rules={{
+                      required: {
+                        value: true,
+                        message: t("REQUIRED"),
+                      },
+                    }}
                     render={({ field }) => (
-                      <Checkbox
-                        id="onSpot"
-                        checked={!!field?.value}
+                      <Select
                         {...field}
-                        className="h-auto scale-150"
-                        defaultChecked={true}
-                        onChange={(e) => field.onChange(e.target.checked)}
+                        loading={customersLoading || customersIsFetching}
+                        className="min-h-10 border-[#C4C4C4] border rounded-md capitalize [&>.ant-select-selector]:capitalize"
+                        variant="filled"
+                        status={errors?.customerId ? "error" : ""}
+                        // defaultValue="male"
+                        placeholder="Select Customer"
+                        style={{ width: "100%" }}
+                        onChange={(e) => {
+                          field.onChange(e);
+                          setValue("customerAddressId", null);
+                          //   handleChange(e);
+                        }}
+                        showSearch
+                        optionFilterProp="label"
+                        filterOption={(input, option) =>
+                          (option?.label ?? "")
+                            .toLowerCase()
+                            .includes(input.toLowerCase())
+                        }
+                        options={customers?.data?.map((customer) => ({
+                          value: customer.id,
+                          label: customer.name,
+                        }))}
                       />
                     )}
                   />
+
+                  {errors?.customerId ? (
+                    <p className="font-light">{errors?.customerId?.message}</p>
+                  ) : null}
                 </div>
-              </div>
-            </section>
 
-            <section className="personal-info-section ">
-              <div className="personal-title capitalize col-span-full text-xl text-[#1D1B1B] font-semibold">
-                {t("PERSONAL_INFO")}
-              </div>
+                <div className="col-span-2 lg:col-span-1 text-xl text-[#1D1B1B]">
+                  <label className="font-semibold">
+                    {t("SELECT_ADDRESS")}
+                    <Astrisk />
+                  </label>
 
-              <div>
-                <label>{t("FIRST_NAME")}</label>
-                <Controller
-                  control={control}
-                  name="firstName"
-                  // rules={{
-                  //   required: {
-                  //     value: true,
-                  //     message: t("REQUIRED"),
-                  //   },
-                  // }}
-                  render={({ field }) => (
-                    <Input
-                      {...field}
-                      variant="filled"
-                      placeholder="Enter first name"
-                      className="placeholder:capitalize"
-                      status={errors?.firstName ? "error" : ""}
-                      readOnly
-                      disabled={
-                        !customerId || customerLoading || customerIsFetching
-                      }
+                  <Controller
+                    control={control}
+                    name="customerAddressId"
+                    rules={{
+                      required: {
+                        value: true,
+                        message: t("REQUIRED"),
+                      },
+                    }}
+                    render={({ field }) => (
+                      <Select
+                        {...field}
+                        disabled={
+                          !customerId || customerLoading || customerIsFetching
+                        }
+                        loading={addressesLoading || addressesIsFetching}
+                        className="min-h-10 border-[#C4C4C4] border rounded-md capitalize [&>.ant-select-selector]:capitalize"
+                        variant="filled"
+                        status={errors?.customerAddressId ? "error" : ""}
+                        // defaultValue="male"
+                        placeholder="Select Address"
+                        style={{ width: "100%" }}
+                        onChange={(e) => {
+                          field.onChange(e);
+                          //   handleChange(e);
+                        }}
+                        showSearch
+                        optionFilterProp="label"
+                        filterOption={(input, option) =>
+                          (option?.label ?? "")
+                            .toLowerCase()
+                            .includes(input.toLowerCase())
+                        }
+                        options={addresses?.data?.map((address) => ({
+                          value: address.id,
+                          label: address.name || "---",
+                        }))}
+                      />
+                    )}
+                  />
+
+                  {errors?.customerAddressId ? (
+                    <p className="font-light">
+                      {errors?.customerAddressId?.message}
+                    </p>
+                  ) : null}
+                </div>
+
+                <div className="onSpot-flag">
+                  <div className="flex flex-col w-fit items-start gap-2 capitalize">
+                    <label className="cursor-pointer w-fit" htmlFor="onSpot">
+                      {t("ON_SPOT")}
+                    </label>
+
+                    <Controller
+                      control={control}
+                      name={`onSpot`}
+                      render={({ field }) => (
+                        <Checkbox
+                          id="onSpot"
+                          checked={!!field?.value}
+                          {...field}
+                          className="h-auto scale-150"
+                          defaultChecked={true}
+                          onChange={(e) => field.onChange(e.target.checked)}
+                        />
+                      )}
                     />
-                  )}
-                />
+                  </div>
+                </div>
+              </section>
 
-                {errors?.firstName ? <p>{errors?.firstName?.message}</p> : null}
-              </div>
+              <section className="personal-info-section ">
+                <div className="personal-title capitalize col-span-full text-xl text-[#1D1B1B] font-semibold">
+                  {t("PERSONAL_INFO")}
+                </div>
 
-              <div>
-                <label>{t("MIDDLE_NAME")}</label>
-                <Controller
-                  control={control}
-                  name="middleName"
-                  // rules={{
-                  //   required: {
-                  //     value: true,
-                  //     message: t("REQUIRED"),
-                  //   },
-                  // }}
-                  render={({ field }) => (
-                    <Input
-                      {...field}
-                      variant="filled"
-                      placeholder="Enter middle name"
-                      className="placeholder:capitalize"
-                      status={errors?.middleName ? "error" : ""}
-                      readOnly
-                      disabled={
-                        !customerId || customerLoading || customerIsFetching
-                      }
-                    />
-                  )}
-                />
+                <div>
+                  <label>{t("FIRST_NAME")}</label>
+                  <Controller
+                    control={control}
+                    name="firstName"
+                    // rules={{
+                    //   required: {
+                    //     value: true,
+                    //     message: t("REQUIRED"),
+                    //   },
+                    // }}
+                    render={({ field }) => (
+                      <Input
+                        {...field}
+                        variant="filled"
+                        placeholder="Enter first name"
+                        className="placeholder:capitalize"
+                        status={errors?.firstName ? "error" : ""}
+                        readOnly
+                        disabled={
+                          !customerId || customerLoading || customerIsFetching
+                        }
+                      />
+                    )}
+                  />
 
-                {errors?.middleName ? (
-                  <p>{errors?.middleName?.message}</p>
-                ) : null}
-              </div>
+                  {errors?.firstName ? (
+                    <p>{errors?.firstName?.message}</p>
+                  ) : null}
+                </div>
 
-              <div>
-                <label>{t("LAST_NAME")}</label>
-                <Controller
-                  control={control}
-                  name="lastName"
-                  // rules={{
-                  //   required: {
-                  //     value: true,
-                  //     message: t("REQUIRED"),
-                  //   },
-                  // }}
-                  render={({ field }) => (
-                    <Input
-                      {...field}
-                      variant="filled"
-                      placeholder="Enter last name"
-                      className="placeholder:capitalize"
-                      status={errors?.lastName ? "error" : ""}
-                      readOnly
-                      disabled={
-                        !customerId || customerLoading || customerIsFetching
-                      }
-                    />
-                  )}
-                />
+                <div>
+                  <label>{t("MIDDLE_NAME")}</label>
+                  <Controller
+                    control={control}
+                    name="middleName"
+                    // rules={{
+                    //   required: {
+                    //     value: true,
+                    //     message: t("REQUIRED"),
+                    //   },
+                    // }}
+                    render={({ field }) => (
+                      <Input
+                        {...field}
+                        variant="filled"
+                        placeholder="Enter middle name"
+                        className="placeholder:capitalize"
+                        status={errors?.middleName ? "error" : ""}
+                        readOnly
+                        disabled={
+                          !customerId || customerLoading || customerIsFetching
+                        }
+                      />
+                    )}
+                  />
 
-                {errors?.lastName ? <p>{errors?.lastName?.message}</p> : null}
-              </div>
+                  {errors?.middleName ? (
+                    <p>{errors?.middleName?.message}</p>
+                  ) : null}
+                </div>
 
-              <div>
-                <label>{t("ID_NUMBER")}</label>
-                <Controller
-                  control={control}
-                  name="idNumber"
-                  // rules={{
-                  //   required: {
-                  //     value: true,
-                  //     message: t("REQUIRED"),
-                  //   },
-                  // }}
-                  render={({ field }) => (
-                    <Input
-                      {...field}
-                      variant="filled"
-                      placeholder="Enter id number"
-                      className="placeholder:capitalize"
-                      status={errors?.idNumber ? "error" : ""}
-                      readOnly
-                      disabled={
-                        !customerId || customerLoading || customerIsFetching
-                      }
-                    />
-                  )}
-                />
+                <div>
+                  <label>{t("LAST_NAME")}</label>
+                  <Controller
+                    control={control}
+                    name="lastName"
+                    // rules={{
+                    //   required: {
+                    //     value: true,
+                    //     message: t("REQUIRED"),
+                    //   },
+                    // }}
+                    render={({ field }) => (
+                      <Input
+                        {...field}
+                        variant="filled"
+                        placeholder="Enter last name"
+                        className="placeholder:capitalize"
+                        status={errors?.lastName ? "error" : ""}
+                        readOnly
+                        disabled={
+                          !customerId || customerLoading || customerIsFetching
+                        }
+                      />
+                    )}
+                  />
 
-                {errors?.idNumber ? <p>{errors?.idNumber?.message}</p> : null}
-              </div>
+                  {errors?.lastName ? <p>{errors?.lastName?.message}</p> : null}
+                </div>
 
-              <div>
-                <label>{t("PHONE_NUMBER")}</label>
-                <Controller
-                  control={control}
-                  name="phoneNumber"
-                  // rules={{
-                  //   required: {
-                  //     value: true,
-                  //     message: t("REQUIRED"),
-                  //   },
-                  // }}
-                  render={({ field }) => (
-                    <Input
-                      {...field}
-                      variant="filled"
-                      placeholder="Enter phone number"
-                      className="placeholder:capitalize"
-                      status={errors?.phoneNumber ? "error" : ""}
-                      readOnly
-                      disabled={
-                        !customerId || customerLoading || customerIsFetching
-                      }
-                    />
-                  )}
-                />
+                <div>
+                  <label>{t("ID_NUMBER")}</label>
+                  <Controller
+                    control={control}
+                    name="idNumber"
+                    // rules={{
+                    //   required: {
+                    //     value: true,
+                    //     message: t("REQUIRED"),
+                    //   },
+                    // }}
+                    render={({ field }) => (
+                      <Input
+                        {...field}
+                        variant="filled"
+                        placeholder="Enter id number"
+                        className="placeholder:capitalize"
+                        status={errors?.idNumber ? "error" : ""}
+                        readOnly
+                        disabled={
+                          !customerId || customerLoading || customerIsFetching
+                        }
+                      />
+                    )}
+                  />
 
-                {errors?.phoneNumber ? (
-                  <p>{errors?.phoneNumber?.message}</p>
-                ) : null}
-              </div>
+                  {errors?.idNumber ? <p>{errors?.idNumber?.message}</p> : null}
+                </div>
 
-              <div>
-                <label>{t("EMAIL")}</label>
-                <Controller
-                  control={control}
-                  name="email"
-                  // rules={{
-                  //   required: {
-                  //     value: true,
-                  //     message: t("REQUIRED"),
-                  //   },
-                  // }}
-                  render={({ field }) => (
-                    <Input
-                      {...field}
-                      variant="filled"
-                      placeholder="Enter email"
-                      className="placeholder:capitalize"
-                      status={errors?.email ? "error" : ""}
-                      readOnly
-                      disabled={
-                        !customerId || customerLoading || customerIsFetching
-                      }
-                    />
-                  )}
-                />
+                <div>
+                  <label>{t("PHONE_NUMBER")}</label>
+                  <Controller
+                    control={control}
+                    name="phoneNumber"
+                    // rules={{
+                    //   required: {
+                    //     value: true,
+                    //     message: t("REQUIRED"),
+                    //   },
+                    // }}
+                    render={({ field }) => (
+                      <Input
+                        {...field}
+                        variant="filled"
+                        placeholder="Enter phone number"
+                        className="placeholder:capitalize"
+                        status={errors?.phoneNumber ? "error" : ""}
+                        readOnly
+                        disabled={
+                          !customerId || customerLoading || customerIsFetching
+                        }
+                      />
+                    )}
+                  />
 
-                {errors?.email ? <p>{errors?.email?.message}</p> : null}
-              </div>
+                  {errors?.phoneNumber ? (
+                    <p>{errors?.phoneNumber?.message}</p>
+                  ) : null}
+                </div>
 
-              <div>
-                <label>{t("GENERAL_NOTES")}</label>
-                <Input
-                  variant="filled"
-                  value={customerData?.generalNotes || t("NA")}
-                  readOnly
-                  disabled={
-                    !customerId ||
-                    customerLoading ||
-                    customerIsFetching ||
-                    !selectedAddress ||
-                    !selectedAddress
-                  }
-                  className="placeholder:capitalize"
-                />
-              </div>
-              <div>
-                <label>{t("CUSTOMER_TYPE")}</label>
-                <Input
-                  variant="filled"
-                  value={customerData?.customerTypeName || t("NA")}
-                  readOnly
-                  disabled={
-                    !customerId ||
-                    customerLoading ||
-                    customerIsFetching ||
-                    !selectedAddress ||
-                    !selectedAddress
-                  }
-                  className="placeholder:capitalize"
-                />
-              </div>
-              <div>
-                <label>{t("HAS_MEMBERSHIP")}</label>
-                <Input
-                  variant="filled"
-                  value={customerData?.hasMembership ? t("YES") : t("NO")}
-                  readOnly
-                  disabled={
-                    !customerId ||
-                    customerLoading ||
-                    customerIsFetching ||
-                    !selectedAddress ||
-                    !selectedAddress
-                  }
-                  className="placeholder:capitalize"
-                />
-              </div>
-              {/* <div>
+                <div>
+                  <label>{t("EMAIL")}</label>
+                  <Controller
+                    control={control}
+                    name="email"
+                    // rules={{
+                    //   required: {
+                    //     value: true,
+                    //     message: t("REQUIRED"),
+                    //   },
+                    // }}
+                    render={({ field }) => (
+                      <Input
+                        {...field}
+                        variant="filled"
+                        placeholder="Enter email"
+                        className="placeholder:capitalize"
+                        status={errors?.email ? "error" : ""}
+                        readOnly
+                        disabled={
+                          !customerId || customerLoading || customerIsFetching
+                        }
+                      />
+                    )}
+                  />
+
+                  {errors?.email ? <p>{errors?.email?.message}</p> : null}
+                </div>
+
+                <div>
+                  <label>{t("GENERAL_NOTES")}</label>
+                  <Input
+                    variant="filled"
+                    value={customerData?.generalNotes || t("NA")}
+                    readOnly
+                    disabled={
+                      !customerId ||
+                      customerLoading ||
+                      customerIsFetching ||
+                      !selectedAddress ||
+                      !selectedAddress
+                    }
+                    className="placeholder:capitalize"
+                  />
+                </div>
+                <div>
+                  <label>{t("CUSTOMER_TYPE")}</label>
+                  <Input
+                    variant="filled"
+                    value={customerData?.customerTypeName || t("NA")}
+                    readOnly
+                    disabled={
+                      !customerId ||
+                      customerLoading ||
+                      customerIsFetching ||
+                      !selectedAddress ||
+                      !selectedAddress
+                    }
+                    className="placeholder:capitalize"
+                  />
+                </div>
+                <div>
+                  <label>{t("HAS_MEMBERSHIP")}</label>
+                  <Input
+                    variant="filled"
+                    value={customerData?.hasMembership ? t("YES") : t("NO")}
+                    readOnly
+                    disabled={
+                      !customerId ||
+                      customerLoading ||
+                      customerIsFetching ||
+                      !selectedAddress ||
+                      !selectedAddress
+                    }
+                    className="placeholder:capitalize"
+                  />
+                </div>
+                {/* <div>
                 <label>{t("MEMBERSHIP")}</label>
                 <Input
                   variant="filled"
@@ -632,93 +725,93 @@ const ReservationForm = () => {
                   className="placeholder:capitalize"
                 />
               </div> */}
-              <div>
-                <label>{t("MEMBERSHIP_NUMBER")}</label>
-                <Input
-                  variant="filled"
-                  value={customerData?.memberShipNumber || t("NA")}
-                  readOnly
-                  disabled={
-                    !customerId ||
-                    customerLoading ||
-                    customerIsFetching ||
-                    !selectedAddress ||
-                    !selectedAddress
-                  }
-                  className="placeholder:capitalize"
-                />
-              </div>
-              <div>
-                <label>{t("WHATS_APP_NUMBER")}</label>
-                <Input
-                  variant="filled"
-                  value={customerData?.whatsAppNumber || t("NA")}
-                  readOnly
-                  disabled={
-                    !customerId ||
-                    customerLoading ||
-                    customerIsFetching ||
-                    !selectedAddress ||
-                    !selectedAddress
-                  }
-                  className="placeholder:capitalize"
-                />
-              </div>
-              <div>
-                <label>{t("OLD_CUSTOMER")}</label>
-                <Input
-                  variant="filled"
-                  value={customerData?.isOld ? t("YES") : t("NO")}
-                  readOnly
-                  disabled={
-                    !customerId ||
-                    customerLoading ||
-                    customerIsFetching ||
-                    !selectedAddress ||
-                    !selectedAddress
-                  }
-                  className="placeholder:capitalize"
-                />
-              </div>
-              <div>
-                <label>{t("NUMBER_OF_RESERVATIONS")}</label>
-                <Input
-                  variant="filled"
-                  value={customerData?.noOfReservations?.toString() || "0"}
-                  readOnly
-                  disabled={
-                    !customerId ||
-                    customerLoading ||
-                    customerIsFetching ||
-                    !selectedAddress ||
-                    !selectedAddress
-                  }
-                  className="placeholder:capitalize"
-                />
-              </div>
-              <div>
-                <label>{t("LAST_RESERVATION_DATE")}</label>
-                <Input
-                  variant="filled"
-                  value={
-                    customerData?.lastReservationDate
-                      ? dayjs(customerData?.lastReservationDate).format(
-                          "DD/MM/YYYY",
-                        )
-                      : t("NA")
-                  }
-                  readOnly
-                  disabled={
-                    !customerId ||
-                    customerLoading ||
-                    customerIsFetching ||
-                    !selectedAddress ||
-                    !selectedAddress
-                  }
-                  className="placeholder:capitalize"
-                />
-              </div>
-              {/* <div>
+                <div>
+                  <label>{t("MEMBERSHIP_NUMBER")}</label>
+                  <Input
+                    variant="filled"
+                    value={customerData?.memberShipNumber || t("NA")}
+                    readOnly
+                    disabled={
+                      !customerId ||
+                      customerLoading ||
+                      customerIsFetching ||
+                      !selectedAddress ||
+                      !selectedAddress
+                    }
+                    className="placeholder:capitalize"
+                  />
+                </div>
+                <div>
+                  <label>{t("WHATS_APP_NUMBER")}</label>
+                  <Input
+                    variant="filled"
+                    value={customerData?.whatsAppNumber || t("NA")}
+                    readOnly
+                    disabled={
+                      !customerId ||
+                      customerLoading ||
+                      customerIsFetching ||
+                      !selectedAddress ||
+                      !selectedAddress
+                    }
+                    className="placeholder:capitalize"
+                  />
+                </div>
+                <div>
+                  <label>{t("OLD_CUSTOMER")}</label>
+                  <Input
+                    variant="filled"
+                    value={customerData?.isOld ? t("YES") : t("NO")}
+                    readOnly
+                    disabled={
+                      !customerId ||
+                      customerLoading ||
+                      customerIsFetching ||
+                      !selectedAddress ||
+                      !selectedAddress
+                    }
+                    className="placeholder:capitalize"
+                  />
+                </div>
+                <div>
+                  <label>{t("NUMBER_OF_RESERVATIONS")}</label>
+                  <Input
+                    variant="filled"
+                    value={customerData?.noOfReservations?.toString() || "0"}
+                    readOnly
+                    disabled={
+                      !customerId ||
+                      customerLoading ||
+                      customerIsFetching ||
+                      !selectedAddress ||
+                      !selectedAddress
+                    }
+                    className="placeholder:capitalize"
+                  />
+                </div>
+                <div>
+                  <label>{t("LAST_RESERVATION_DATE")}</label>
+                  <Input
+                    variant="filled"
+                    value={
+                      customerData?.lastReservationDate
+                        ? dayjs(customerData?.lastReservationDate).format(
+                            "DD/MM/YYYY",
+                          )
+                        : t("NA")
+                    }
+                    readOnly
+                    disabled={
+                      !customerId ||
+                      customerLoading ||
+                      customerIsFetching ||
+                      !selectedAddress ||
+                      !selectedAddress
+                    }
+                    className="placeholder:capitalize"
+                  />
+                </div>
+                {/* <div>
                 <label>{t("CUSTOMER_FAVOURITES")}</label>
                 <Input
                   variant="filled"
@@ -751,801 +844,761 @@ const ReservationForm = () => {
                   className="placeholder:capitalize"
                 />
               </div> */}
-            </section>
+              </section>
 
-            <section className="address-details-section">
-              <div className="address-details-title capitalize col-span-full text-xl text-[#1D1B1B] font-semibold">
-                {t("SELECTED_ADDRESS_DETAILS")}
-              </div>
-              <div>
-                <label>{t("CITY")}</label>
-                <Input
-                  variant="filled"
-                  value={
-                    lang === "en"
-                      ? selectedAddress?.cityName?.toString()
-                      : selectedAddress?.cityArName || t("NA")
-                  }
-                  readOnly
-                  disabled={
-                    !customerId ||
-                    customerLoading ||
-                    customerIsFetching ||
-                    !selectedAddress ||
-                    !selectedAddress
-                  }
-                  className="placeholder:capitalize"
-                />
-              </div>
-              <div>
-                <label>{t("AREA")}</label>
-                <Input
-                  variant="filled"
-                  value={
-                    lang === "en"
-                      ? selectedAddress?.areaName?.toString()
-                      : selectedAddress?.areaArName || t("NA")
-                  }
-                  readOnly
-                  disabled={
-                    !customerId ||
-                    customerLoading ||
-                    customerIsFetching ||
-                    !selectedAddress ||
-                    !selectedAddress
-                  }
-                  className="placeholder:capitalize"
-                />
-              </div>
-              <div>
-                <label>{t("STREET")}</label>
-                <Input
-                  variant="filled"
-                  value={selectedAddress?.street || t("NA")}
-                  readOnly
-                  disabled={
-                    !customerId ||
-                    customerLoading ||
-                    customerIsFetching ||
-                    !selectedAddress ||
-                    !selectedAddress
-                  }
-                  className="placeholder:capitalize"
-                />
-              </div>
-              <div>
-                <label>{t("APARTMENT")}</label>
-                <Input
-                  variant="filled"
-                  value={selectedAddress?.apartment || t("NA")}
-                  readOnly
-                  disabled={
-                    !customerId ||
-                    customerLoading ||
-                    customerIsFetching ||
-                    !selectedAddress ||
-                    !selectedAddress
-                  }
-                  className="placeholder:capitalize"
-                />
-              </div>
-              <div>
-                <label>{t("FLOOR")}</label>
-                <Input
-                  variant="filled"
-                  value={selectedAddress?.floor?.toString() || t("NA")}
-                  readOnly
-                  disabled={
-                    !customerId ||
-                    customerLoading ||
-                    customerIsFetching ||
-                    !selectedAddress ||
-                    !selectedAddress
-                  }
-                  className="placeholder:capitalize"
-                />
-              </div>
-              <div>
-                <label>{t("LANDMARK")}</label>
-                <Input
-                  variant="filled"
-                  value={selectedAddress?.landMark || t("NA")}
-                  readOnly
-                  disabled={
-                    !customerId ||
-                    customerLoading ||
-                    customerIsFetching ||
-                    !selectedAddress ||
-                    !selectedAddress
-                  }
-                  className="placeholder:capitalize"
-                />
-              </div>
-              <div>
-                <label>{t("DESCRIPTION")}</label>
-                <Input
-                  variant="filled"
-                  value={selectedAddress?.fullDescription || t("NA")}
-                  readOnly
-                  disabled={
-                    !customerId ||
-                    customerLoading ||
-                    customerIsFetching ||
-                    !selectedAddress ||
-                    !selectedAddress
-                  }
-                  className="placeholder:capitalize"
-                />
-              </div>
-              <div>
-                <label>{t("NOTES")}</label>
-                <Input
-                  variant="filled"
-                  value={selectedAddress?.notes || t("NA")}
-                  readOnly
-                  disabled={
-                    !customerId ||
-                    customerLoading ||
-                    customerIsFetching ||
-                    !selectedAddress ||
-                    !selectedAddress
-                  }
-                  className="placeholder:capitalize"
-                />
-              </div>
-              <div>
-                <label>{t("SPACE")}</label>
-                <Input
-                  variant="filled"
-                  value={selectedAddress?.space || t("NA")}
-                  readOnly
-                  disabled={
-                    !customerId ||
-                    customerLoading ||
-                    customerIsFetching ||
-                    !selectedAddress ||
-                    !selectedAddress
-                  }
-                  className="placeholder:capitalize"
-                />
-              </div>
-              <div>
-                <label>{t("NUMBER_OF_KITCHENS")}</label>
-                <Input
-                  variant="filled"
-                  value={selectedAddress?.numberOfKitchens?.toString() || "0"}
-                  readOnly
-                  disabled={
-                    !customerId ||
-                    customerLoading ||
-                    customerIsFetching ||
-                    !selectedAddress ||
-                    !selectedAddress
-                  }
-                  className="placeholder:capitalize"
-                />
-              </div>
-              <div>
-                <label>{t("NUMBER_OF_BEDROOMS")}</label>
-                <Input
-                  variant="filled"
-                  value={selectedAddress?.numberOfBedrooms?.toString() || "0"}
-                  readOnly
-                  disabled={
-                    !customerId ||
-                    customerLoading ||
-                    customerIsFetching ||
-                    !selectedAddress ||
-                    !selectedAddress
-                  }
-                  className="placeholder:capitalize"
-                />
-              </div>
-              <div>
-                <label>{t("NUMBER_OF_LIVINGROOMS")}</label>
-                <Input
-                  variant="filled"
-                  value={
-                    selectedAddress?.numberOfLivingRooms?.toString() || "0"
-                  }
-                  readOnly
-                  disabled={
-                    !customerId ||
-                    customerLoading ||
-                    customerIsFetching ||
-                    !selectedAddress ||
-                    !selectedAddress
-                  }
-                  className="placeholder:capitalize"
-                />
-              </div>
-              <div>
-                <label>{t("NUMBER_OF_BATHROOMS")}</label>
-                <Input
-                  variant="filled"
-                  value={selectedAddress?.numberOfBathrooms?.toString() || "0"}
-                  readOnly
-                  disabled={
-                    !customerId ||
-                    customerLoading ||
-                    customerIsFetching ||
-                    !selectedAddress ||
-                    !selectedAddress
-                  }
-                  className="placeholder:capitalize"
-                />
-              </div>
-              <div>
-                <label>{t("NUMBER_OF_RECIPTIONROOMS")}</label>
-                <Input
-                  variant="filled"
-                  value={
-                    selectedAddress?.numberOfReceptionrooms?.toString() || "0"
-                  }
-                  readOnly
-                  disabled={
-                    !customerId ||
-                    customerLoading ||
-                    customerIsFetching ||
-                    !selectedAddress ||
-                    !selectedAddress
-                  }
-                  className="placeholder:capitalize"
-                />
-              </div>
-              <div>
-                <label>{t("NUMBER_OF_FLOORS")}</label>
-                <Input
-                  variant="filled"
-                  value={selectedAddress?.noOfFloors?.toString() || "0"}
-                  readOnly
-                  disabled={
-                    !customerId ||
-                    customerLoading ||
-                    customerIsFetching ||
-                    !selectedAddress ||
-                    !selectedAddress
-                  }
-                  className="placeholder:capitalize"
-                />
-              </div>
-              <div>
-                <label>{t("NUMBER_OF_WINDOWS")}</label>
-                <Input
-                  variant="filled"
-                  value={selectedAddress?.numberOfWindows?.toString() || "0"}
-                  readOnly
-                  disabled={
-                    !customerId ||
-                    customerLoading ||
-                    customerIsFetching ||
-                    !selectedAddress ||
-                    !selectedAddress
-                  }
-                  className="placeholder:capitalize"
-                />
-              </div>
-              <div>
-                <label>{t("PETS")}</label>
-                <Input
-                  variant="filled"
-                  value={selectedAddress?.hasPets ? t("YES") : t("NO")}
-                  readOnly
-                  disabled={
-                    !customerId ||
-                    customerLoading ||
-                    customerIsFetching ||
-                    !selectedAddress ||
-                    !selectedAddress
-                  }
-                  className="placeholder:capitalize"
-                />
-              </div>
-            </section>
-
-            <section className="reservation-details-wrapper">
-              <div className="reservation-details-title capitalize col-span-full text-xl text-[#1D1B1B] font-semibold">
-                {t("CUSTOMER_RESERVATION_DETAILS")}
-              </div>
-
-              {/* Reservation Date */}
-              <div>
-                <label>
-                  {t("RESERVATION_DATE")}
-                  <Astrisk />
-                </label>
-                <Controller
-                  control={control}
-                  name="reservationDate"
-                  rules={{
-                    required: {
-                      value: true,
-                      message: t("REQUIRED"),
-                    },
-                  }}
-                  render={({ field }) => (
-                    <DatePicker
-                      {...field}
-                      className="w-full p-2 border-[#C4C4C4] border rounded-md"
-                      variant="filled"
-                      placeholder="Select reservation date"
-                      status={errors?.reservationDate ? "error" : ""}
-                      showTime
-                      disabled={
-                        holdReservationLoading || holdReservationIsFetching
-                      }
-                      disabledDate={(current) => {
-                        const allowedStartDate =
-                          holdReservation?.data[0]?.dateFrom;
-                        const allowedEndDate = holdReservation?.data[0]?.dateTo;
-                        return (
-                          (current &&
-                            current.isBefore(
-                              dayjs(allowedStartDate).startOf("day"),
-                            )) ||
-                          (current &&
-                            current.isAfter(dayjs(allowedEndDate).endOf("day")))
-                        );
-                      }}
-                    />
-                  )}
-                />
-
-                {errors?.reservationDate ? (
-                  <p>{errors?.reservationDate?.message}</p>
-                ) : null}
-              </div>
-
-              {/* INSECTS */}
-              <div>
-                <label>
-                  {t("INSECTS")}
-                  <Astrisk />
-                </label>
-                <Controller
-                  control={control}
-                  name={`insects`}
-                  rules={{
-                    required: { value: true, message: t("REQUIRED") },
-                  }}
-                  render={({ field }) => (
-                    <Select
-                      {...field}
-                      className="min-h-10 border-[#C4C4C4] border rounded-md w-full"
-                      placeholder="Insects?"
-                      variant="filled"
-                      status={errors?.insects ? "error" : ""}
-                      options={[
-                        { value: "true", label: "Yes" },
-                        { value: "false", label: "No" },
-                      ]}
-                    />
-                  )}
-                />
-                {errors?.insects && <p>{errors.insects.message}</p>}
-              </div>
-
-              {/* RODENTS */}
-              <div>
-                <label>
-                  {t("RODENTS")}
-                  <Astrisk />
-                </label>
-                <Controller
-                  control={control}
-                  name={`rodents`}
-                  rules={{
-                    required: { value: true, message: t("REQUIRED") },
-                  }}
-                  render={({ field }) => (
-                    <Select
-                      {...field}
-                      className="min-h-10 border-[#C4C4C4] border rounded-md w-full"
-                      placeholder="Rodents?"
-                      variant="filled"
-                      status={errors?.rodents ? "error" : ""}
-                      options={[
-                        { value: "true", label: "Yes" },
-                        { value: "false", label: "No" },
-                      ]}
-                    />
-                  )}
-                />
-                {errors?.rodents && <p>{errors.rodents.message}</p>}
-              </div>
-
-              {/* APARTMENT CLOSING PERIOD */}
-              <div>
-                <label className="font-semibold">
-                  {t("APARTMENT_CLOSING_PERIOD")}
-                  <Astrisk />
-                </label>
-
-                <Controller
-                  control={control}
-                  name="apartmentClosingPeriodId"
-                  rules={{
-                    required: {
-                      value: true,
-                      message: t("REQUIRED"),
-                    },
-                  }}
-                  render={({ field }) => (
-                    <Select
-                      {...field}
-                      loading={
-                        apartmentClosingPeriodLoading ||
-                        apartmentClosingPeriodIsFetching
-                      }
-                      className="min-h-10 border-[#C4C4C4] border rounded-md capitalize [&>.ant-select-selector]:capitalize"
-                      variant="filled"
-                      status={errors?.apartmentClosingPeriodId ? "error" : ""}
-                      // defaultValue="male"
-                      placeholder="Select apartment closing period"
-                      style={{ width: "100%" }}
-                      onChange={(e) => {
-                        field.onChange(e);
-                        //   handleChange(e);
-                      }}
-                      options={apartmentClosingPeriod?.data?.map((period) => ({
-                        value: period?.id,
-                        label: lang === "en" ? period?.name : period?.arName,
-                      }))}
-                    />
-                  )}
-                />
-
-                {errors?.apartmentClosingPeriodId ? (
-                  <p className="font-light">
-                    {errors?.apartmentClosingPeriodId?.message}
-                  </p>
-                ) : null}
-              </div>
-            </section>
-
-            <section className="transportation-fees-wrapper">
-              <div className="transportation-fees-title capitalize col-span-full text-xl text-[#1D1B1B] font-semibold">
-                {t("TRANSPORTATION_FEES_DETAILS")}
-              </div>
-
-              {/* CITY */}
-              <div>
-                <label className="font-semibold">
-                  {t("CITY")}
-                  <Astrisk />
-                </label>
-
-                <Controller
-                  control={control}
-                  name="cityId"
-                  rules={{
-                    required: {
-                      value: true,
-                      message: t("REQUIRED"),
-                    },
-                  }}
-                  render={({ field }) => (
-                    <Select
-                      {...field}
-                      loading={isCitiesLoading || isCitiesFetching}
-                      className="min-h-10 border-[#C4C4C4] border rounded-md capitalize [&>.ant-select-selector]:capitalize"
-                      variant="filled"
-                      status={errors?.cityId ? "error" : ""}
-                      // defaultValue="male"
-                      placeholder="Select city"
-                      style={{ width: "100%" }}
-                      onChange={(e) => {
-                        field.onChange(e);
-                        setValue("areaId", null);
-                        //   handleChange(e);
-                      }}
-                      options={cities?.data?.map((city) => ({
-                        value: city?.id,
-                        label: lang === "en" ? city?.name : city?.arName,
-                      }))}
-                    />
-                  )}
-                />
-
-                {errors?.cityId ? (
-                  <p className="font-light">{errors?.cityId?.message}</p>
-                ) : null}
-              </div>
-
-              {/* AREA */}
-              <div>
-                <label className="font-semibold">
-                  {t("AREA")}
-                  <Astrisk />
-                </label>
-
-                <Controller
-                  control={control}
-                  name="areaId"
-                  rules={{
-                    required: {
-                      value: true,
-                      message: t("REQUIRED"),
-                    },
-                  }}
-                  render={({ field }) => (
-                    <Select
-                      {...field}
-                      loading={isAreasLoading || isAreasFetching}
-                      className="min-h-10 border-[#C4C4C4] border rounded-md capitalize [&>.ant-select-selector]:capitalize"
-                      variant="filled"
-                      status={errors?.areaId ? "error" : ""}
-                      disabled={!cityId}
-                      placeholder="Select area"
-                      style={{ width: "100%" }}
-                      onChange={(e) => {
-                        field.onChange(e);
-                        //   handleChange(e);
-                      }}
-                      options={areas?.data?.map((area) => ({
-                        value: area?.id,
-                        label: lang === "en" ? area?.name : area?.arName,
-                      }))}
-                    />
-                  )}
-                />
-
-                {errors?.areaId ? (
-                  <p className="font-light">{errors?.areaId?.message}</p>
-                ) : null}
-              </div>
-
-              {/* TRANSPORTATION FEES */}
-              <div>
-                <label className="font-semibold">
-                  {t("TRANSPORTATION_FEES")}
-                  <Astrisk />
-                </label>
-
-                <Controller
-                  control={control}
-                  name="transportationFeesId"
-                  rules={{
-                    required: {
-                      value: true,
-                      message: t("REQUIRED"),
-                    },
-                  }}
-                  render={({ field }) => (
-                    <Select
-                      {...field}
-                      loading={
-                        transportationFeesLoading ||
-                        transportationFeesIsFetching
-                      }
-                      className="min-h-10 border-[#C4C4C4] border rounded-md capitalize [&>.ant-select-selector]:capitalize"
-                      variant="filled"
-                      status={errors?.transportationFeesId ? "error" : ""}
-                      disabled={!cityId || !areaId}
-                      placeholder="Select transportation fees"
-                      style={{ width: "100%" }}
-                      onChange={(e) => {
-                        field.onChange(e);
-                        //   handleChange(e);
-                      }}
-                      options={transportationFees?.data
-                        ?.filter(
-                          (fee) =>
-                            fee.cityId === cityId && fee.areaId === areaId,
-                        )
-                        ?.map((fee) => ({
-                          value: fee.id,
-                          label: fee.fee || "---",
-                        }))}
-                    />
-                  )}
-                />
-
-                {errors?.transportationFeesId ? (
-                  <p className="font-light">
-                    {errors?.transportationFeesId?.message}
-                  </p>
-                ) : null}
-              </div>
-            </section>
-
-            <section className="packages-wrapper">
-              <div className="packages-title flex items-center gap-3 capitalize col-span-full text-xl text-[#1D1B1B] font-semibold">
-                <span>{t("EXTRA_SERVICE_DETAILS")}</span>
-
-                <Button
-                  onClick={handlePackageAppend}
-                  className="text-sm cursor-pointer bg-green-600 text-white"
-                  icon={<FaPlus />}
-                  shape="circle"
-                />
-              </div>
-
-              <div className="package-dropdown-wrapper flex flex-col gap-5 w-full col-span-full">
-                {packagesFields.map((field, index) => (
-                  <section
-                    key={field.id}
-                    className="w-full flex flex-wrap items-center gap-3"
-                  >
-                    {/* <div className="flex items-center justify-between gap-3">
-                      <div className="w-full flex flex-col gap-2">
-                        <label className="font-semibold capitalize">
-                          {t("SELECT_PACKAGE_TYPE")}
-                        </label>
-
-                        <div className="select-wrapper grow flex items-center gap-3">
-                          <Controller
-                            control={control}
-                            name={`addReservationPackagesDtos.${index}.packageId`}
-                            rules={{
-                              required: {
-                                value: true,
-                                message: t("REQUIRED"),
-                              },
-                            }}
-                            render={({ field }) => (
-                              <Select
-                                {...field}
-                                loading={packagesLoading || packagesIsFetching}
-                                className="min-h-10 border-[#C4C4C4] border rounded-md capitalize [&>.ant-select-selector]:capitalize"
-                                variant="filled"
-                                status={
-                                  errors?.addReservationPackagesDtos?.[index]
-                                    ?.packageId
-                                    ? "error"
-                                    : ""
-                                }
-                                placeholder="Select package"
-                                style={{ width: "100%" }}
-                                onChange={(e) => {
-                                  field.onChange(e);
-                                  //   handleChange(e);
-                                }}
-                                options={packages?.data?.map((pkg) => ({
-                                  value: pkg.id,
-                                  label: lang === "en" ? pkg.name : pkg.arName,
-                                }))}
-                              />
-                            )}
-                          />
-
-                          <Button
-                            onClick={() => handlePackageRemove(index)}
-                            className="text-lg cursor-pointer bg-red-600 text-white disabled:bg-gray-300 disabled:cursor-not-allowed"
-                            icon={<FaMinus />}
-                            shape="circle"
-                            disabled={packagesFields?.length === 1}
-                          />
-                        </div>
-                      </div>
-                    </div> */}
-
-                    <Collapse
-                      className="grow [&_.ant-collapse-header]:items-center"
-                      accordion
-                      destroyOnHidden={false}
-                      items={[
-                        {
-                          key: "1",
-                          forceRender: true,
-                          label: (
-                            <div
-                              className="flex items-center justify-between gap-3"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <div className="w-full flex flex-col gap-2">
-                                <Controller
-                                  control={control}
-                                  name={`addReservationPackagesDtos.${index}.packageId`}
-                                  rules={{
-                                    required: {
-                                      value: true,
-                                      message: t("REQUIRED"),
-                                    },
-                                  }}
-                                  render={({ field }) => (
-                                    <Select
-                                      {...field}
-                                      loading={
-                                        packagesLoading || packagesIsFetching
-                                      }
-                                      value={field?.value || null}
-                                      className="min-h-10 border-[#C4C4C4] border rounded-md capitalize [&>.ant-select-selector]:capitalize"
-                                      variant="filled"
-                                      status={
-                                        errors?.addReservationPackagesDtos?.[
-                                          index
-                                        ]?.packageId
-                                          ? "error"
-                                          : ""
-                                      }
-                                      placeholder="Select package"
-                                      style={{ width: "100%" }}
-                                      onChange={(e) => {
-                                        field.onChange(e);
-                                        //   handleChange(e);
-                                      }}
-                                      options={
-                                        packages?.data?.map((pkg) => ({
-                                          value: pkg.id,
-                                          label:
-                                            lang === "en"
-                                              ? pkg.name
-                                              : pkg.arName,
-                                        })) || []
-                                      }
-                                    />
-                                  )}
-                                />
-                              </div>
-                            </div>
-                          ),
-                          children: (
-                            <ExtraPackage
-                              index={index}
-                              control={control}
-                              errors={errors}
-                              watch={watch}
-                              setValue={setValue}
-                            />
-                          ),
-                        },
-                      ]}
-                    />
-
-                    <Button
-                      onClick={() => handlePackageRemove(index)}
-                      className="text-lg cursor-pointer bg-red-600 text-white disabled:bg-gray-300 disabled:cursor-not-allowed"
-                      icon={<FaMinus />}
-                      shape="circle"
-                      disabled={packagesFields?.length === 1}
-                    />
-
-                    <p className="basis-full text-xs text-red-500 capitalize">
-                      {
-                        errors?.addReservationPackagesDtos?.[index]?.packageId
-                          ?.message
-                      }
-                    </p>
-                  </section>
-                ))}
-              </div>
-            </section>
-
-            {/* ── Reservation Amount Summary ─────────────────────────────── */}
-            <ReservationSummary control={control} />
-
-            <div className="md:col-span-full">
-              <label className="font-semibold mb-1 block">
-                {t("GENERAL_NOTES")}
-                <Astrisk />
-              </label>
-              <Controller
-                control={control}
-                name={`generalComments`}
-                rules={{
-                  required: { value: true, message: t("REQUIRED") },
-                }}
-                render={({ field }) => (
-                  <TextArea
-                    {...field}
+              <section className="address-details-section">
+                <div className="address-details-title capitalize col-span-full text-xl text-[#1D1B1B] font-semibold">
+                  {t("SELECTED_ADDRESS_DETAILS")}
+                </div>
+                <div>
+                  <label>{t("CITY")}</label>
+                  <Input
                     variant="filled"
-                    placeholder="Enter general comments"
-                    className="placeholder:capitalize border-[#C4C4C4] border rounded-md py-2 min-h-[70px] resize-none"
-                    status={errors?.generalComments ? "error" : ""}
+                    value={
+                      lang === "en"
+                        ? selectedAddress?.cityName?.toString()
+                        : selectedAddress?.cityArName || t("NA")
+                    }
+                    readOnly
+                    disabled={
+                      !customerId ||
+                      customerLoading ||
+                      customerIsFetching ||
+                      !selectedAddress ||
+                      !selectedAddress
+                    }
+                    className="placeholder:capitalize"
                   />
-                )}
-              />
-              {errors?.generalComments && (
-                <p className="text-xs text-red-500 mt-1">
-                  {errors?.generalComments?.message}
-                </p>
-              )}
-            </div>
-          </div>
+                </div>
+                <div>
+                  <label>{t("AREA")}</label>
+                  <Input
+                    variant="filled"
+                    value={
+                      lang === "en"
+                        ? selectedAddress?.areaName?.toString()
+                        : selectedAddress?.areaArName || t("NA")
+                    }
+                    readOnly
+                    disabled={
+                      !customerId ||
+                      customerLoading ||
+                      customerIsFetching ||
+                      !selectedAddress ||
+                      !selectedAddress
+                    }
+                    className="placeholder:capitalize"
+                  />
+                </div>
+                <div>
+                  <label>{t("STREET")}</label>
+                  <Input
+                    variant="filled"
+                    value={selectedAddress?.street || t("NA")}
+                    readOnly
+                    disabled={
+                      !customerId ||
+                      customerLoading ||
+                      customerIsFetching ||
+                      !selectedAddress ||
+                      !selectedAddress
+                    }
+                    className="placeholder:capitalize"
+                  />
+                </div>
+                <div>
+                  <label>{t("APARTMENT")}</label>
+                  <Input
+                    variant="filled"
+                    value={selectedAddress?.apartment || t("NA")}
+                    readOnly
+                    disabled={
+                      !customerId ||
+                      customerLoading ||
+                      customerIsFetching ||
+                      !selectedAddress ||
+                      !selectedAddress
+                    }
+                    className="placeholder:capitalize"
+                  />
+                </div>
+                <div>
+                  <label>{t("FLOOR")}</label>
+                  <Input
+                    variant="filled"
+                    value={selectedAddress?.floor?.toString() || t("NA")}
+                    readOnly
+                    disabled={
+                      !customerId ||
+                      customerLoading ||
+                      customerIsFetching ||
+                      !selectedAddress ||
+                      !selectedAddress
+                    }
+                    className="placeholder:capitalize"
+                  />
+                </div>
+                <div>
+                  <label>{t("LANDMARK")}</label>
+                  <Input
+                    variant="filled"
+                    value={selectedAddress?.landMark || t("NA")}
+                    readOnly
+                    disabled={
+                      !customerId ||
+                      customerLoading ||
+                      customerIsFetching ||
+                      !selectedAddress ||
+                      !selectedAddress
+                    }
+                    className="placeholder:capitalize"
+                  />
+                </div>
+                <div>
+                  <label>{t("DESCRIPTION")}</label>
+                  <Input
+                    variant="filled"
+                    value={selectedAddress?.fullDescription || t("NA")}
+                    readOnly
+                    disabled={
+                      !customerId ||
+                      customerLoading ||
+                      customerIsFetching ||
+                      !selectedAddress ||
+                      !selectedAddress
+                    }
+                    className="placeholder:capitalize"
+                  />
+                </div>
+                <div>
+                  <label>{t("NOTES")}</label>
+                  <Input
+                    variant="filled"
+                    value={selectedAddress?.notes || t("NA")}
+                    readOnly
+                    disabled={
+                      !customerId ||
+                      customerLoading ||
+                      customerIsFetching ||
+                      !selectedAddress ||
+                      !selectedAddress
+                    }
+                    className="placeholder:capitalize"
+                  />
+                </div>
+                <div>
+                  <label>{t("SPACE")}</label>
+                  <Input
+                    variant="filled"
+                    value={selectedAddress?.space || t("NA")}
+                    readOnly
+                    disabled={
+                      !customerId ||
+                      customerLoading ||
+                      customerIsFetching ||
+                      !selectedAddress ||
+                      !selectedAddress
+                    }
+                    className="placeholder:capitalize"
+                  />
+                </div>
+                <div>
+                  <label>{t("NUMBER_OF_KITCHENS")}</label>
+                  <Input
+                    variant="filled"
+                    value={selectedAddress?.numberOfKitchens?.toString() || "0"}
+                    readOnly
+                    disabled={
+                      !customerId ||
+                      customerLoading ||
+                      customerIsFetching ||
+                      !selectedAddress ||
+                      !selectedAddress
+                    }
+                    className="placeholder:capitalize"
+                  />
+                </div>
+                <div>
+                  <label>{t("NUMBER_OF_BEDROOMS")}</label>
+                  <Input
+                    variant="filled"
+                    value={selectedAddress?.numberOfBedrooms?.toString() || "0"}
+                    readOnly
+                    disabled={
+                      !customerId ||
+                      customerLoading ||
+                      customerIsFetching ||
+                      !selectedAddress ||
+                      !selectedAddress
+                    }
+                    className="placeholder:capitalize"
+                  />
+                </div>
+                <div>
+                  <label>{t("NUMBER_OF_LIVINGROOMS")}</label>
+                  <Input
+                    variant="filled"
+                    value={
+                      selectedAddress?.numberOfLivingRooms?.toString() || "0"
+                    }
+                    readOnly
+                    disabled={
+                      !customerId ||
+                      customerLoading ||
+                      customerIsFetching ||
+                      !selectedAddress ||
+                      !selectedAddress
+                    }
+                    className="placeholder:capitalize"
+                  />
+                </div>
+                <div>
+                  <label>{t("NUMBER_OF_BATHROOMS")}</label>
+                  <Input
+                    variant="filled"
+                    value={
+                      selectedAddress?.numberOfBathrooms?.toString() || "0"
+                    }
+                    readOnly
+                    disabled={
+                      !customerId ||
+                      customerLoading ||
+                      customerIsFetching ||
+                      !selectedAddress ||
+                      !selectedAddress
+                    }
+                    className="placeholder:capitalize"
+                  />
+                </div>
+                <div>
+                  <label>{t("NUMBER_OF_RECIPTIONROOMS")}</label>
+                  <Input
+                    variant="filled"
+                    value={
+                      selectedAddress?.numberOfReceptionrooms?.toString() || "0"
+                    }
+                    readOnly
+                    disabled={
+                      !customerId ||
+                      customerLoading ||
+                      customerIsFetching ||
+                      !selectedAddress ||
+                      !selectedAddress
+                    }
+                    className="placeholder:capitalize"
+                  />
+                </div>
+                <div>
+                  <label>{t("NUMBER_OF_FLOORS")}</label>
+                  <Input
+                    variant="filled"
+                    value={selectedAddress?.noOfFloors?.toString() || "0"}
+                    readOnly
+                    disabled={
+                      !customerId ||
+                      customerLoading ||
+                      customerIsFetching ||
+                      !selectedAddress ||
+                      !selectedAddress
+                    }
+                    className="placeholder:capitalize"
+                  />
+                </div>
+                <div>
+                  <label>{t("NUMBER_OF_WINDOWS")}</label>
+                  <Input
+                    variant="filled"
+                    value={selectedAddress?.numberOfWindows?.toString() || "0"}
+                    readOnly
+                    disabled={
+                      !customerId ||
+                      customerLoading ||
+                      customerIsFetching ||
+                      !selectedAddress ||
+                      !selectedAddress
+                    }
+                    className="placeholder:capitalize"
+                  />
+                </div>
+                <div>
+                  <label>{t("PETS")}</label>
+                  <Input
+                    variant="filled"
+                    value={selectedAddress?.hasPets ? t("YES") : t("NO")}
+                    readOnly
+                    disabled={
+                      !customerId ||
+                      customerLoading ||
+                      customerIsFetching ||
+                      !selectedAddress ||
+                      !selectedAddress
+                    }
+                    className="placeholder:capitalize"
+                  />
+                </div>
+              </section>
 
-          <section className="btn-wrapper mt-8 flex items-center justify-center gap-4 [&>div>button]:capitalize [&>div>button]:min-w-[120px] [&>div>button]:py-5 ">
-            {/* <div>
+              <section className="reservation-details-wrapper">
+                <div className="reservation-details-title capitalize col-span-full text-xl text-[#1D1B1B] font-semibold">
+                  {t("CUSTOMER_RESERVATION_DETAILS")}
+                </div>
+
+                {/* Reservation Date */}
+                <div>
+                  <label>
+                    {t("RESERVATION_DATE")}
+                    <Astrisk />
+                  </label>
+                  <Controller
+                    control={control}
+                    name="reservationDate"
+                    rules={{
+                      required: {
+                        value: true,
+                        message: t("REQUIRED"),
+                      },
+                    }}
+                    render={({ field }) => (
+                      <DatePicker
+                        {...field}
+                        className="w-full p-2 border-[#C4C4C4] border rounded-md"
+                        variant="filled"
+                        placeholder="Select reservation date"
+                        status={errors?.reservationDate ? "error" : ""}
+                        showTime
+                        disabled={
+                          holdReservationLoading || holdReservationIsFetching
+                        }
+                        disabledDate={(current) => {
+                          const allowedStartDate =
+                            holdReservation?.data[0]?.dateFrom;
+                          const allowedEndDate =
+                            holdReservation?.data[0]?.dateTo;
+                          return (
+                            (current &&
+                              current.isBefore(
+                                dayjs.utc(allowedStartDate).local().startOf("day"),
+                              )) ||
+                            (current &&
+                              current.isAfter(
+                                dayjs.utc(allowedEndDate).local().endOf("day"),
+                              ))
+                          );
+                        }}
+                      />
+                    )}
+                  />
+
+                  {errors?.reservationDate ? (
+                    <p>{errors?.reservationDate?.message}</p>
+                  ) : null}
+                </div>
+
+                {/* INSECTS */}
+                <div>
+                  <label>
+                    {t("INSECTS")}
+                    <Astrisk />
+                  </label>
+                  <Controller
+                    control={control}
+                    name={`insects`}
+                    rules={{
+                      required: { value: true, message: t("REQUIRED") },
+                    }}
+                    render={({ field }) => (
+                      <Select
+                        {...field}
+                        className="min-h-10 border-[#C4C4C4] border rounded-md w-full"
+                        placeholder="Insects?"
+                        variant="filled"
+                        status={errors?.insects ? "error" : ""}
+                        options={[
+                          { value: "true", label: "Yes" },
+                          { value: "false", label: "No" },
+                        ]}
+                      />
+                    )}
+                  />
+                  {errors?.insects && <p>{errors.insects.message}</p>}
+                </div>
+
+                {/* RODENTS */}
+                <div>
+                  <label>
+                    {t("RODENTS")}
+                    <Astrisk />
+                  </label>
+                  <Controller
+                    control={control}
+                    name={`rodents`}
+                    rules={{
+                      required: { value: true, message: t("REQUIRED") },
+                    }}
+                    render={({ field }) => (
+                      <Select
+                        {...field}
+                        className="min-h-10 border-[#C4C4C4] border rounded-md w-full"
+                        placeholder="Rodents?"
+                        variant="filled"
+                        status={errors?.rodents ? "error" : ""}
+                        options={[
+                          { value: "true", label: "Yes" },
+                          { value: "false", label: "No" },
+                        ]}
+                      />
+                    )}
+                  />
+                  {errors?.rodents && <p>{errors.rodents.message}</p>}
+                </div>
+
+                {/* APARTMENT CLOSING PERIOD */}
+                <div>
+                  <label className="font-semibold">
+                    {t("APARTMENT_CLOSING_PERIOD")}
+                    <Astrisk />
+                  </label>
+
+                  <Controller
+                    control={control}
+                    name="apartmentClosingPeriodId"
+                    rules={{
+                      required: {
+                        value: true,
+                        message: t("REQUIRED"),
+                      },
+                    }}
+                    render={({ field }) => (
+                      <Select
+                        {...field}
+                        loading={
+                          apartmentClosingPeriodLoading ||
+                          apartmentClosingPeriodIsFetching
+                        }
+                        className="min-h-10 border-[#C4C4C4] border rounded-md capitalize [&>.ant-select-selector]:capitalize"
+                        variant="filled"
+                        status={errors?.apartmentClosingPeriodId ? "error" : ""}
+                        // defaultValue="male"
+                        placeholder="Select apartment closing period"
+                        style={{ width: "100%" }}
+                        onChange={(e) => {
+                          field.onChange(e);
+                          //   handleChange(e);
+                        }}
+                        options={apartmentClosingPeriod?.data?.map(
+                          (period) => ({
+                            value: period?.id,
+                            label:
+                              lang === "en" ? period?.name : period?.arName,
+                          }),
+                        )}
+                      />
+                    )}
+                  />
+
+                  {errors?.apartmentClosingPeriodId ? (
+                    <p className="font-light">
+                      {errors?.apartmentClosingPeriodId?.message}
+                    </p>
+                  ) : null}
+                </div>
+              </section>
+
+              <section className="transportation-fees-wrapper">
+                <div className="transportation-fees-title capitalize col-span-full text-xl text-[#1D1B1B] font-semibold">
+                  {t("TRANSPORTATION_FEES_DETAILS")}
+                </div>
+
+                {/* CITY */}
+                <div>
+                  <label className="font-semibold">
+                    {t("CITY")}
+                    <Astrisk />
+                  </label>
+
+                  <Controller
+                    control={control}
+                    name="cityId"
+                    rules={{
+                      required: {
+                        value: true,
+                        message: t("REQUIRED"),
+                      },
+                    }}
+                    render={({ field }) => (
+                      <Select
+                        {...field}
+                        loading={isCitiesLoading || isCitiesFetching}
+                        className="min-h-10 border-[#C4C4C4] border rounded-md capitalize [&>.ant-select-selector]:capitalize"
+                        variant="filled"
+                        status={errors?.cityId ? "error" : ""}
+                        // defaultValue="male"
+                        placeholder="Select city"
+                        style={{ width: "100%" }}
+                        onChange={(e) => {
+                          field.onChange(e);
+                          setValue("areaId", null);
+                          setValue("transportationFeesId", null);
+                          setValue("fee", "");
+                          //   handleChange(e);
+                        }}
+                        options={cities?.data?.map((city) => ({
+                          value: city?.id,
+                          label: lang === "en" ? city?.name : city?.arName,
+                        }))}
+                      />
+                    )}
+                  />
+
+                  {errors?.cityId ? (
+                    <p className="font-light">{errors?.cityId?.message}</p>
+                  ) : null}
+                </div>
+
+                {/* AREA */}
+                <div>
+                  <label className="font-semibold">
+                    {t("AREA")}
+                    <Astrisk />
+                  </label>
+
+                  <Controller
+                    control={control}
+                    name="areaId"
+                    rules={{
+                      required: {
+                        value: true,
+                        message: t("REQUIRED"),
+                      },
+                    }}
+                    render={({ field }) => (
+                      <Select
+                        {...field}
+                        loading={isAreasLoading || isAreasFetching}
+                        className="min-h-10 border-[#C4C4C4] border rounded-md capitalize [&>.ant-select-selector]:capitalize"
+                        variant="filled"
+                        status={errors?.areaId ? "error" : ""}
+                        disabled={!cityId || isAreasLoading || isAreasFetching}
+                        placeholder="Select area"
+                        style={{ width: "100%" }}
+                        onChange={(e) => {
+                          field.onChange(e);
+                          setValue("transportationFeesId", null);
+                          setValue("fee", "");
+                          //   handleChange(e);
+                        }}
+                        options={newAreas?.data?.map((area) => ({
+                          value: area?.id,
+                          label: lang === "en" ? area?.name : area?.arName,
+                        }))}
+                      />
+                    )}
+                  />
+
+                  {errors?.areaId ? (
+                    <p className="font-light">{errors?.areaId?.message}</p>
+                  ) : null}
+                </div>
+
+                {/* TRANSPORTATION FEES */}
+                <div>
+                  <label className="font-semibold">
+                    {t("TRANSPORTATION_FEES")}
+                    <Astrisk />
+                  </label>
+
+                  <Controller
+                    control={control}
+                    name="transportationFeesId"
+                    rules={{
+                      required: {
+                        value: true,
+                        message: t("REQUIRED"),
+                      },
+                    }}
+                    render={({ field }) => (
+                      <Select
+                        {...field}
+                        loading={
+                          transportationFeesLoading ||
+                          transportationFeesIsFetching
+                        }
+                        className="min-h-10 border-[#C4C4C4] border rounded-md capitalize [&>.ant-select-selector]:capitalize"
+                        variant="filled"
+                        status={errors?.transportationFeesId ? "error" : ""}
+                        disabled={!cityId || !areaId}
+                        placeholder="Select transportation fees"
+                        style={{ width: "100%" }}
+                        onChange={(e) => {
+                          field.onChange(e);
+                          //   handleChange(e);
+                        }}
+                        options={transportationFees?.data
+                          ?.filter(
+                            (fee) =>
+                              fee.cityId === cityId && fee.areaId === areaId,
+                          )
+                          ?.map((fee) => ({
+                            value: fee.id,
+                            label: fee.fee || "---",
+                          }))}
+                      />
+                    )}
+                  />
+
+                  {errors?.transportationFeesId ? (
+                    <p className="font-light">
+                      {errors?.transportationFeesId?.message}
+                    </p>
+                  ) : null}
+                </div>
+              </section>
+
+              <section className="packages-wrapper">
+                <div className="packages-title flex items-center gap-3 capitalize col-span-full text-xl text-[#1D1B1B] font-semibold">
+                  <span>{t("EXTRA_SERVICE_DETAILS")}</span>
+
+                  <Button
+                    onClick={handlePackageAppend}
+                    className="text-sm cursor-pointer bg-green-600 text-white"
+                    icon={<FaPlus />}
+                    shape="circle"
+                  />
+                </div>
+
+                <div className="package-dropdown-wrapper flex flex-col gap-5 w-full col-span-full">
+                  {packagesFields.map((field, index) => (
+                    <section
+                      key={field.id}
+                      className="w-full flex flex-wrap items-center gap-3"
+                    >                      
+
+                      <Collapse
+                        className="grow [&_.ant-collapse-header]:items-center"
+                        accordion
+                        destroyOnHidden={false}
+                        items={[
+                          {
+                            key: "1",
+                            forceRender: true,
+                            label: (
+                              <div
+                                className="flex items-center justify-between gap-3"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <div className="w-full flex flex-col gap-2">
+                                  <Controller
+                                    control={control}
+                                    name={`addReservationPackagesDtos.${index}.packageId`}
+                                    rules={{
+                                      required: {
+                                        value: true,
+                                        message: t("REQUIRED"),
+                                      },
+                                    }}
+                                    render={({ field }) => (
+                                      <Select
+                                        {...field}
+                                        loading={
+                                          packagesLoading || packagesIsFetching
+                                        }
+                                        value={field?.value || null}
+                                        className="min-h-10 border-[#C4C4C4] border rounded-md capitalize [&>.ant-select-selector]:capitalize"
+                                        variant="filled"
+                                        status={
+                                          errors?.addReservationPackagesDtos?.[
+                                            index
+                                          ]?.packageId
+                                            ? "error"
+                                            : ""
+                                        }
+                                        placeholder="Select package"
+                                        style={{ width: "100%" }}
+                                        onChange={(e) => {
+                                          field.onChange(e);                                          
+                                          //   handleChange(e);
+                                        }}
+                                        options={
+                                          packages?.data?.map((pkg) => ({
+                                            value: pkg.id,
+                                            label:
+                                              lang === "en"
+                                                ? pkg.name
+                                                : pkg.arName,
+                                          })) || []
+                                        }
+                                      />
+                                    )}
+                                  />
+                                </div>
+                              </div>
+                            ),
+                            children: (
+                              <ExtraPackage
+                                index={index}
+                                control={control}
+                                errors={errors}
+                                watch={watch}
+                                setValue={setValue}
+                              />
+                            ),
+                          },
+                        ]}
+                      />
+
+                      <Button
+                        onClick={() => handlePackageRemove(index)}
+                        className="text-lg cursor-pointer bg-red-600 text-white disabled:bg-gray-300 disabled:cursor-not-allowed"
+                        icon={<FaMinus />}
+                        shape="circle"
+                        disabled={packagesFields?.length === 1}
+                      />
+
+                      <p className="basis-full text-xs text-red-500 capitalize">
+                        {
+                          errors?.addReservationPackagesDtos?.[index]?.packageId
+                            ?.message
+                        }
+                      </p>
+                    </section>
+                  ))}
+                </div>
+              </section>
+
+              {/* ── Reservation Amount Summary ─────────────────────────────── */}
+              <ReservationSummary control={control} />
+
+              <div className="md:col-span-full">
+                <label className="font-semibold mb-1 block">
+                  {t("GENERAL_NOTES")}
+                  <Astrisk />
+                </label>
+                <Controller
+                  control={control}
+                  name={`generalComments`}
+                  rules={{
+                    required: { value: true, message: t("REQUIRED") },
+                  }}
+                  render={({ field }) => (
+                    <TextArea
+                      {...field}
+                      variant="filled"
+                      placeholder="Enter general comments"
+                      className="placeholder:capitalize border-[#C4C4C4] border rounded-md py-2 min-h-[70px] resize-none"
+                      status={errors?.generalComments ? "error" : ""}
+                    />
+                  )}
+                />
+                {errors?.generalComments && (
+                  <p className="text-xs text-red-500 mt-1">
+                    {errors?.generalComments?.message}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <section className="btn-wrapper mt-8 flex items-center justify-center gap-4 [&>div>button]:capitalize [&>div>button]:min-w-[120px] [&>div>button]:py-5 ">
+              {/* <div>
               <Button
                 variant="outlined"
                 className="bg-transparent text-mainColor border-mainColor hover:bg-gray-600/80 hover:border-gray-600/80 hover:text-white transition-colors duration-500"
@@ -1553,20 +1606,21 @@ const ReservationForm = () => {
                 {t("BACK")}
               </Button>
             </div> */}
-            <div>
-              <Button
-                htmlType="submit"
-                variant="filled"
-                className="bg-mainColor text-white"
-                disabled={isAddReservationLoading}
-                loading={isAddReservationLoading}
-              >
-                {t("SUBMIT")}
-              </Button>
-            </div>
-          </section>
-        </form>
-      </section>
+              <div>
+                <Button
+                  htmlType="submit"
+                  variant="filled"
+                  className="bg-mainColor text-white"
+                  disabled={isAddReservationLoading || isEditReservationLoading}
+                  loading={isAddReservationLoading || isEditReservationLoading}
+                >
+                  {isEditMode ? t("UPDATE") : t("SUBMIT")}
+                </Button>
+              </div>
+            </section>
+          </form>
+        </section>
+      )}
     </main>
   );
 };

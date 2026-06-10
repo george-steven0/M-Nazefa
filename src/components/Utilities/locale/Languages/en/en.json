@@ -313,5 +313,17 @@
     "DURATION_ADDED_SUCCESS": "Duration added successfully",
     "MIN_WORKERS": "Minimum workers must be equal or greater than {{count}}",
     "AVAILABLE_WORKERS": "Available workers",
-    "REMAIN_WORKERS": "Remain workers"
+    "REMAIN_WORKERS": "Remain workers",
+    "VIEW_PAYEMNTS": "View Payments",
+    "RESERVATION_CONFIRMED_SUCCESSFULLY" : "Reservation confirm successfully",
+    "PAYMENTS": "Payments",
+    "ADD_PAYMENT": "Add Payment",
+    "PAYMENT_METHOD": "Payment Method",
+    "SELECT_PAYMENT_METHOD": "Select payment method",
+    "OPERATION_DATE": "Operation Date",
+    "TYPE": "Type",
+    "NOTE": "Note",
+    "PAYMENT_ADDED_SUCCESS": "Payment added successfully",
+    "PAYMENT": "Payment",
+    "REFUND": "Refund"
 }

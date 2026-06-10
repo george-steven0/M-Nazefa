@@ -7,6 +7,7 @@ import type {
 import type { TFunction } from "i18next";
 import { useChangePasswordMutation } from "../../../components/APIs/EmployeesQuery/EMPLOYEES_QUERY";
 import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 
 type changePasswordProps = {
   open: boolean;
@@ -23,6 +24,7 @@ const ChangePassword = ({
   userName,
   id,
 }: changePasswordProps) => {
+  const navigate = useNavigate();
   const [changePassword, { isLoading }] = useChangePasswordMutation();
   const {
     control,
@@ -31,10 +33,14 @@ const ChangePassword = ({
     formState: { errors },
   } = useForm<changePasswordForm>();
 
+  // const navigate
   const handleReset = () => {
     reset();
     close();
   };
+
+  const currentUser = localStorage.getItem("uid") === id || false;
+
   const submitForm = async (data: changePasswordForm) => {
     const formatData = {
       ...data,
@@ -47,6 +53,10 @@ const ChangePassword = ({
       await changePassword(formatData).unwrap();
       toast.success("Password changed successfully");
       handleReset();
+      if (currentUser) {
+        localStorage.clear();
+        navigate("/login");
+      }
     } catch (error) {
       const err = error as APIErrorProps;
       // console.log(err);

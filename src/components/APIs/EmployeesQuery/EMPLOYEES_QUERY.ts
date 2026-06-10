@@ -47,7 +47,7 @@ const employees = API.injectEndpoints({
           },
         };
       },
-      providesTags: (_res, _err, { id }) => [{ type: "employees", id }],
+      providesTags: ["singleEmployee"],
     }),
 
     addEmployee: build.mutation<APIResponse<employeeFormProps>, FormData>({
@@ -71,10 +71,7 @@ const employees = API.injectEndpoints({
           "Content-Type": "multipart/form-data",
         },
       }),
-      invalidatesTags: (_res, _err, formData) => [
-        { type: "employees", id: "LIST" },
-        { type: "employees", id: formData.get("id") as string },
-      ],
+      invalidatesTags: ["singleEmployee", "employees"],
     }),
 
     deactivateEmployee: build.mutation<

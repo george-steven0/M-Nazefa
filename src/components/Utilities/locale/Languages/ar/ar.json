@@ -313,5 +313,17 @@
     "DURATION_ADDED_SUCCESS": "تم إضافة المدة بنجاح",
     "MIN_WORKERS": "الحد الأدنى للعمال يجب أن يكون {{count}} أو أكثر",
     "AVAILABLE_WORKERS": "عدد العمال المتاحين",
-    "REMAIN_WORKERS": "عدد العمال المتبقين"
+    "REMAIN_WORKERS": "عدد العمال المتبقين",
+    "VIEW_PAYEMNTS": "عرض الدفعات",
+    "RESERVATION_CONFIRMED_SUCCESSFULLY" : "تم تاكيد الحجز بنجاح",
+    "PAYMENTS": "الدفعات",
+    "ADD_PAYMENT": "إضافة دفعة",
+    "PAYMENT_METHOD": "طريقة الدفع",
+    "SELECT_PAYMENT_METHOD": "اختر طريقة الدفع",
+    "OPERATION_DATE": "تاريخ العملية",
+    "TYPE": "النوع",
+    "NOTE": "ملاحظة",
+    "PAYMENT_ADDED_SUCCESS": "تم إضافة الدفعة بنجاح",
+    "PAYMENT": "دفعة",
+    "REFUND": "استرداد"
 }
