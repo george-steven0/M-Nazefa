@@ -235,7 +235,7 @@ const ReservationForm = () => {
       setValue("idNumber", customer.data?.idNumber || t("NA"));
       setValue(
         "phoneNumber",
-        customer.data?.phoneNumbers[0].phoneNumber || t("NA"),
+        customer.data?.phoneNumbers[0]?.phoneNumber || t("NA"),
       );
       setValue("email", customer.data?.email || t("NA"));
     }

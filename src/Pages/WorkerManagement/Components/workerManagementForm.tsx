@@ -57,6 +57,7 @@ export default function WorkerManagementForm({
                     className="min-h-10 border-[#C4C4C4] border rounded-md w-full"
                     variant="filled"
                     status={errors?.startDate ? "error" : ""}
+                    disabledDate={(current) => current && current < dayjs().startOf("day")}
                     placeholder={t("START_DATE")}
                     format="DD-MM-YYYY"
                     showTime={false}
