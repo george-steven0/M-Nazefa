@@ -127,16 +127,18 @@ const ViewClient = () => {
     .trim() || <NA />;
 
   const formatList = (
-    data: string | string[] | { value: string }[] | undefined,
+    data:
+      | { workerId?: number | string | null; name?: string; arName?: string }[]
+      | number[]
+      | undefined,
   ) => {
     if (!data) return "";
 
-    if (typeof data === "string") {
-      return data.replace(/_/g, " , ");
-    }
-
     return data
-      .map((item) => (typeof item === "string" ? item : item.value))
+      .map((item) =>
+        typeof item === "number" ? String(item) : item.name || item.arName || "",
+      )
+      .filter(Boolean)
       .join(", ");
   };
 
@@ -411,19 +413,19 @@ const ViewClient = () => {
                 />
               )}
 
-              {customer?.favoriteList && (
+              {customer?.customerFavourites?.favoriteList && (
                 <InfoRow
                   icon={<GrFavorite size={16} />}
                   label={t("FAVORITE_LIST") || "Favorite List"}
                   value={
                     <p className="text-sm text-gray-600 bg-green-50 border border-green-100 rounded-lg p-2 leading-relaxed whitespace-pre-line">
-                      {formatList(customer.favoriteList)}
+                      {formatList(customer?.customerFavourites?.favoriteList)}
                     </p>
                   }
                 />
               )}
 
-              {customer?.notRecommendedWorkerList && (
+              {customer?.customerFavourites?.notRecommendedWorkerList && (
                 <InfoRow
                   icon={<FaUserXmark size={16} />}
                   label={
@@ -431,7 +433,7 @@ const ViewClient = () => {
                   }
                   value={
                     <p className="text-sm text-gray-600 bg-red-50 border border-red-100 rounded-lg p-2 leading-relaxed">
-                      {formatList(customer.notRecommendedWorkerList)}
+                      {formatList(customer?.customerFavourites?.notRecommendedWorkerList)}
                     </p>
                   }
                 />

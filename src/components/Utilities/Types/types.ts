@@ -180,11 +180,15 @@ export type clientFormPropsType = {
     favoriteList?:
       | {
           workerId: number | string | null;
+          name?: string,
+          arName?: string
         }[]
       | number[];
     notRecommendedWorkerList?:
       | {
           workerId: number | string | null;
+          name?: string,
+          arName?: string
         }[]
       | number[];
   };
