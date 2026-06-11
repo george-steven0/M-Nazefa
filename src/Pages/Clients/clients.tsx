@@ -62,7 +62,7 @@ const Clients = () => {
   } = useGetAllCustomersQuery({
     page: pagination.current,
     size: pagination.pageSize,
-    search: debounceValue,
+    search: encodeURIComponent(debounceValue),
     DescendingOrder: sort,
   });
 

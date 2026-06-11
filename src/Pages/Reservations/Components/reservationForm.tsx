@@ -19,7 +19,7 @@ import {
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 dayjs.extend(utc);
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   useGetAllCustomerAddressesQuery,
   useGetAllCustomersDDLQuery,
@@ -63,6 +63,21 @@ const ReservationForm = () => {
   const reservatinId = searchParams.get("id") || null;
   const isEditMode = !!reservatinId;
 
+  const [customerSearch,setCustomerSearch] = useState<string | null>(null)
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleCustomerSearch = (value: string) => {
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+    debounceRef.current = setTimeout(() => {
+      setCustomerSearch(value);
+    }, 500);
+  };
+
+  console.log(customerSearch);
+  
+
   const {
     data: reservationDetails,
     isFetching: reservationDetailsIsFetching,
@@ -88,7 +103,7 @@ const ReservationForm = () => {
     formState: { errors },
   } = useForm<reservationFormProps>({
     defaultValues: {
-      onSpot: true,
+      onSpot: false,
       addReservationPackagesDtos: [
         {
           packageId: "",
@@ -111,7 +126,7 @@ const ReservationForm = () => {
     data: customers,
     isLoading: customersLoading,
     isFetching: customersIsFetching,
-  } = useGetAllCustomersDDLQuery();
+  } = useGetAllCustomersDDLQuery({SearchTerm:encodeURIComponent(customerSearch || '')});
 
   // all addresses of customer
   const {
@@ -376,11 +391,8 @@ const ReservationForm = () => {
                         }}
                         showSearch
                         optionFilterProp="label"
-                        filterOption={(input, option) =>
-                          (option?.label ?? "")
-                            .toLowerCase()
-                            .includes(input.toLowerCase())
-                        }
+                        filterOption={false}
+                        onSearch={handleCustomerSearch}
                         options={customers?.data?.map((customer) => ({
                           value: customer.id,
                           label: customer.name,

@@ -110,10 +110,13 @@ const seeders = API.injectEndpoints({
       // providesTags: [{ type: "clients", id: "LIST" }],
     }),
 
-    getAllCustomersDDL: build.query<APIResponse<clientFormPropsType>, void>({
-      query: () => ({
+    getAllCustomersDDL: build.query<APIResponse<clientFormPropsType>, {SearchTerm?:string}>({
+      query: ({SearchTerm}) => ({
         url: `/DDL/GetAllCustomerDDL`,
         method: "GET",
+        headers:{
+          ...(SearchTerm&&{SearchTerm:SearchTerm})
+        }
       }),
       // providesTags: ["clients"],
     }),
