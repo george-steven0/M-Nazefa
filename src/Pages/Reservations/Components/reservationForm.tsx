@@ -75,7 +75,7 @@ const ReservationForm = () => {
     }, 500);
   };
 
-  console.log(customerSearch);
+  // console.log(customerSearch);
   
 
   const {
@@ -387,6 +387,7 @@ const ReservationForm = () => {
                         onChange={(e) => {
                           field.onChange(e);
                           setValue("customerAddressId", null);
+                          setCustomerSearch('')
                           //   handleChange(e);
                         }}
                         showSearch

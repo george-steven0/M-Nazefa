@@ -11,10 +11,26 @@ import { useGetAllCustomersDDLQuery } from "../../components/APIs/Seeders/SEEDER
 import { useAppSelector } from "../../components/APIs/store";
 import { useSendMessageMutation } from "../../components/APIs/Message/MESSAGE_QUERY";
 import { toast } from "react-toastify";
+import { useRef, useState } from "react";
 
 const Messages = () => {
   const { t } = useTranslation();
   const { lang } = useAppSelector((state) => state?.lang);
+
+    const [customerSearch,setCustomerSearch] = useState<string | null>(null)
+
+    const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleCustomerSearch = (value: string) => {
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+    debounceRef.current = setTimeout(() => {
+      setCustomerSearch(value);
+    }, 500);
+  };
+
+
 
   const {
     control,
@@ -23,9 +39,9 @@ const Messages = () => {
     reset,
   } = useForm<messagesProps>();
 
-  const { data: customers } = useGetAllCustomersDDLQuery();
+  const { data: customers,isFetching:customersIsFetching,isLoading:customersLoading } = useGetAllCustomersDDLQuery({SearchTerm:encodeURIComponent(customerSearch || '')});
 
-  const [sendMessage, { isLoading }] = useSendMessageMutation();
+  const [sendMessage, { isLoading:sendMessageLoading }] = useSendMessageMutation();
 
   // console.log(customers);
 
@@ -79,10 +95,14 @@ const Messages = () => {
                     placeholder="Please Select Customer"
                     showSearch
                     optionFilterProp="label"
+                    filterOption={false}
+                    onSearch={handleCustomerSearch}
                     onChange={(e) => {
-                      field.onChange(e);
+                    field.onChange(e);
+                    setCustomerSearch('')
                       //   handleChange(e);
                     }}
+                    loading={customersIsFetching || customersLoading}
                     options={customerOptions}
                   />
                 )}
@@ -145,7 +165,7 @@ const Messages = () => {
           <section className="submit-btn-wrapper mt-8 w-full flex justify-center">
             <Button
               htmlType="submit"
-              loading={isLoading}
+              loading={sendMessageLoading}
               className="bg-mainColor text-white py-5 min-w-[200px] capitalize"
             >
               {t("SEND_MESSAGE")}
