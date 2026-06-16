@@ -583,7 +583,7 @@ export type membershipFormProps = {
   startDate: string;
   endDate: string;
   noOfVisits: string | number;
-  percent: string;
+  percent: number;
 };
 export type transportationFeesProps = {
   id?: string | number;

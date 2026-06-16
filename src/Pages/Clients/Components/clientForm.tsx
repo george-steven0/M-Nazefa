@@ -122,7 +122,7 @@ const ClientForm = () => {
       numberOfReceptionrooms: address?.numberOfReceptionrooms ?? "",
       noOfFloors: address?.noOfFloors ?? "",
       addressTypeId: address?.addressTypeId ?? "",
-      hasPets: address?.hasPets ?? "",
+      hasPets: address?.hasPets ?? false,
       landLine: address?.landLine ?? "",
     })),
     phoneNumbers: clientById?.data?.phoneNumbers ?? [],
@@ -170,19 +170,9 @@ const ClientForm = () => {
         phoneNumber: "",
       },
     ],
-    // favoriteList: [
-    //   {
-    //     value: null,
-    //   },
-    // ],
-    // NotRecommendedWorkerList: [
-    //   {
-    //     value: null,
-    //   },
-    // ],
     customerFavourites: {
-      favoriteList: [{ workerId: null }],
-      notRecommendedWorkerList: [{ workerId: null }],
+      favoriteList: [],
+      notRecommendedWorkerList: [],
     },
   };
 
@@ -312,6 +302,17 @@ const ClientForm = () => {
     // console.log(data);
     // console.log(data);
 
+    const customerFavourites = {
+      favoriteList: (data?.customerFavourites?.favoriteList
+        ?.map((val) => (typeof val === "object" ? val?.workerId : val))
+        ?.filter(Boolean) ?? []) as number[],
+      notRecommendedWorkerList: (data?.customerFavourites
+        ?.notRecommendedWorkerList?.map((val) =>
+          typeof val === "object" ? val?.workerId : val,
+        )
+        ?.filter(Boolean) ?? []) as number[],
+    };
+
     const formattedData = {
       ...data,
       id: id!,
@@ -320,20 +321,13 @@ const ClientForm = () => {
         id: address?.id || 0,
         ...address,
       })),
-      customerFavourites: {
-        favoriteList: (data?.customerFavourites?.favoriteList
-          ?.map((val) => (typeof val === "object" ? val?.workerId : val))
-          ?.filter(Boolean) ?? []) as number[],
-        notRecommendedWorkerList:
-          (data?.customerFavourites?.notRecommendedWorkerList
-            ?.map((val) => (typeof val === "object" ? val?.workerId : val))
-            ?.filter(Boolean) ?? []) as number[],
-      },
 
       entryDate: dayjs(data?.entryDate).format("YYYY-MM-DDTHH:mm:ss"),
     };
 
-    const cleanData = cleanDeep(formattedData);
+    // cleanDeep strips empty arrays/objects, so attach customerFavourites
+    // afterwards to guarantee both lists are always sent (empty when no data).
+    const cleanData = { ...cleanDeep(formattedData), customerFavourites };
     // console.log("cleanData: ", cleanData);
 
     try {

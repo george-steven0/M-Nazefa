@@ -34,6 +34,8 @@ const MembershipForm = ({ open, close, t, data }: addRoleProps) => {
     code: data?.code || "",
     startDate: data?.startDate || "",
     endDate: data?.endDate || "",
+    percent:data?.percent || 0,
+    noOfVisits : data?.noOfVisits || 0,
   };
 
   const {
@@ -227,7 +229,41 @@ const MembershipForm = ({ open, close, t, data }: addRoleProps) => {
               ) : null}
             </div>
 
-            <div className="col-span-full">
+            <div>
+              <label>{t("NUMBER_OF_VISITS")}</label>
+
+              <Controller
+                control={control}
+                name="noOfVisits"
+                rules={{
+                  required: {
+                    value: true,
+                    message: t("REQUIRED"),
+                  },
+                  pattern: {
+                    value: /^\d+(\.\d+)?$/,
+                    message: t("ONLY_NUMBER"),
+                  },
+                }}
+                render={({ field }) => (
+                  <Input
+                    {...field}
+                    variant="filled"
+                    placeholder="Enter number of visits"
+                    className="placeholder:capitalize"
+                    status={errors?.noOfVisits ? "error" : ""}
+                  />
+                )}
+              />
+
+              {errors?.noOfVisits ? (
+                <p className="text-mainRed text-xs mt-1">
+                  {errors?.noOfVisits?.message}
+                </p>
+              ) : null}
+            </div>
+
+            <div>
               <label>{t("PERCENTAGE")}</label>
 
               <Controller

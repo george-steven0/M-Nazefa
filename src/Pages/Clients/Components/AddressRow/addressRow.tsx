@@ -190,7 +190,7 @@ const AddressRow = ({
             )}
           />
           {errors?.customerAddresses?.[index]?.cityId && (
-            <p>{errors.customerAddresses[index].cityId.message}</p>
+            <p>{errors?.customerAddresses[index]?.cityId?.message}</p>
           )}
         </div>
 
@@ -227,7 +227,7 @@ const AddressRow = ({
             )}
           />
           {errors?.customerAddresses?.[index]?.AreaId && (
-            <p>{errors.customerAddresses[index].AreaId.message}</p>
+            <p>{errors?.customerAddresses?.[index]?.AreaId?.message}</p>
           )}
         </div>
 
@@ -256,7 +256,7 @@ const AddressRow = ({
             )}
           />
           {errors?.customerAddresses?.[index]?.street && (
-            <p>{errors.customerAddresses[index].street.message}</p>
+            <p>{errors?.customerAddresses?.[index]?.street?.message}</p>
           )}
         </div>
 
@@ -285,7 +285,7 @@ const AddressRow = ({
             )}
           />
           {errors?.customerAddresses?.[index]?.apartment && (
-            <p>{errors.customerAddresses[index].apartment.message}</p>
+            <p>{errors?.customerAddresses?.[index]?.apartment?.message}</p>
           )}
         </div>
 
@@ -318,7 +318,7 @@ const AddressRow = ({
             )}
           />
           {errors?.customerAddresses?.[index]?.floor && (
-            <p>{errors.customerAddresses[index].floor.message}</p>
+            <p>{errors?.customerAddresses?.[index]?.floor?.message}</p>
           )}
         </div>
 
@@ -377,7 +377,7 @@ const AddressRow = ({
             )}
           />
           {errors?.customerAddresses?.[index]?.landmark && (
-            <p>{errors.customerAddresses[index].landmark.message}</p>
+            <p>{errors?.customerAddresses?.[index]?.landmark?.message}</p>
           )}
         </div>
 
@@ -407,7 +407,7 @@ const AddressRow = ({
             )}
           />
           {errors?.customerAddresses?.[index]?.fullDescription && (
-            <p>{errors.customerAddresses[index].fullDescription.message}</p>
+            <p>{errors?.customerAddresses?.[index]?.fullDescription?.message}</p>
           )}
         </div>
       </section>
@@ -446,7 +446,7 @@ const AddressRow = ({
             )}
           />
           {errors?.customerAddresses?.[index]?.space && (
-            <p>{errors.customerAddresses[index].space.message}</p>
+            <p>{errors?.customerAddresses?.[index]?.space?.message}</p>
           )}
         </div>
 
@@ -491,7 +491,7 @@ const AddressRow = ({
             )}
           />
           {errors?.customerAddresses?.[index]?.addressTypeId && (
-            <p>{errors.customerAddresses[index].addressTypeId.message}</p>
+            <p>{errors?.customerAddresses?.[index]?.addressTypeId?.message}</p>
           )}
         </div>
 
@@ -536,7 +536,7 @@ const AddressRow = ({
             )}
           />
           {errors?.customerAddresses?.[index]?.BuildingTypeId && (
-            <p>{errors.customerAddresses[index].BuildingTypeId.message}</p>
+            <p>{errors?.customerAddresses?.[index]?.BuildingTypeId?.message}</p>
           )}
         </div>
 
@@ -571,7 +571,7 @@ const AddressRow = ({
             )}
           />
           {errors?.customerAddresses?.[index]?.noOfFloors && (
-            <p>{errors.customerAddresses[index].noOfFloors.message}</p>
+            <p>{errors?.customerAddresses?.[index]?.noOfFloors?.message}</p>
           )}
         </div>
 
@@ -607,7 +607,7 @@ const AddressRow = ({
             )}
           />
           {errors?.customerAddresses?.[index]?.LandTypeId && (
-            <p>{errors.customerAddresses[index].LandTypeId.message}</p>
+            <p>{errors?.customerAddresses?.[index]?.LandTypeId?.message}</p>
           )}
         </div>
 
@@ -762,7 +762,7 @@ const AddressRow = ({
             )}
           />
           {errors?.customerAddresses?.[index]?.numberOfWindows && (
-            <p>{errors.customerAddresses[index].numberOfWindows.message}</p>
+            <p>{errors?.customerAddresses?.[index]?.numberOfWindows?.message}</p>
           )}
         </div>
 
@@ -799,7 +799,7 @@ const AddressRow = ({
             )}
           />
           {errors?.customerAddresses?.[index]?.numberOfBedrooms && (
-            <p>{errors.customerAddresses[index].numberOfBedrooms.message}</p>
+            <p>{errors?.customerAddresses?.[index]?.numberOfBedrooms?.message}</p>
           )}
         </div>
 
@@ -836,7 +836,7 @@ const AddressRow = ({
             )}
           />
           {errors?.customerAddresses?.[index]?.numberOfBathrooms && (
-            <p>{errors.customerAddresses[index].numberOfBathrooms.message}</p>
+            <p>{errors?.customerAddresses?.[index]?.numberOfBathrooms?.message}</p>
           )}
         </div>
 
@@ -873,7 +873,7 @@ const AddressRow = ({
             )}
           />
           {errors?.customerAddresses?.[index]?.numberOfKitchens && (
-            <p>{errors.customerAddresses[index].numberOfKitchens.message}</p>
+            <p>{errors?.customerAddresses?.[index]?.numberOfKitchens?.message}</p>
           )}
         </div>
 
@@ -910,7 +910,7 @@ const AddressRow = ({
             )}
           />
           {errors?.customerAddresses?.[index]?.numberOfLivingRooms && (
-            <p>{errors.customerAddresses[index].numberOfLivingRooms.message}</p>
+            <p>{errors?.customerAddresses?.[index]?.numberOfLivingRooms?.message}</p>
           )}
         </div>
 
@@ -948,7 +948,7 @@ const AddressRow = ({
           />
           {errors?.customerAddresses?.[index]?.numberOfReceptionrooms && (
             <p>
-              {errors.customerAddresses[index].numberOfReceptionrooms.message}
+              {errors?.customerAddresses?.[index]?.numberOfReceptionrooms?.message}
             </p>
           )}
         </div>
@@ -980,7 +980,7 @@ const AddressRow = ({
             )}
           />
           {errors?.customerAddresses?.[index]?.landLine && (
-            <p>{errors.customerAddresses[index].landLine.message}</p>
+            <p>{errors?.customerAddresses?.[index]?.landLine?.message}</p>
           )}
         </div>
 
@@ -1146,7 +1146,7 @@ const AddressRow = ({
         <article className="col-span-full flex flex-col gap-2 capitalize text-xl text-[#1D1B1B] font-semibold">
           <div className="flex items-center gap-2 capitalize">
             <label>{t("FAVORITE_LIST")}</label>
-            <Astrisk />
+            {/* <Astrisk /> */}
             <Button
               shape="circle"
               size="small"
@@ -1162,9 +1162,9 @@ const AddressRow = ({
                 <Controller
                   control={control}
                   name={`customerFavourites.favoriteList.${index}.workerId`}
-                  rules={{
-                    required: { value: true, message: t("REQUIRED") },
-                  }}
+                  // rules={{
+                  //   required: { value: true, message: t("REQUIRED") },
+                  // }}
                   render={({ field }) => (
                     <Space.Compact className="items-stretch w-full">
                       {/* <Input
@@ -1189,7 +1189,7 @@ const AddressRow = ({
 
                       <Select
                         {...field}
-                        className="min-h-10 border-[#C4C4C4] border rounded-md w-full"
+                        className="min-h-10 border-[#C4C4C4] border rounded-md w-full rounded-e-none"
                         placeholder="Select worker"
                         variant="filled"
                         status={
@@ -1228,7 +1228,7 @@ const AddressRow = ({
                         }}
                       />
                       <span>
-                        {favListFields?.length > 1 ? (
+                        {favListFields?.length > 0 ? (
                           <Button
                             icon={<FaMinus className="text-sm" />}
                             onClick={() => removeFavList(index)}
@@ -1322,7 +1322,7 @@ const AddressRow = ({
 
                       <Select
                         {...field}
-                        className="min-h-10 border-[#C4C4C4] border rounded-md w-full"
+                        className="min-h-10 border-[#C4C4C4] border rounded-md w-full rounded-e-none"
                         placeholder="Select worker"
                         variant="filled"
                         status={
@@ -1365,7 +1365,7 @@ const AddressRow = ({
                       />
 
                       <span>
-                        {notRecommendedListFields?.length > 1 ? (
+                        {notRecommendedListFields?.length > 0 ? (
                           <Button
                             icon={<FaMinus className="text-sm" />}
                             onClick={() => removeNotRecommendedList(index)}
