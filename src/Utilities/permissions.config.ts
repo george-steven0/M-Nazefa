@@ -65,6 +65,9 @@ export const PERMISSIONS = {
   //Complaints
   VIEW_COMPLAINTS: "view_complaints",
 
+  //Reservation Feedback
+  VIEW_RESERVATION_FEEDBACK: "view_reservation_feedback",
+
   //Worker Management
   VIEW_WORKER_MANAGEMENT: "view_worker_management",
   VIEW_RESERVATION_PAYMENTS: "view_reservation_payments",

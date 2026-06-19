@@ -19,7 +19,7 @@ const Title = ({
 }: titleProps) => {
   return (
     <div
-      className={`title-wrapper flex flex-wrap md:flex-nowrap items-center justify-between ${className}`}
+      className={`title-wrapper w-full flex flex-wrap md:flex-nowrap items-center justify-between ${className}`}
     >
       <span
         className={`

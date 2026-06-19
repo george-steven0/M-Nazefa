@@ -336,9 +336,6 @@ const ReservationDetails = () => {
               <Descriptions.Item label={t("HAS_MEMBERSHIP")}>
                 {renderValue(customerData?.hasMembership)}
               </Descriptions.Item>
-              <Descriptions.Item label={t("MEMBERSHIP_NUMBER")}>
-                {renderValue(customerData?.memberShipNumber)}
-              </Descriptions.Item>
               <Descriptions.Item label={t("WHATSAPP_NUMBER")}>
                 {renderValue(customerData?.whatsAppNumber as string)}
               </Descriptions.Item>

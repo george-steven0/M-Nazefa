@@ -17,6 +17,7 @@ import { RiCustomerService2Fill } from "react-icons/ri";
 import {
   MdCardMembership,
   MdOutlineCleaningServices,
+  MdOutlineFeedback,
   MdOutlinePermContactCalendar,
 } from "react-icons/md";
 import { FaMapLocation, FaVanShuttle } from "react-icons/fa6";
@@ -255,6 +256,14 @@ const Navbar = ({
             icon: <RiCustomerService2Fill />,
             iconType: "fontIcon",
             permissions: [PERMISSIONS.VIEW_COMPLAINTS],
+          },
+          {
+            id: "reservation_feedback",
+            name: t("FEEDBACKS"),
+            path: "/reservation-feedback",
+            icon: <MdOutlineFeedback />,
+            iconType: "fontIcon",
+            permissions: [PERMISSIONS.VIEW_RESERVATION_FEEDBACK],
           },
           {
             id: "messages",

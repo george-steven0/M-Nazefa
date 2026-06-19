@@ -1,4 +1,4 @@
-import { BiPlus, BiTrash, BiUpload } from "react-icons/bi";
+import { BiPlus, BiTrash } from "react-icons/bi";
 import { useTranslation } from "react-i18next";
 import Title from "../../../components/Common/Title/title";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
@@ -35,7 +35,6 @@ import Astrisk from "../../../components/Common/Astrisk/astrisk";
 export default function PackageForm() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const [termsFile, setTermsFile] = useState<UploadFile[]>([]);
   const { lang } = useAppSelector((state) => state?.lang);
 
   const {
@@ -83,10 +82,9 @@ export default function PackageForm() {
     IsPercentage: String(packageById?.data?.isPercentage),
     Discount: packageById?.data?.discount,
     Logo: packageById?.data?.logo,
-    Rules: packageById?.data?.rules,
-    Supplies: packageById?.data?.supplies,
-    Tools: packageById?.data?.tools,
-    TermsAndConditions: packageById?.data?.termsAndConditions,
+    Rules: packageById?.data?.rules?.map((rule) => ({ value: rule })),
+    Supplies: packageById?.data?.supplies?.map((supply) => ({ value: supply })),
+    Tools: packageById?.data?.tools?.map((tool) => ({ value: tool })),
     NumberofRooms: packageById?.data?.numberOfRooms,
     NumberofWorkers: packageById?.data?.numberOfWorkers,
     Price: packageById?.data?.price,
@@ -95,6 +93,7 @@ export default function PackageForm() {
         CleaningAreaId: cleaningArea.cleaningAreaId,
         ArName: cleaningArea.arName,
         Name: cleaningArea.name,
+        Description: cleaningArea.description,
       }),
     ),
     ExtraServices: packageById?.data?.extraServices?.map((extraService) => ({
@@ -126,10 +125,9 @@ export default function PackageForm() {
           SubTitle: "",
           Description: "",
           Logo: "",
-          Rules: "",
-          Supplies: "",
-          Tools: "",
-          TermsAndConditions: "",
+          Rules: [{ value: "" }],
+          Supplies: [{ value: "" }],
+          Tools: [{ value: "" }],
           NumberofRooms: "",
           NumberofWorkers: "",
           Price: "",
@@ -138,6 +136,7 @@ export default function PackageForm() {
               CleaningAreaId: "",
               ArName: "",
               Name: "",
+              Description: "",
             },
           ],
           ExtraServices: [
@@ -167,18 +166,6 @@ export default function PackageForm() {
           name: "logo.png",
           status: "done",
           url: packageById?.data?.logo, // This shows the image in the UI
-        },
-      ]);
-
-      setTermsFile([
-        {
-          uid: "-1", // unique id
-          name: "terms and conditions",
-          status: "done",
-          url:
-            typeof packageById?.data?.termsAndConditions === "string"
-              ? packageById?.data?.termsAndConditions
-              : packageById?.data?.termsAndConditions?.url || "",
         },
       ]);
     }
@@ -246,6 +233,7 @@ export default function PackageForm() {
       CleaningAreaId: "",
       ArName: "",
       Name: "",
+      Description: "",
     });
   };
 
@@ -282,13 +270,76 @@ export default function PackageForm() {
     extraServicesRemove(index);
   };
 
+  // Tools
+  const {
+    fields: toolsFields,
+    append: toolsAppend,
+    remove: toolsRemove,
+  } = useFieldArray({
+    name: "Tools",
+    control,
+  });
+
+  const addMoreTools = () => {
+    toolsAppend({ value: "" });
+  };
+
+  const removeTools = (index: number) => {
+    toolsRemove(index);
+  };
+
+  // Supplies
+  const {
+    fields: suppliesFields,
+    append: suppliesAppend,
+    remove: suppliesRemove,
+  } = useFieldArray({
+    name: "Supplies",
+    control,
+  });
+
+  const addMoreSupplies = () => {
+    suppliesAppend({ value: "" });
+  };
+
+  const removeSupplies = (index: number) => {
+    suppliesRemove(index);
+  };
+
+  // Rules
+  const {
+    fields: rulesFields,
+    append: rulesAppend,
+    remove: rulesRemove,
+  } = useFieldArray({
+    name: "Rules",
+    control,
+  });
+
+  const addMoreRules = () => {
+    rulesAppend({ value: "" });
+  };
+
+  const removeRules = (index: number) => {
+    rulesRemove(index);
+  };
+
   const handleSubmitForm = async (data: packageFormProps) => {
     // console.log(data);
     const formattedData = new FormData();
     if (id) {
       formattedData.append("id", id as string);
     }
-    Object.entries(data).forEach(([key, value]) => {
+
+    // Convert Tools/Supplies/Rules from [{ value }] to flat array of strings
+    const payload = {
+      ...data,
+      Tools: data.Tools?.map((item) => item.value),
+      Supplies: data.Supplies?.map((item) => item.value),
+      Rules: data.Rules?.map((item) => item.value),
+    };
+
+    Object.entries(payload).forEach(([key, value]) => {
       if (value === null || value === undefined) return;
 
       if (Array.isArray(value)) {
@@ -1010,85 +1061,178 @@ export default function PackageForm() {
                 ) : null}
               </div> */}
 
-              <div>
-                <label>
-                  {t("TOOLS")} <Astrisk />
-                </label>
-                <Controller
-                  control={control}
-                  name="Tools"
-                  rules={{
-                    required: {
-                      value: true,
-                      message: t("REQUIRED"),
-                    },
-                  }}
-                  render={({ field }) => (
-                    <Input
-                      {...field}
-                      variant="filled"
-                      placeholder="Enter tools"
-                      className="placeholder:capitalize"
-                      status={errors?.Tools ? "error" : ""}
-                    />
-                  )}
-                />
+              <div className="[&>div>input]:border-[#C4C4C4] [&>div>input]:py-2">
+                <div className="flex items-center gap-2 mb-1">
+                  <label className="capitalize font-medium">
+                    {t("TOOLS")} <Astrisk />
+                  </label>
+                  <Button
+                    className="bg-green-600/60 hover:bg-green-600 border-green-600 text-white"
+                    shape="circle"
+                    size="small"
+                    onClick={addMoreTools}
+                    icon={<BiPlus />}
+                  />
+                </div>
 
-                {errors?.Tools ? <p>{errors?.Tools?.message}</p> : null}
+                {toolsFields?.map((field, index) => (
+                  <div key={field.id} className="flex items-center gap-2 mb-2">
+                    <Controller
+                      control={control}
+                      name={`Tools.${index}.value`}
+                      rules={{
+                        required: {
+                          value: true,
+                          message: t("REQUIRED"),
+                        },
+                      }}
+                      render={({ field }) => (
+                        <Input
+                          {...field}
+                          variant="filled"
+                          placeholder="Enter tool"
+                          className="placeholder:capitalize"
+                          status={
+                            errors?.Tools?.[index]?.value ? "error" : ""
+                          }
+                        />
+                      )}
+                    />
+                    <Button
+                      variant="text"
+                      color="danger"
+                      onClick={() => removeTools(index)}
+                      icon={<BiTrash size={25} />}
+                      disabled={toolsFields.length === 1}
+                    />
+                  </div>
+                ))}
+                {toolsFields?.map((_, index) =>
+                  errors?.Tools?.[index]?.value ? (
+                    <p
+                      key={index}
+                      className="mt-1 text-xs capitalize text-mainRed"
+                    >
+                      {errors?.Tools?.[index]?.value?.message}
+                    </p>
+                  ) : null,
+                )}
               </div>
 
-              <div>
-                <label>
-                  {t("SUPPLIES")} <Astrisk />
-                </label>
-                <Controller
-                  control={control}
-                  name="Supplies"
-                  rules={{
-                    required: {
-                      value: true,
-                      message: t("REQUIRED"),
-                    },
-                  }}
-                  render={({ field }) => (
-                    <Input
-                      {...field}
-                      variant="filled"
-                      placeholder="Enter supplies"
-                      className="placeholder:capitalize"
-                      status={errors?.Supplies ? "error" : ""}
-                    />
-                  )}
-                />
+              <div className="[&>div>input]:border-[#C4C4C4] [&>div>input]:py-2">
+                <div className="flex items-center gap-2 mb-1">
+                  <label className="capitalize font-medium">
+                    {t("SUPPLIES")} <Astrisk />
+                  </label>
+                  <Button
+                    className="bg-green-600/60 hover:bg-green-600 border-green-600 text-white"
+                    shape="circle"
+                    size="small"
+                    onClick={addMoreSupplies}
+                    icon={<BiPlus />}
+                  />
+                </div>
 
-                {errors?.Supplies ? <p>{errors?.Supplies?.message}</p> : null}
+                {suppliesFields?.map((field, index) => (
+                  <div key={field.id} className="flex items-center gap-2 mb-2">
+                    <Controller
+                      control={control}
+                      name={`Supplies.${index}.value`}
+                      rules={{
+                        required: {
+                          value: true,
+                          message: t("REQUIRED"),
+                        },
+                      }}
+                      render={({ field }) => (
+                        <Input
+                          {...field}
+                          variant="filled"
+                          placeholder="Enter supply"
+                          className="placeholder:capitalize"
+                          status={
+                            errors?.Supplies?.[index]?.value ? "error" : ""
+                          }
+                        />
+                      )}
+                    />
+                    <Button
+                      variant="text"
+                      color="danger"
+                      onClick={() => removeSupplies(index)}
+                      icon={<BiTrash size={25} />}
+                      disabled={suppliesFields.length === 1}
+                    />
+                  </div>
+                ))}
+                {suppliesFields?.map((_, index) =>
+                  errors?.Supplies?.[index]?.value ? (
+                    <p
+                      key={index}
+                      className="mt-1 text-xs capitalize text-mainRed"
+                    >
+                      {errors?.Supplies?.[index]?.value?.message}
+                    </p>
+                  ) : null,
+                )}
               </div>
 
-              <div className="col-span-full">
-                <label>
-                  {t("RULES")} <Astrisk />
-                </label>
-                <Controller
-                  control={control}
-                  name="Rules"
-                  rules={{
-                    required: {
-                      value: true,
-                      message: t("REQUIRED"),
-                    },
-                  }}
-                  render={({ field }) => (
-                    <Input
-                      {...field}
-                      variant="filled"
-                      placeholder="Enter rules"
-                      className="placeholder:capitalize"
-                      status={errors?.Rules ? "error" : ""}
-                    />
-                  )}
-                />
+              <div className="col-span-full [&>div>input]:border-[#C4C4C4] [&>div>input]:py-2">
+                <div className="flex items-center gap-2 mb-1">
+                  <label className="capitalize font-medium">
+                    {t("RULES")} <Astrisk />
+                  </label>
+                  <Button
+                    className="bg-green-600/60 hover:bg-green-600 border-green-600 text-white"
+                    shape="circle"
+                    size="small"
+                    onClick={addMoreRules}
+                    icon={<BiPlus />}
+                  />
+                </div>
 
-                {errors?.Rules ? <p>{errors?.Rules?.message}</p> : null}
+                {rulesFields?.map((field, index) => (
+                  <div key={field.id} className="flex items-center gap-2 mb-2">
+                    <Controller
+                      control={control}
+                      name={`Rules.${index}.value`}
+                      rules={{
+                        required: {
+                          value: true,
+                          message: t("REQUIRED"),
+                        },
+                      }}
+                      render={({ field }) => (
+                        <Input
+                          {...field}
+                          variant="filled"
+                          placeholder="Enter rule"
+                          className="placeholder:capitalize"
+                          status={
+                            errors?.Rules?.[index]?.value ? "error" : ""
+                          }
+                        />
+                      )}
+                    />
+                    <Button
+                      variant="text"
+                      color="danger"
+                      onClick={() => removeRules(index)}
+                      icon={<BiTrash size={25} />}
+                      disabled={rulesFields.length === 1}
+                    />
+                  </div>
+                ))}
+                {rulesFields?.map((_, index) =>
+                  errors?.Rules?.[index]?.value ? (
+                    <p
+                      key={index}
+                      className="mt-1 text-xs capitalize text-mainRed"
+                    >
+                      {errors?.Rules?.[index]?.value?.message}
+                    </p>
+                  ) : null,
+                )}
               </div>
 
               <hr className="col-span-full my-2 border-[#C4C4C4]" />
@@ -1110,131 +1254,179 @@ export default function PackageForm() {
 
                 <div className="cleaing-area-fields-wrapper mt-4">
                   {cleaningAreaFields?.map((field, index) => (
-                    <div
-                      key={field.id}
-                      className="mb-5 flex items-center gap-5 [&>div>label]:block [&>div>label]:mb-1 [&>div>label]:capitalize [&>div>label]:font-medium [&>div>input]:border-[#C4C4C4] [&>div>input]:py-2 [&>div>p]:mt-1 [&>div>p]:text-xs [&>div>p]:capitalize [&>div>p]:text-mainRed"
-                    >
-                      <div className="grow">
-                        <label>
-                          {t("SELECT_CLEANING_AREA")} <Astrisk />
-                        </label>
-                        <Controller
-                          control={control}
-                          name={`CleaningAreaDetails.${index}.CleaningAreaId`}
-                          rules={{
-                            required: {
-                              value: true,
-                              message: t("REQUIRED"),
-                            },
-                          }}
-                          render={({ field }) => (
-                            <Select
-                              {...field}
-                              variant="filled"
-                              placeholder="Select cleaning area"
-                              className="min-h-10 border-[#C4C4C4] border rounded-md w-full"
-                              status={
+                    <div key={field.id} className="mb-5">
+                      <div className="flex items-center gap-5 [&>div>label]:block [&>div>label]:mb-1 [&>div>label]:capitalize [&>div>label]:font-medium [&>div>input]:border-[#C4C4C4] [&>div>input]:py-2 [&>div>p]:mt-1 [&>div>p]:text-xs [&>div>p]:capitalize [&>div>p]:text-mainRed">
+                        <div className="grow">
+                          <label>
+                            {t("SELECT_CLEANING_AREA")} <Astrisk />
+                          </label>
+                          <Controller
+                            control={control}
+                            name={`CleaningAreaDetails.${index}.CleaningAreaId`}
+                            rules={{
+                              required: {
+                                value: true,
+                                message: t("REQUIRED"),
+                              },
+                            }}
+                            render={({ field }) => (
+                              <Select
+                                {...field}
+                                variant="filled"
+                                placeholder="Select cleaning area"
+                                className="min-h-10 border-[#C4C4C4] border rounded-md w-full"
+                                status={
+                                  errors?.CleaningAreaDetails?.[index]
+                                    ?.CleaningAreaId
+                                    ? "error"
+                                    : ""
+                                }
+                                loading={
+                                  isCleaningAreasLoading ||
+                                  isCleaningAreasFetching
+                                }
+                                options={cleaningAreas?.data?.map((area) => ({
+                                  value: area.id,
+                                  label:
+                                    lang === "en" ? area.name : area.arName,
+                                }))}
+                                showSearch
+                                filterOption={(input, option) =>
+                                  (option?.label ?? "")
+                                    .toLowerCase()
+                                    .includes(input.toLowerCase())
+                                }
+                              />
+                            )}
+                          />
+
+                          {errors?.CleaningAreaDetails?.[index]
+                            ?.CleaningAreaId ? (
+                            <p>
+                              {
                                 errors?.CleaningAreaDetails?.[index]
-                                  ?.CleaningAreaId
-                                  ? "error"
-                                  : ""
+                                  ?.CleaningAreaId?.message
                               }
-                              loading={
-                                isCleaningAreasLoading ||
-                                isCleaningAreasFetching
-                              }
-                              options={cleaningAreas?.data?.map((area) => ({
-                                value: area.id,
-                                label: lang === "en" ? area.name : area.arName,
-                              }))}
-                              showSearch
-                              filterOption={(input, option) =>
-                                (option?.label ?? "")
-                                  .toLowerCase()
-                                  .includes(input.toLowerCase())
-                              }
-                            />
-                          )}
-                        />
+                            </p>
+                          ) : null}
+                        </div>
 
-                        {errors?.CleaningAreaDetails?.[index]
-                          ?.CleaningAreaId ? (
-                          <p>
-                            {
-                              errors?.CleaningAreaDetails?.[index]
-                                ?.CleaningAreaId?.message
-                            }
-                          </p>
-                        ) : null}
-                      </div>
+                        <div className="grow">
+                          <label>
+                            {t("NAME_EN")} <Astrisk />
+                          </label>
+                          <Controller
+                            control={control}
+                            name={`CleaningAreaDetails.${index}.Name`}
+                            rules={{
+                              required: {
+                                value: true,
+                                message: t("REQUIRED"),
+                              },
+                              pattern: {
+                                value: /^[a-zA-Z0-9\s]+$/,
+                                message: t("ENGLISH_LETTER"),
+                              },
+                            }}
+                            render={({ field }) => (
+                              <Input
+                                {...field}
+                                variant="filled"
+                                placeholder="Enter name (EN)"
+                                className="placeholder:capitalize"
+                                status={
+                                  errors?.CleaningAreaDetails?.[index]?.Name
+                                    ? "error"
+                                    : ""
+                                }
+                              />
+                            )}
+                          />
 
-                      <div className="grow">
-                        <label>
-                          {t("NAME_EN")} <Astrisk />
-                        </label>
-                        <Controller
-                          control={control}
-                          name={`CleaningAreaDetails.${index}.Name`}
-                          rules={{
-                            required: {
-                              value: true,
-                              message: t("REQUIRED"),
-                            },
-                            pattern: {
-                              value: /^[a-zA-Z0-9\s]+$/,
-                              message: t("ENGLISH_LETTER"),
-                            },
-                          }}
-                          render={({ field }) => (
-                            <Input
-                              {...field}
-                              variant="filled"
-                              placeholder="Enter name (EN)"
-                              className="placeholder:capitalize"
-                              status={
+                          {errors?.CleaningAreaDetails?.[index]?.Name ? (
+                            <p>
+                              {
                                 errors?.CleaningAreaDetails?.[index]?.Name
-                                  ? "error"
-                                  : ""
+                                  ?.message
                               }
-                            />
-                          )}
-                        />
+                            </p>
+                          ) : null}
+                        </div>
 
-                        {errors?.CleaningAreaDetails?.[index]?.Name ? (
-                          <p>
-                            {
-                              errors?.CleaningAreaDetails?.[index]?.Name
-                                ?.message
-                            }
-                          </p>
-                        ) : null}
+                        <div className="grow">
+                          <label>
+                            {t("NAME_AR")} <Astrisk />
+                          </label>
+                          <Controller
+                            control={control}
+                            name={`CleaningAreaDetails.${index}.ArName`}
+                            rules={{
+                              required: {
+                                value: true,
+                                message: t("REQUIRED"),
+                              },
+                              pattern: {
+                                value: /^[\u0600-\u06FF0-9\s]+$/,
+                                message: t("ARABIC_LETTER"),
+                              },
+                            }}
+                            render={({ field }) => (
+                              <Input
+                                {...field}
+                                variant="filled"
+                                placeholder="Enter  name (AR)"
+                                className="placeholder:capitalize"
+                                status={
+                                  errors?.CleaningAreaDetails?.[index]?.ArName
+                                    ? "error"
+                                    : ""
+                                }
+                              />
+                            )}
+                          />
+
+                          {errors?.CleaningAreaDetails?.[index]?.ArName ? (
+                            <p>
+                              {
+                                errors?.CleaningAreaDetails?.[index]?.ArName
+                                  ?.message
+                              }
+                            </p>
+                          ) : null}
+                        </div>
+
+                        <div className="text-center mt-6">
+                          <Button
+                            variant="text"
+                            color="danger"
+                            onClick={() => removeCleaningArea(index)}
+                            icon={<BiTrash size={35} />}
+                            disabled={cleaningAreaFields.length === 1}
+                          />
+                        </div>
                       </div>
 
-                      <div className="grow">
+                      <div className="mt-3 [&>label]:block [&>label]:mb-1 [&>label]:capitalize [&>label]:font-medium [&>input]:border-[#C4C4C4] [&>input]:py-2 [&>p]:mt-1 [&>p]:text-xs [&>p]:capitalize [&>p]:text-mainRed">
                         <label>
-                          {t("NAME_AR")} <Astrisk />
+                          {t("DESCRIPTION")} <Astrisk />
                         </label>
                         <Controller
                           control={control}
-                          name={`CleaningAreaDetails.${index}.ArName`}
+                          name={`CleaningAreaDetails.${index}.Description`}
                           rules={{
                             required: {
                               value: true,
                               message: t("REQUIRED"),
-                            },
-                            pattern: {
-                              value: /^[\u0600-\u06FF0-9\s]+$/,
-                              message: t("ARABIC_LETTER"),
                             },
                           }}
                           render={({ field }) => (
                             <Input
                               {...field}
                               variant="filled"
-                              placeholder="Enter  name (AR)"
-                              className="placeholder:capitalize"
+                              placeholder="Enter description"
+                              className="placeholder:capitalize w-full"
                               status={
-                                errors?.CleaningAreaDetails?.[index]?.ArName
+                                errors?.CleaningAreaDetails?.[index]?.Description
                                   ? "error"
                                   : ""
                               }
@@ -1242,24 +1434,14 @@ export default function PackageForm() {
                           )}
                         />
 
-                        {errors?.CleaningAreaDetails?.[index]?.ArName ? (
+                        {errors?.CleaningAreaDetails?.[index]?.Description ? (
                           <p>
                             {
-                              errors?.CleaningAreaDetails?.[index]?.ArName
+                              errors?.CleaningAreaDetails?.[index]?.Description
                                 ?.message
                             }
                           </p>
                         ) : null}
-                      </div>
-
-                      <div className="text-center mt-6">
-                        <Button
-                          variant="text"
-                          color="danger"
-                          onClick={() => removeCleaningArea(index)}
-                          icon={<BiTrash size={35} />}
-                          disabled={cleaningAreaFields.length === 1}
-                        />
                       </div>
                     </div>
                   ))}
@@ -1427,49 +1609,6 @@ export default function PackageForm() {
                 ) : null}
               </section>
 
-              <hr className="col-span-full my-2 border-[#C4C4C4]" />
-
-              <div className="size-full col-span-full">
-                <label className="basis-full">
-                  {t("TERMS")} <Astrisk />
-                </label>
-                <div className="p-4 flex flex-wrap items-center justify-center border border-dashed border-[#C4C4C4] rounded-sm">
-                  {/* <Upload {...uploadProps}>
-                <Button icon={<BiUpload />}>Click to Upload</Button>
-              </Upload> */}
-
-                  <Controller
-                    name="TermsAndConditions"
-                    control={control}
-                    rules={{
-                      required: {
-                        value: true,
-                        message: t("REQUIRED"),
-                      },
-                    }}
-                    render={({ field }) => (
-                      <Upload
-                        beforeUpload={() => false}
-                        fileList={termsFile}
-                        onChange={({ file, fileList }) => {
-                          setTermsFile(fileList);
-                          field.onChange(file);
-                        }}
-                        onRemove={() => {
-                          setTermsFile([]);
-                          field.onChange(null);
-                        }}
-                        maxCount={1}
-                      >
-                        <Button icon={<BiUpload />}>Upload file</Button>
-                      </Upload>
-                    )}
-                  />
-                </div>
-                {errors?.TermsAndConditions ? (
-                  <p>{errors?.TermsAndConditions?.message}</p>
-                ) : null}
-              </div>
             </section>
 
             <section className="w-full mt-6 flex items-center justify-center">

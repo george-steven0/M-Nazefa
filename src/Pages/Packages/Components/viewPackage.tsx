@@ -1,5 +1,5 @@
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Button, Image, Skeleton, Spin, Tag } from "antd";
+import { Button, Image, Skeleton, Tag } from "antd";
 import { useTranslation } from "react-i18next";
 import {
   useGetPackageByIdQuery,
@@ -14,7 +14,6 @@ import { FaPoundSign } from "react-icons/fa";
 import { LuPackageOpen } from "react-icons/lu";
 import { MdOutlineAddHome, MdOutlineDiscount } from "react-icons/md";
 import { HiOutlineUserGroup } from "react-icons/hi2";
-import { useState } from "react";
 import { isAdmin, isSuperAdmin } from "../../../Utilities/utilities";
 
 const ViewPackage = () => {
@@ -77,37 +76,6 @@ const ViewPackage = () => {
         </div>
       )
     );
-  };
-
-  const [isDownloading, setIsDownloading] = useState(false);
-  const handleDownload = async (e: { preventDefault: () => void }) => {
-    e.preventDefault();
-    setIsDownloading(true);
-    const imageUrl = packageById?.data?.termsAndConditions as unknown as string;
-
-    if (!imageUrl) return;
-
-    try {
-      const response = await fetch(imageUrl);
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = "Terms_and_Conditions.jpg"; // Set your filename here
-      document.body.appendChild(link);
-      link.click();
-
-      // Cleanup
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error("Download failed:", error);
-      // Fallback: Just open in new tab if fetch fails
-      window.open(imageUrl, "_blank");
-    } finally {
-      setIsDownloading(false);
-    }
   };
 
   return (
@@ -268,54 +236,45 @@ const ViewPackage = () => {
 
           <hr className="my-10 text-gray-200" />
 
-          <section className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4 [&>div]:flex [&>div]:flex-col [&>div]:items-center [&>div]:gap-1 [&>div]:bg-gray-300/30 [&>div]:p-4 [&>div]:rounded-md [&>div>label]:block [&>div>label]:text-lg [&>div>label]:font-semibold capitalize">
+          <section className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4 [&>div]:flex [&>div]:flex-col [&>div]:gap-2 [&>div]:bg-gray-300/30 [&>div]:p-4 [&>div]:rounded-md [&>div>label]:block [&>div>label]:text-lg [&>div>label]:font-semibold [&>div>label]:text-center capitalize">
             <div>
               <label>{t("RULES")}</label>
-
-              <p>{packageById?.data?.rules || t("NA")}</p>
+              {packageById?.data?.rules?.length ? (
+                <ul className="list-disc ps-5 space-y-1 text-[#555]">
+                  {packageById?.data?.rules?.map((rule, index) => (
+                    <li key={index}>{rule}</li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-center">{t("NA")}</p>
+              )}
             </div>
 
             <div>
               <label>{t("TOOLS")}</label>
-              <p>{packageById?.data?.tools || t("NA")}</p>
+              {packageById?.data?.tools?.length ? (
+                <ul className="list-disc ps-5 space-y-1 text-[#555]">
+                  {packageById?.data?.tools?.map((tool, index) => (
+                    <li key={index}>{tool}</li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-center">{t("NA")}</p>
+              )}
             </div>
 
             <div>
               <label>{t("SUPPLIES")}</label>
-              <p>{packageById?.data?.supplies || t("NA")}</p>
+              {packageById?.data?.supplies?.length ? (
+                <ul className="list-disc ps-5 space-y-1 text-[#555]">
+                  {packageById?.data?.supplies?.map((supply, index) => (
+                    <li key={index}>{supply}</li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-center">{t("NA")}</p>
+              )}
             </div>
-          </section>
-
-          <hr className="my-10 text-gray-200" />
-
-          <section className="w-full flex items-center justify-center min-w-20">
-            {packageById?.data?.termsAndConditions ? (
-              <a
-                href={
-                  (packageById?.data
-                    ?.termsAndConditions as unknown as string) || "#"
-                }
-                target="_blank"
-                // download={"terms & conditions"}
-                className="block text-center border text-mainColor/90 border-mainColor/30 py-2 px-6 rounded-full hover:bg-mainColor/10 transition-all duration-500 cursor-pointer"
-                rel="noopener noreferrer"
-                onClick={handleDownload}
-              >
-                {isDownloading ? (
-                  <span className="px-5">
-                    <Spin />
-                  </span>
-                ) : (
-                  <p className="text-lg font-semibold capitalize">
-                    {t("TERMS")}
-                  </p>
-                )}
-              </a>
-            ) : (
-              <p className="text-lg font-semibold capitalize">
-                {t("FILE_NOTFOUND")}
-              </p>
-            )}
           </section>
         </>
       )}

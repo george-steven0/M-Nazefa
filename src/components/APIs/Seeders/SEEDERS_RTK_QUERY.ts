@@ -166,10 +166,18 @@ const seeders = API.injectEndpoints({
       }),
     }),
 
-    getAllPackagesList: build.query<APIResponse<seedersProps>, void>({
-      query: () => ({
+    getAllPackagesList: build.query<
+      APIResponse<seedersProps>,
+      { serviceTypeId?: string | number } | void
+    >({
+      query: (arg) => ({
         url: `/DDL/GetAllPackagesDDL`,
         method: "GET",
+        headers: {
+          ...(arg && arg.serviceTypeId != null
+            ? { ServiceId: arg.serviceTypeId.toString() }
+            : {}),
+        },
       }),
     }),
 

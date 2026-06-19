@@ -20,8 +20,7 @@ import Dashboard from "../../Pages/Dashboard/dashboard";
 import ReservationDetails from "../../Pages/Reservations/Components/reservationDetails";
 import { Reservations } from "../../Pages/Reservations/reservation";
 import Services from "../../Pages/Services/services";
-import AddService from "../../Pages/Services/Components/addService";
-import EditService from "../../Pages/Services/Components/editService";
+import ServiceForm from "../../Pages/Services/Components/serviceForm";
 import ViewService from "../../Pages/Services/Components/viewService";
 import Roles from "../../Pages/Roles/roles";
 import Areas from "../../Pages/Area/area";
@@ -41,6 +40,7 @@ import ReservationForm from "../../Pages/Reservations/Components/reservationForm
 import Profile from "../../Pages/Profile/profile";
 import TransportationFees from "../../Pages/Transportations/transportations";
 import Complaints from "../../Pages/Complaints/complaints";
+import ReservationFeedback from "../../Pages/ReservationFeedback/reservationFeedback";
 import WorkerManagement from "../../Pages/WorkerManagement/workerManagement";
 import PayemntsDetails from "../../Pages/Reservations/Components/payemntsDeatils";
 
@@ -156,14 +156,14 @@ export const routes = createBrowserRouter([
             children: [
               {
                 path: "add-service",
-                element: <AddService />,
+                element: <ServiceForm />,
                 handle: {
                   permission: PERMISSIONS.ADD_SERVICE,
                 },
               },
               {
                 path: "edit-service",
-                element: <EditService />,
+                element: <ServiceForm />,
                 handle: {
                   permission: PERMISSIONS.EDIT_SERVICE,
                 },
@@ -291,6 +291,15 @@ export const routes = createBrowserRouter([
             element: <Complaints />,
             handle: {
               permission: PERMISSIONS.VIEW_COMPLAINTS,
+            },
+          },
+
+          // Reservation Feedback
+          {
+            path: "reservation-feedback",
+            element: <ReservationFeedback />,
+            handle: {
+              permission: PERMISSIONS.VIEW_RESERVATION_FEEDBACK,
             },
           },
 

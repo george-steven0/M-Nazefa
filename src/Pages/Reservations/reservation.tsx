@@ -2,7 +2,7 @@ import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import Title from "../../components/Common/Title/title";
 import { useTranslation } from "react-i18next";
 import { useSearchBox } from "../../components/Common/Search/searchInput";
-import { Button, Table, type TableProps } from "antd";
+import { Button, Input, Modal, Rate, Table, type TableProps } from "antd";
 import type {
   APIErrorProps,
   holdReservationProps,
@@ -14,16 +14,21 @@ import {
   useGetHoldReservationQuery,
   useToggleReservationStatusMutation,
 } from "../../components/APIs/Reservations/RESERVATION_QUERY";
+import { useAddComplaintMutation } from "../../components/APIs/Complaints/COMPLAINT_QUERY";
+import { useAddReservationFeedbackMutation } from "../../components/APIs/ReservationFeedback/RESERVATION_FEEDBACK_QUERY";
 import dayjs from "dayjs";
 import { AiOutlineEye } from "react-icons/ai";
 import { useEffect, useState } from "react";
 import HoldReservationModal from "./Components/holdReservationModal";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import { useAppSelector } from "../../components/APIs/store";
 import { BsBoxSeam } from "react-icons/bs";
 import { isAdmin, isSuperAdmin } from "../../Utilities/utilities";
-import { BiEdit } from "react-icons/bi";
+import { BiEdit, BiPlus } from "react-icons/bi";
+import { RiCustomerService2Fill } from "react-icons/ri";
+import { MdOutlineFeedback } from "react-icons/md";
+import TextArea from "antd/es/input/TextArea";
 
 const Actions = ({ data }: { data: serviceFormProps }) => {
   const navigate = useNavigate();
@@ -103,6 +108,81 @@ export const Reservations = () => {
 
   const navigate = useNavigate();
 
+  // ── Add Complaint / Feedback (per reservation) ─────────────────────────────
+  const [addComplaint, { isLoading: isAddComplaintLoading }] =
+    useAddComplaintMutation();
+  const [addFeedback, { isLoading: isAddFeedbackLoading }] =
+    useAddReservationFeedbackMutation();
+
+  const [isComplaintModalOpen, setIsComplaintModalOpen] = useState(false);
+  const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
+  const [activeReservationId, setActiveReservationId] = useState<
+    string | number | null
+  >(null);
+
+  const {
+    control: complaintControl,
+    handleSubmit: handleComplaintSubmit,
+    reset: resetComplaint,
+    formState: { errors: complaintErrors },
+  } = useForm<{ comment: string }>({ defaultValues: { comment: "" } });
+
+  const {
+    control: feedbackControl,
+    handleSubmit: handleFeedbackSubmit,
+    reset: resetFeedback,
+    formState: { errors: feedbackErrors },
+  } = useForm<{ rate: number; comment: string }>({
+    defaultValues: { rate: 0, comment: "" },
+  });
+
+  const openAddComplaintModal = (reservationId: string | number) => {
+    setActiveReservationId(reservationId);
+    resetComplaint({ comment: "" });
+    setIsComplaintModalOpen(true);
+  };
+
+  const openAddFeedbackModal = (reservationId: string | number) => {
+    setActiveReservationId(reservationId);
+    resetFeedback({ rate: 0, comment: "" });
+    setIsFeedbackModalOpen(true);
+  };
+
+  const submitComplaint = async (data: { comment: string }) => {
+    if (!activeReservationId) return;
+    try {
+      await addComplaint({
+        reservationId: activeReservationId,
+        comment: data.comment,
+      }).unwrap();
+      toast.success(t("COMPLAINT_ADDED_SUCCESS"));
+      setIsComplaintModalOpen(false);
+    } catch (error) {
+      const err = error as APIErrorProps;
+      err?.data?.errorMessages?.forEach((message) => {
+        toast.error(message);
+      });
+    }
+  };
+
+  const submitFeedback = async (data: { rate: number; comment: string }) => {
+    if (!activeReservationId) return;
+    try {
+      await addFeedback({
+        reservationId: activeReservationId,
+        rate: data.rate,
+        comment: data.comment,
+      }).unwrap();
+      toast.success(t("FEEDBACK_ADDED_SUCCESS"));
+      setIsFeedbackModalOpen(false);
+    } catch (error) {
+      const err = error as APIErrorProps;
+      err?.data?.errorMessages?.forEach((message) => {
+        toast.error(message);
+      });
+    }
+  };
+
   const { SearchBox } = useSearchBox({
     placeholder: "Search Reservations",
   });
@@ -145,6 +225,12 @@ export const Reservations = () => {
       render: (text) => <span>{text}</span>,
     },
     {
+      title: t("CREATED_BY"),
+      dataIndex: "createdBy",
+      key: "createdBy",
+      render: (text) => <p>{text || t("NA")}</p>,
+    },
+    {
       title: t("STATUS"),
       // dataIndex: "isActive",
       key: "isActive",
@@ -164,6 +250,47 @@ export const Reservations = () => {
             </span>
           )}
         </span>
+      ),
+    },
+    
+    {
+      title: t("COMPLAIN"),
+      key: "complain",
+      render: (row) => (
+        <div className="flex items-center gap-2">
+          <Button
+            shape="circle"
+            className="hover:bg-mainGray/60 hover:text-white hover:border-transparent size-10 [&>span]:flex [&>span]:items-center"
+            onClick={() => navigate("/complaints")}
+            icon={<RiCustomerService2Fill size={18} />}
+          />
+          <Button
+            shape="circle"
+            className="bg-green-600/60 hover:bg-green-600 border-green-600 text-white size-10 [&>span]:flex [&>span]:items-center"
+            onClick={() => openAddComplaintModal(row?.id)}
+            icon={<BiPlus size={18} />}
+          />
+        </div>
+      ),
+    },
+    {
+      title: t("FEEDBACK"),
+      key: "feedback",
+      render: (row) => (
+        <div className="flex items-center gap-2">
+          <Button
+            shape="circle"
+            className="hover:bg-mainGray/60 hover:text-white hover:border-transparent size-10 [&>span]:flex [&>span]:items-center"
+            onClick={() => navigate("/reservation-feedback")}
+            icon={<MdOutlineFeedback size={18} />}
+          />
+          <Button
+            shape="circle"
+            className="bg-green-600/60 hover:bg-green-600 border-green-600 text-white size-10 [&>span]:flex [&>span]:items-center"
+            onClick={() => openAddFeedbackModal(row?.id)}
+            icon={<BiPlus size={18} />}
+          />
+        </div>
       ),
     },
     {
@@ -290,12 +417,14 @@ export const Reservations = () => {
           {SearchBox()}
         </section>
 
-        <section className="mt-8">
+        <section className="mt-8 overflow-x-auto">
           <Table<serviceFormProps>
             rowKey="id"
             columns={columns}
             dataSource={data}
             loading={isLoading || isFetching}
+            scroll={{ x: "max-content" }}
+            className="w-full"
             expandable={{
               expandedRowRender: (row) => (
                 <section className="flex flex-col gap-1">
@@ -356,6 +485,166 @@ export const Reservations = () => {
         errors={errors}
         isDirty={isDirty}
       />
+
+      {/* ── Add Complaint Modal ──────────────────────────────────────────── */}
+      <Modal
+        title={t("ADD_COMPLAINT")}
+        closable={{ "aria-label": "Custom Close Button" }}
+        open={isComplaintModalOpen}
+        onCancel={() => setIsComplaintModalOpen(false)}
+        footer={null}
+      >
+        <form
+          onSubmit={handleComplaintSubmit(submitComplaint)}
+          className="mt-6 flex flex-col gap-4"
+        >
+          <section className="grid grid-cols-1 gap-5 [&>div]:flex [&>div]:flex-col [&>div]:gap-2 [&>div>label]:block [&>div>label]:font-semibold [&>div>label]:text-sm [&>div>label]:text-mainColor [&>div>p]:capitalize [&>div>p]:text-red-500 [&>div>p]:text-xs">
+            <div>
+              <label>{t("RESERVATION_ID")}</label>
+              <Input
+                variant="filled"
+                value={activeReservationId?.toString() || ""}
+                readOnly
+              />
+            </div>
+
+            <div>
+              <label>{t("COMMENT")}</label>
+              <Controller
+                name="comment"
+                control={complaintControl}
+                rules={{
+                  required: {
+                    value: true,
+                    message: t("REQUIRED"),
+                  },
+                }}
+                render={({ field }) => (
+                  <TextArea
+                    {...field}
+                    variant="filled"
+                    placeholder={t("COMMENT")}
+                    className="placeholder:capitalize"
+                    status={complaintErrors?.comment ? "error" : ""}
+                    rows={4}
+                  />
+                )}
+              />
+              {complaintErrors.comment?.message && (
+                <p>{complaintErrors.comment?.message}</p>
+              )}
+            </div>
+          </section>
+
+          <section className="flex gap-4 justify-end mt-4 [&>button]:min-w-[140px] [&>button]:min-h-10 [&>button]:py-2 [&>button]:capitalize">
+            <Button
+              onClick={() => setIsComplaintModalOpen(false)}
+              className="bg-white text-gray-500 hover:bg-gray-600 hover:text-white hover:border-transparent"
+            >
+              {t("CANCEL")}
+            </Button>
+
+            <Button
+              htmlType="submit"
+              className="bg-mainColor/80 text-white hover:bg-mainColor disabled:bg-gray-400 disabled:text-white"
+              loading={isAddComplaintLoading}
+            >
+              {t("SUBMIT")}
+            </Button>
+          </section>
+        </form>
+      </Modal>
+
+      {/* ── Add Feedback Modal ───────────────────────────────────────────── */}
+      <Modal
+        title={t("ADD_FEEDBACK")}
+        closable={{ "aria-label": "Custom Close Button" }}
+        open={isFeedbackModalOpen}
+        onCancel={() => setIsFeedbackModalOpen(false)}
+        footer={null}
+      >
+        <form
+          onSubmit={handleFeedbackSubmit(submitFeedback)}
+          className="mt-6 flex flex-col gap-4"
+        >
+          <section className="grid grid-cols-1 gap-5 [&>div]:flex [&>div]:flex-col [&>div]:gap-2 [&>div>label]:block [&>div>label]:font-semibold [&>div>label]:text-sm [&>div>label]:text-mainColor [&>div>p]:capitalize [&>div>p]:text-red-500 [&>div>p]:text-xs">
+            <div>
+              <label>{t("RESERVATION_ID")}</label>
+              <Input
+                variant="filled"
+                value={activeReservationId?.toString() || ""}
+                readOnly
+              />
+            </div>
+
+            <div>
+              <label>{t("RATE")}</label>
+              <Controller
+                name="rate"
+                control={feedbackControl}
+                rules={{
+                  required: {
+                    value: true,
+                    message: t("REQUIRED"),
+                  },
+                  min: {
+                    value: 1,
+                    message: t("REQUIRED"),
+                  },
+                }}
+                render={({ field }) => <Rate {...field} />}
+              />
+              {feedbackErrors.rate?.message && (
+                <p>{feedbackErrors.rate?.message}</p>
+              )}
+            </div>
+
+            <div>
+              <label>{t("COMMENT")}</label>
+              <Controller
+                name="comment"
+                control={feedbackControl}
+                rules={{
+                  required: {
+                    value: true,
+                    message: t("REQUIRED"),
+                  },
+                }}
+                render={({ field }) => (
+                  <TextArea
+                    {...field}
+                    variant="filled"
+                    placeholder={t("COMMENT")}
+                    className="placeholder:capitalize"
+                    status={feedbackErrors?.comment ? "error" : ""}
+                    rows={4}
+                  />
+                )}
+              />
+              {feedbackErrors.comment?.message && (
+                <p>{feedbackErrors.comment?.message}</p>
+              )}
+            </div>
+          </section>
+
+          <section className="flex gap-4 justify-end mt-4 [&>button]:min-w-[140px] [&>button]:min-h-10 [&>button]:py-2 [&>button]:capitalize">
+            <Button
+              onClick={() => setIsFeedbackModalOpen(false)}
+              className="bg-white text-gray-500 hover:bg-gray-600 hover:text-white hover:border-transparent"
+            >
+              {t("CANCEL")}
+            </Button>
+
+            <Button
+              htmlType="submit"
+              className="bg-mainColor/80 text-white hover:bg-mainColor disabled:bg-gray-400 disabled:text-white"
+              loading={isAddFeedbackLoading}
+            >
+              {t("SUBMIT")}
+            </Button>
+          </section>
+        </form>
+      </Modal>
     </main>
   );
 };

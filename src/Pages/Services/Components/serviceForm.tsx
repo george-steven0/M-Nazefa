@@ -1,9 +1,10 @@
 import { Controller, useForm } from "react-hook-form";
-import type { serviceFormProps } from "../../../components/Utilities/Types/types";
+import type { APIErrorProps, serviceFormProps } from "../../../components/Utilities/Types/types";
 import Title from "../../../components/Common/Title/title";
 import { useTranslation } from "react-i18next";
-import { Button, Checkbox, Input, Select, Skeleton } from "antd";
+import { Button, Input, Select, Skeleton } from "antd";
 import {
+  useAddServiceMutation,
   useEditServiceMutation,
   useGetServiceByIdQuery,
 } from "../../../components/APIs/Services/SERVICES_QUERY";
@@ -11,22 +12,26 @@ import { toast } from "react-toastify";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { skipToken } from "@reduxjs/toolkit/query";
 import { useEffect } from "react";
+import { useGetAllPackagesQuery } from "../../../components/APIs/Packages/PACKAGES_QUERY";
+import Astrisk from "../../../components/Common/Astrisk/astrisk";
 
-const extraOptions = [
-  "CLEANING_RESIDENTIAL",
-  "CLEANING_ADMINISTRATIVE",
-  "CLEANING_VILLAS_CHALETS",
-  "CLEANING_POST_FINISHING",
-  "DISINFECTION_STERILIZATION",
-  "BRIDAL_HOME_SETUP",
-  "DRY_CLEANING",
-];
+// const extraOptions = [
+//   "CLEANING_RESIDENTIAL",
+//   "CLEANING_ADMINISTRATIVE",
+//   "CLEANING_VILLAS_CHALETS",
+//   "CLEANING_POST_FINISHING",
+//   "DISINFECTION_STERILIZATION",
+//   "BRIDAL_HOME_SETUP",
+//   "DRY_CLEANING",
+// ];
 
-const EditService = () => {
+const ServiceForm = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const id = params.get("id");
+
+    const { data: packages, isLoading: packagesLoading, isFetching: packagesFetching } = useGetAllPackagesQuery();
 
   const {
     data: service,
@@ -34,20 +39,25 @@ const EditService = () => {
     isFetching: serviceFetching,
     isSuccess: serviceSuccess,
   } = useGetServiceByIdQuery(id ? { id } : skipToken);
-  const [editService, { isLoading, isSuccess }] = useEditServiceMutation();
+  const [addService, { isLoading: isAddLoading }] =
+    useAddServiceMutation();
+  const [editService, { isLoading: isEditLoading }] =
+    useEditServiceMutation();
 
   const defaultValues = {
+    id : service?.data?.id || null,
     title: service?.data?.title,
     arTitle: service?.data?.arTitle,
     description: service?.data?.description,
     packages: service?.data?.packages,
-    extraServices: service?.data?.extraServices,
-  };
+    // isActive:service?.data?.isActive,
+    // extraServices: service?.data?.extraServices,
+  };  
   const {
     control,
     formState: { errors },
     handleSubmit,
-    setValue,
+    // setValue,
     reset,
   } = useForm<serviceFormProps>({
     defaultValues: defaultValues,
@@ -57,45 +67,59 @@ const EditService = () => {
     if (service?.data && id && serviceSuccess) {
       reset(defaultValues);
     }
-  }, [service, reset]);
+  }, [service, reset, id, serviceSuccess]);
 
   const handleFormSubmit = async (data: serviceFormProps) => {
-    console.log(data);
-
     try {
-      await editService(data).unwrap();
-      if (isSuccess) {
+      if (id) {
+        await editService(data).unwrap();
         toast.success("Service edited successfully");
-        navigate("/services");
+          navigate("/services");
+      } else {
+        await addService(data).unwrap();
+        toast.success("Service added successfully");
+          navigate("/services");
       }
-    } catch (err) {
-      console.log(err);
-      toast.error("Failed to edit service");
+    } catch (error) {
+      if (error) {
+        const err = error as APIErrorProps;
+        err?.data?.errorMessages?.forEach((message) => {
+          toast.error(message);
+        });
+      } else {
+        toast.error(id ? "Failed to edit service" : "Failed to add service");
+      }
     }
+
+    
   };
   return (
     <>
-      {serviceLoading || serviceFetching ? (
+      {id && (serviceLoading || serviceFetching) ? (
         <Skeleton active paragraph={{ rows: 10 }} />
       ) : (
         <main>
           <header>
-            <Title title={t("EDIT_SERVICE")} subTitle />
+            <Title title={t(id ? "EDIT_SERVICE" : "ADD_SERVICE")} subTitle />
           </header>
 
           <article className="service-form-wrapper mt-8">
             <form noValidate onSubmit={handleSubmit(handleFormSubmit)}>
               <section className="grid grid-cols-1 md:grid-cols-2 gap-4 [&>div>label]:block [&>div>label]:mb-1 [&>div>label]:capitalize [&>div>label]:font-medium [&>div>input]:border-[#C4C4C4] [&>div>input]:py-2 [&>div>p]:mt-1 [&>div>p]:text-xs [&>div>p]:capitalize [&>div>p]:text-mainRed">
                 <div>
-                  <label>{t("TITLE")}</label>
+                  <label>{t("TITLE")} <Astrisk /></label>
                   <Controller
                     name="title"
                     control={control}
                     rules={{
                       required: {
                         value: true,
-                        message: t("required"),
+                        message: t("REQUIRED"),
                       },
+                      pattern: {
+                    value: /^[a-zA-Z0-9\s]+$/,
+                    message: t("ENGLISH_LETTER"),
+                  },
                     }}
                     render={({ field }) => (
                       <Input
@@ -111,15 +135,19 @@ const EditService = () => {
                 </div>
 
                 <div>
-                  <label>{t("AR_TITLE")}</label>
+                  <label>{t("AR_TITLE")} <Astrisk /></label>
                   <Controller
                     name="arTitle"
                     control={control}
                     rules={{
                       required: {
                         value: true,
-                        message: t("required"),
+                        message: t("REQUIRED"),
                       },
+                      pattern: {
+                    value: /^[\u0600-\u06FF0-9\s]+$/,
+                    message: t("ARABIC_LETTER"),
+                  },
                     }}
                     render={({ field }) => (
                       <Input
@@ -135,7 +163,7 @@ const EditService = () => {
                 </div>
 
                 <div className="md:col-span-full">
-                  <label>{t("SELECT_PACKAGE")}</label>
+                  <label>{t("SELECT_PACKAGE")} <Astrisk /></label>
                   <Controller
                     control={control}
                     name="packages"
@@ -153,19 +181,22 @@ const EditService = () => {
                         className=" max-h-10 border-[#C4C4C4] border rounded-md capitalize [&>.ant-select-selector]:capitalize"
                         variant="filled"
                         status={errors?.packages ? "error" : ""}
+                        loading={packagesLoading || packagesFetching}
                         // defaultValue="male"
                         style={{ width: "100%" }}
                         placeholder="Please Select package"
-                        onChange={(e) => {
-                          field.onChange(e);
-                          //   handleChange(e);
+                        value={field.value?.map((item) => item?.packageId)}
+                        onChange={(ids) => {
+                          field.onChange(
+                            ids?.map((packageId: string | number) => ({
+                              packageId,
+                            })),
+                          );
                         }}
-                        options={[
-                          { value: "1", label: "package 1" },
-                          { value: "2", label: "package 2" },
-                          // { value: 'Yiminghe', label: 'yiminghe' },
-                          // { value: 'disabled', label: 'Disabled', disabled: true },
-                        ]}
+                        options={packages?.data?.map((item) => ({
+                          value: item.id,
+                          label: item.title,
+                        }))}
                       />
                     )}
                   />
@@ -174,14 +205,14 @@ const EditService = () => {
                 </div>
 
                 <div className="col-span-full">
-                  <label>{t("DESCRIPTION")}</label>
+                  <label>{t("DESCRIPTION")} <Astrisk /></label>
                   <Controller
                     name="description"
                     control={control}
                     rules={{
                       required: {
                         value: true,
-                        message: t("required"),
+                        message: t("REQUIRED"),
                       },
                     }}
                     render={({ field }) => (
@@ -199,7 +230,7 @@ const EditService = () => {
                   ) : null}
                 </div>
 
-                <div className="col-span-full">
+                {/* <div className="col-span-full">
                   <label>{t("EXTRA_SERVICE")}</label>
 
                   <Controller
@@ -236,27 +267,6 @@ const EditService = () => {
                           ))}
                         </Checkbox.Group>
 
-                        {/* {field?.value && field?.value?.length > 0 && (
-                      <Controller
-                        name="extraDescription"
-                        control={control}
-                        defaultValue="" // also recommended
-                        rules={{
-                          required: {
-                            value: true,
-                            message: t("REQUIRED"),
-                          },
-                        }}
-                        render={({ field }) => (
-                          <Input
-                            {...field}
-                            variant="filled"
-                            placeholder={t("Enter description")}
-                            className="mt-2 w-full min-h-[70px] border border-[#C4C4C4]"
-                          />
-                        )}
-                      />
-                    )} */}
                       </div>
                     )}
                   />
@@ -264,16 +274,16 @@ const EditService = () => {
                   {errors?.extraServices ? (
                     <p>{errors?.extraServices?.message}</p>
                   ) : null}
-                </div>
+                </div> */}
               </section>
 
               <section className="submit-btn-wrapper mt-8 w-full flex justify-center">
                 <Button
                   htmlType="submit"
                   className="bg-mainColor text-white py-5 min-w-[200px] capitalize"
-                  loading={isLoading}
+                  loading={isAddLoading || isEditLoading}
                 >
-                  {t("UPDATE")}
+                  {t(id ? "UPDATE" : "SUBMIT")}
                 </Button>
               </section>
             </form>
@@ -284,4 +294,4 @@ const EditService = () => {
   );
 };
 
-export default EditService;
+export default ServiceForm;

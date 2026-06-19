@@ -1,13 +1,25 @@
 import { useNavigate, useSearchParams } from "react-router-dom";
 import Title from "../../../components/Common/Title/title";
-import { Button } from "antd";
+import { Button, Empty, Skeleton, Tag } from "antd";
 import { useTranslation } from "react-i18next";
+import { useGetServiceByIdQuery } from "../../../components/APIs/Services/SERVICES_QUERY";
+import { skipToken } from "@reduxjs/toolkit/query";
+import { LuPackageOpen } from "react-icons/lu";
 
 const ViewService = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const lang = i18n.language;
   const [searchParams] = useSearchParams();
   const id = searchParams.get("id");
   //   console.log(id);
+
+  const {
+    data: service,
+    isLoading,
+    isFetching,
+  } = useGetServiceByIdQuery(id ? { id } : skipToken);
+
+  // console.log(service);
 
   const navigate = useNavigate();
   const handleNavigateButton = () => {
@@ -23,46 +35,82 @@ const ViewService = () => {
       </Button>
     );
   };
+
+  const serviceData = service?.data;
+  const packages = serviceData?.packages ?? [];
+
   return (
     <div className="view-service-wrapper">
-      <header className="view-service-title">
-        <Title
-          title={"service one"}
-          subTitle
-          component={handleNavigateButton}
-        />
-      </header>
+      {isLoading || isFetching ? (
+        <Skeleton active paragraph={{ rows: 5 }} />
+      ) : (
+        <>
+          <header className="view-service-title w-full flex items-center justify-between gap-3">
+            <Title
+              title={
+                <div className="flex items-center gap-3">
+                  <span>{(lang === "en" ? serviceData?.title : serviceData?.arTitle) || ""}</span>
 
-      <section className="service-details-wrapper mt-6">
-        <p className="max-w-[80%] md:max-w-[60%] text-[#646363]">
-          Lorem ipsum dolor sit amet consectetur adipisicing elit. Nihil sed
-          officiis sequi blanditiis assumenda porro perferendis, neque itaque
-          laborum nam nemo quo deserunt maxime odit laudantium deleniti ut ipsam
-          consequuntur!
-        </p>
+            <Tag
+              className={`capitalize rounded-full px-3 py-0.5 ${
+                serviceData?.isActive
+                  ? "bg-green-500/20 text-green-700 border-green-500"
+                  : "bg-red-500/20 text-red-700 border-red-500"
+              }`}
+            >
+              {serviceData?.isActive ? t("ACTIVE") : t("INACTIVE")}
+            </Tag>
+                </div>
+                
+              }
+              subTitle
+              component={handleNavigateButton}
+            />
 
-        <div className="mt-6 capitalize grid grid-cols-1 md:grid-cols-2 gap-5 justify-between [&>div>label]:block [&>div>label]:mb-1  [&>div>label]:font-semibold [&>div>label]:text-lg [&>div>label]:text-mainColor [&>div>span]:text-sm [&>div>span]:text-[#646363]">
-          <div>
-            <label>{t("PACKAGE")}</label>
-            <span>5</span>
-          </div>
+            
+          </header>
 
-          <div>
-            <label>{t("EXTRA_SERVICE")}</label>
-            <span>Cleaning of residential units</span>
-          </div>
+          <section className="service-details-wrapper mt-6">
+            <div>
+              <label className="block mb-1 font-semibold text-lg text-mainColor capitalize">
+                {t("DESCRIPTION")}
+              </label>
+              <p className="max-w-[80%] md:max-w-[60%] text-[#646363]">
+                {serviceData?.description || t("NA")}
+              </p>
+            </div>
 
-          <div className="col-span-full">
-            <label>{t("DESCRIPTION")}</label>
-            <span>
-              Lorem ipsum dolor sit amet consectetur adipisicing elit. Expedita
-              sunt, error voluptatem, velit quaerat eos voluptatibus facilis
-              incidunt facere perspiciatis ut corrupti? Deleniti qui inventore
-              deserunt voluptatum. Nihil, ab nulla?
-            </span>
-          </div>
-        </div>
-      </section>
+            <div className="mt-8">
+              <label className="flex items-center gap-2 mb-3 font-semibold text-lg text-mainColor capitalize">
+                {t("PACKAGES")}
+                <span className="text-sm font-medium text-[#646363]">
+                  ({packages.length})
+                </span>
+              </label>
+
+              {packages.length > 0 ? (
+                <div className="flex flex-wrap gap-3">
+                  {packages.map((pkg) => (
+                    <div
+                      key={pkg.packageId}
+                      className="flex items-center gap-2 border border-[#E5E5E5] bg-[#F8FAFB] rounded-lg px-4 py-2.5 text-[#1D1B1B]"
+                    >
+                      <LuPackageOpen className="text-mainColor" size={20} />
+                      <span className="text-sm font-medium capitalize">
+                        {lang === "en"
+                          ? pkg.packageName
+                          : pkg.packageArName || pkg.packageName}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <Empty description={t("NO_DATA_FOUND")} />
+              )}
+            </div>
+          </section>
+        </>
+      )}
     </div>
   );
 };

@@ -90,7 +90,7 @@ const ClientForm = () => {
     email: clientById?.data.email ?? "",
     idNumber: clientById?.data.idNumber ?? "",
     hasMembership: clientById?.data.hasMembership ?? false,
-    memberShipNumber: clientById?.data.memberShipNumber ?? "",
+    // memberShipNumber: clientById?.data.memberShipNumber ?? "",
     generalNotes: clientById?.data.generalNotes ?? "",
     membershipId: clientById?.data.membershipId ?? "",
     customerTypeId: clientById?.data.customerTypeId ?? "",
@@ -725,7 +725,7 @@ const ClientForm = () => {
                         )}
                       </div>
 
-                      <div>
+                      {/* <div>
                         <label className="capitalize">
                           {t("MEMBERSHIP_NUMBER")} <Astrisk />
                         </label>
@@ -754,7 +754,7 @@ const ClientForm = () => {
                             {errors?.memberShipNumber?.message}
                           </p>
                         )}
-                      </div>
+                      </div> */}
                     </article>
                   ) : null}
                 </div>

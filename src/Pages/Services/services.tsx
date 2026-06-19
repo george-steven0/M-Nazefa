@@ -8,7 +8,8 @@ import { useGetAllServicesQuery } from "../../components/APIs/Services/SERVICES_
 import { isAdmin, isSuperAdmin } from "../../Utilities/utilities";
 
 const Services = () => {
-  const { t } = useTranslation();
+  const { t,i18n } = useTranslation();
+  const lang= i18n.language
   const navigate = useNavigate();
   const { pathname } = useLocation();
 
@@ -56,7 +57,7 @@ const Services = () => {
               <Skeleton key={index} active className="w-full h-full" />
             ))
           : services?.data?.map((service) => (
-              <ServiceCard key={service?.id} id={service?.id || ""} />
+              <ServiceCard key={service?.id} data={service} lang={lang} />
             ))}
       </section>
     </main>

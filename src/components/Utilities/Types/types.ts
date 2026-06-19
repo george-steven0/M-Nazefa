@@ -1,4 +1,4 @@
-import type { GetProp, UploadFile, UploadProps } from "antd";
+import type { GetProp, UploadProps } from "antd";
 import type { ApexOptions } from "apexcharts";
 import type { TFunction } from "i18next";
 
@@ -172,7 +172,7 @@ export type clientFormPropsType = {
   isOld: boolean;
   whatsAppNumber?: string | number;
   membershipId?: string | number;
-  memberShipNumber?: string;
+  // memberShipNumber?: string;
   entryDate: string;
   customerAddresses: (addressProps & buildingProps)[];
   address?: (addressProps & buildingProps)[];
@@ -252,10 +252,9 @@ export type packageFormProps = {
   Discount: string;
   // WhatYouWillHaveOnIt: string;
   // WhatYouwouldntHaveOnIt: string;
-  Tools: string;
-  Supplies: string;
-  Rules: string | number;
-  TermsAndConditions: UploadFile | string | null;
+  Tools: { value: string }[];
+  Supplies: { value: string }[];
+  Rules: { value: string }[];
   Logo: string | File;
   // workingHours: string;
   NumberofRooms: string;
@@ -265,11 +264,13 @@ export type packageFormProps = {
     CleaningAreaId: string;
     ArName: string;
     Name: string;
+    Description: string;
   }[];
   cleaningAreaDetails?: {
     CleaningAreaId: string;
     ArName: string;
     Name: string;
+    Description: string;
   }[];
   ExtraServices: {
     ArName: string;
@@ -295,19 +296,9 @@ export type packageCard = {
   discount: string | number;
   packageTypeName?: string;
   packageTypeArName?: string;
-  tools: string;
-  supplies: string;
-  rules: string | number;
-  termsAndConditions:
-    | UploadFile
-    | null
-    | {
-        uid: string;
-        name: string;
-        status: string;
-        url: string;
-        percent: number;
-      };
+  tools: string[];
+  supplies: string[];
+  rules: string[];
   logo: string;
   isActive: boolean;
   // workingHours: string;
@@ -326,6 +317,7 @@ export type packageCard = {
     cleaningAreaId: string;
     arName: string;
     name: string;
+    description: string;
   }[];
   extraServices?: {
     arName: string;
@@ -522,11 +514,12 @@ export type holdReservationProps = {
 };
 
 export type serviceFormProps = {
-  id?: string | number;
+  id?: string | number | null;
   title?: string;
   arTitle?: string;
   description?: string;
   package?: string;
+  isActive?:boolean
   extraServices?:
     | {
         extraServiceId: string | number;
@@ -534,6 +527,8 @@ export type serviceFormProps = {
     | null;
   packages?: {
     packageId: string | number;
+    packageName?: string;
+    packageArName?: string;
   }[];
   reservationWorkers?: {
     workerId: string | number;
@@ -691,6 +686,20 @@ export type complaintResponseProps = {
   reservationId: string | number;
   comment: string;
   createdAt?: string;
+};
+
+export type feedbackFormProps = {
+  reservationId: string | number;
+  rate: number;
+  comment: string;
+};
+
+export type feedbackResponseProps = {
+  id: string | number;
+  reservationId: string | number;
+  rate: number;
+  comment: string;
+  creationDate?: string;
 };
 
 export type workerManagementFormProps = {

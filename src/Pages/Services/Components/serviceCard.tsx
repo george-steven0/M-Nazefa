@@ -1,14 +1,37 @@
 import { useNavigate } from "react-router-dom";
 import packageIcon from "../../../assets/imgs/packageIconDark.svg";
 import { ConfigProvider, Switch } from "antd";
+import { useToggleServiceMutation } from "../../../components/APIs/Services/SERVICES_QUERY";
+import { toast } from "react-toastify";
+import type { APIErrorProps, serviceFormProps } from "../../../components/Utilities/Types/types";
 
-const ServiceCard = ({ id }: { id: number | string }) => {
-  console.log(id);
+type serviceCardProps = {
+  data:serviceFormProps,
+  lang:string
+}
+const ServiceCard = ({ data,lang }:serviceCardProps) => {
 
   const navigate = useNavigate();
   const handleNavigateView = () => {
-    navigate(`view-service?id=${id}`);
+    navigate(`view-service?id=${data?.id}`);
   };
+
+  const [toggleService,{isLoading: toggleLoading, isSuccess: toggleSuccess}] = useToggleServiceMutation();
+
+  const toggleServiceSwitch = async (checked:boolean)=>{
+    try {
+        await toggleService({serviceId: data?.id || '', isActive: checked}).unwrap();
+        if (toggleSuccess) {
+          toast.success("Service toggled successfully");
+        }
+    } catch (error) {
+       const err = error as APIErrorProps;
+      err?.data?.errorMessages?.forEach((message) => {
+        toast.error(message);
+      });
+    }
+  }
+
   return (
     <div
       className="border bg-[#F5F4F4] border-[#c4c4c4] p-4 rounded-lg shadow-sm cursor-pointer"
@@ -23,7 +46,7 @@ const ServiceCard = ({ id }: { id: number | string }) => {
             className="capitalize text-lg text-mainColor font-semibold cursor-pointer hover:text-mainColor/85"
             onClick={handleNavigateView}
           >
-            service name
+            {lang === 'en' ? data?.title : data?.arTitle}
           </p>
         </div>
 
@@ -36,18 +59,20 @@ const ServiceCard = ({ id }: { id: number | string }) => {
             }}
           >
             <Switch
-              loading={false}
-              onClick={(_checked, e) => e?.stopPropagation()}
+              defaultChecked={data?.isActive}
+              loading={toggleLoading}
+              onClick={(_checked, e) => {
+                e?.stopPropagation();
+                toggleServiceSwitch(_checked);
+              }}
+
             />
           </ConfigProvider>
         </div>
 
         <div className="card-description">
           <p title="" className="line-clamp-3 text-[#646363] text-sm">
-            Lorem ipsum dolor sit, amet consectetur adipisicing elit.
-            Laboriosam, rerum consequuntur voluptate expedita, non omnis
-            reiciendis id consequatur necessitatibus doloremque, nulla facilis
-            accusamus error corporis pariatur ab beatae sit molestias?
+            {data?.description || 'No Description'}
           </p>
         </div>
 

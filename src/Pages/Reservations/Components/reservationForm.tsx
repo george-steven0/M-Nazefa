@@ -30,6 +30,7 @@ import {
   useGetCitiesQuery,
 } from "../../../components/APIs/Seeders/SEEDERS_RTK_QUERY";
 import { useGetCustomerByIdQuery } from "../../../components/APIs/ClientQuery/CLIENTS_QUERY";
+import { useGetAllServicesQuery } from "../../../components/APIs/Services/SERVICES_QUERY";
 import { skipToken } from "@reduxjs/toolkit/query";
 import { useAppSelector } from "../../../components/APIs/store";
 import { FaMinus, FaPlus } from "react-icons/fa";
@@ -191,12 +192,29 @@ const ReservationForm = () => {
     isFetching: apartmentClosingPeriodIsFetching,
   } = useGetApartmentClosingPeriodQuery();
 
-  // all packages
+  // global service filter for packages
+  const [serviceTypeId, setServiceTypeId] = useState<
+    string | number | null
+  >(null);
+
+  // all services (used as a global filter for packages)
+  const {
+    data: services,
+    isLoading: servicesLoading,
+    isFetching: servicesIsFetching,
+  } = useGetAllServicesQuery();
+
+  // all packages (filtered by the selected service when present)
   const {
     data: packages,
     isLoading: packagesLoading,
     isFetching: packagesIsFetching,
-  } = useGetAllPackagesListQuery();
+  } = useGetAllPackagesListQuery(
+    serviceTypeId != null ? { serviceTypeId } : undefined,
+  );
+
+  console.log(serviceTypeId);
+  
 
   // Get availiable Reservation appointemtns
 
@@ -1476,6 +1494,32 @@ const ReservationForm = () => {
                     className="text-sm cursor-pointer bg-green-600 text-white"
                     icon={<FaPlus />}
                     shape="circle"
+                  />
+                </div>
+
+                <div className="service-filter-wrapper col-span-full">
+                  <label className="block mb-1 capitalize font-medium">
+                    {t("SERVICE")}
+                  </label>
+                  <Select
+                    loading={servicesLoading || servicesIsFetching}
+                    className="min-h-10 border-[#C4C4C4] border rounded-md capitalize [&>.ant-select-selector]:capitalize w-full"
+                    variant="filled"
+                    allowClear
+                    placeholder={t("SELECT_SERVICE")}
+                    value={serviceTypeId}
+                    onChange={(value) => setServiceTypeId(value ?? null)}
+                    showSearch
+                    optionFilterProp="label"
+                    filterOption={(input, option) =>
+                      (option?.label ?? "")
+                        .toLowerCase()
+                        .includes(input.toLowerCase())
+                    }
+                    options={services?.data?.map((service) => ({
+                      value: service.id,
+                      label: lang === "en" ? service.title : service.arTitle,
+                    }))}
                   />
                 </div>
 
