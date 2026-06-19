@@ -274,12 +274,12 @@ export const ReservationDetailsPdf = ({
                 {customer?.hasMembership ? "Yes" : "No"}
               </Text>
             </View>
-            <View style={styles.col}>
+            {/* <View style={styles.col}>
               <Text style={styles.label}>Membership Number</Text>
               <Text style={styles.value}>
                 {customer?.memberShipNumber || "N/A"}
               </Text>
-            </View>
+            </View> */}
           </View>
           <View style={styles.row}>
             <View style={styles.col}>

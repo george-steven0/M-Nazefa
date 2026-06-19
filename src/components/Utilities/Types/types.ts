@@ -392,7 +392,7 @@ export type reservationDetailsData = {
   lastName?: string;
   customerTypeName?: string;
   hasMembership?: boolean;
-  memberShipNumber?: string;
+  // memberShipNumber?: string;
   whatsAppNumber?: string | number;
   isOld?: boolean;
   noOfReservations?: string | number;

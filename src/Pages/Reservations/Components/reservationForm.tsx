@@ -756,7 +756,7 @@ const ReservationForm = () => {
                   className="placeholder:capitalize"
                 />
               </div> */}
-                <div>
+                {/* <div>
                   <label>{t("MEMBERSHIP_NUMBER")}</label>
                   <Input
                     variant="filled"
@@ -771,7 +771,7 @@ const ReservationForm = () => {
                     }
                     className="placeholder:capitalize"
                   />
-                </div>
+                </div> */}
                 <div>
                   <label>{t("WHATS_APP_NUMBER")}</label>
                   <Input

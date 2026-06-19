@@ -31,7 +31,6 @@ import {
   BsBadgeVr,
   BsDoorOpen,
   BsWindowStack,
-  BsTagFill,
 } from "react-icons/bs";
 import { LuBath, LuBedDouble, LuSofa } from "react-icons/lu";
 import { TbToolsKitchen2 } from "react-icons/tb";
@@ -238,7 +237,7 @@ const ViewClient = () => {
                   )}
 
                   {/* Membership badge */}
-                  {customer?.hasMembership && (
+                  {/* {customer?.hasMembership && (
                     <Tag
                       icon={<BsTagFill size={10} className="mr-1" />}
                       color="blue"
@@ -249,7 +248,7 @@ const ViewClient = () => {
                         ? ` · ${customer.memberShipNumber}`
                         : ""}
                     </Tag>
-                  )}
+                  )} */}
 
                   {/* Customer type */}
                   {customer?.customerTypeName && (
