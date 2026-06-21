@@ -8,6 +8,7 @@ import type { TFunction } from "i18next";
 import { useChangePasswordMutation } from "../../../components/APIs/EmployeesQuery/EMPLOYEES_QUERY";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
+import { logout } from "../../../Utilities/auth";
 
 type changePasswordProps = {
   open: boolean;
@@ -54,7 +55,7 @@ const ChangePassword = ({
       toast.success(t("PASSWORD_CHANGED_SUCCESS"));
       handleReset();
       if (currentUser) {
-        localStorage.clear();
+        logout();
         navigate("/login");
       }
     } catch (error) {

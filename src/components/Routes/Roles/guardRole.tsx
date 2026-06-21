@@ -4,6 +4,7 @@ import {
   type Permission,
 } from "../../../Utilities/permissions.config";
 import { getUserRoles } from "../../../Utilities/utilities";
+import { logout } from "../../../Utilities/auth";
 
 interface guardProps {
   children?: React.ReactNode;
@@ -19,7 +20,7 @@ export default function GuardRole({ children }: guardProps) {
   const matches = useMatches();
 
   if (!tk || !roles) {
-    localStorage.clear();
+    logout();
     return <Navigate to="/login" replace />;
   }
 

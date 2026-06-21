@@ -37,6 +37,7 @@ import {
 } from "../../../Utilities/permissions.config";
 import { PiClockUser } from "react-icons/pi";
 import { IoSettingsOutline } from "react-icons/io5";
+import { logout } from "../../../Utilities/auth";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -66,7 +67,6 @@ const Navbar = ({
   const { t } = useTranslation();
   const { pathname } = useLocation();
   const navigate = useNavigate();
-
   // ── Grouped navigation (ordered by usage frequency) ──────────────────────
 
   const navGroups: NavGroup[] = useMemo(
@@ -325,8 +325,8 @@ const Navbar = ({
   }, [pathname]);
 
   const handleLogout = () => {
+    logout();
     navigate("/login");
-    localStorage.clear();
   };
 
   // ── Render helpers ───────────────────────────────────────────────────────
