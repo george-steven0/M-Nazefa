@@ -56,7 +56,7 @@ const EditArea = ({ open, close, t, data }: areaPropsType) => {
     // };
     try {
       await editArea(data).unwrap();
-      toast.success("area updated successfully");
+      toast.success(t("AREA_UPDATED_SUCCESS"));
       handleReset();
     } catch (error) {
       const err = error as APIErrorProps;
@@ -70,7 +70,7 @@ const EditArea = ({ open, close, t, data }: areaPropsType) => {
           err?.data?.errorMessage && err?.data?.errorMessage.join("\n");
         toast.error(errs);
       } else {
-        toast.error("Failed to update area");
+        toast.error(t("AREA_UPDATE_FAILED"));
       }
     }
   };
@@ -98,7 +98,7 @@ const EditArea = ({ open, close, t, data }: areaPropsType) => {
                   <Select
                     {...field}
                     className="min-h-10 border-[#C4C4C4] border rounded-md w-full"
-                    placeholder="Select customer type"
+                    placeholder={t("SELECT_CITY")}
                     variant="filled"
                     status={errors?.cityId ? "error" : ""}
                     loading={isCitiesLoading || isCitiesFetching}
@@ -136,7 +136,7 @@ const EditArea = ({ open, close, t, data }: areaPropsType) => {
                   <Input
                     {...field}
                     variant="filled"
-                    placeholder="Enter area name (EN)"
+                    placeholder={t("ENTER_AREA_NAME_EN")}
                     className="placeholder:capitalize"
                     status={errors?.name ? "error" : ""}
                   />
@@ -169,7 +169,7 @@ const EditArea = ({ open, close, t, data }: areaPropsType) => {
                   <Input
                     {...field}
                     variant="filled"
-                    placeholder="Enter area name (AR)"
+                    placeholder={t("ENTER_AREA_NAME_AR")}
                     className="placeholder:capitalize"
                     status={errors?.arName ? "error" : ""}
                   />

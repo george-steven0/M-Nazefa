@@ -107,14 +107,14 @@ const AddEmployee = () => {
 
     try {
       await addEmployee(formData).unwrap();
-      toast.success("Employee added successfully");
+      toast.success(t("EMPLOYEE_ADDED_SUCCESS"));
       navigate("/employees");
     } catch (error) {
       const err = error as APIErrorProps;
       if (err?.data?.errorMessages && err?.data?.errorMessages.length > 0) {
         err?.data?.errorMessages?.map((err) => toast.error(err));
       } else {
-        toast.error("Failed to add employee");
+        toast.error(t("EMPLOYEE_ADD_FAILED"));
       }
     }
   };
@@ -172,7 +172,7 @@ const AddEmployee = () => {
                         beforeUpload={() => false}
                         maxCount={1}
                       >
-                        {fileList.length < 1 && "+ Upload"}
+                        {fileList.length < 1 && `+ ${t("UPLOAD")}`}
                       </Upload>
                     </ImgCrop>
 
@@ -210,7 +210,7 @@ const AddEmployee = () => {
                   <Input
                     {...field}
                     variant="filled"
-                    placeholder="Enter first name"
+                    placeholder={t("ENTER_FIRST_NAME")}
                     className="placeholder:capitalize"
                     status={errors?.FirstName ? "error" : ""}
                   />
@@ -236,7 +236,7 @@ const AddEmployee = () => {
                   <Input
                     {...field}
                     variant="filled"
-                    placeholder="Enter last name"
+                    placeholder={t("ENTER_LAST_NAME")}
                     className="placeholder:capitalize"
                     status={errors?.LastName ? "error" : ""}
                   />
@@ -260,7 +260,7 @@ const AddEmployee = () => {
                 render={({ field }) => (
                   <Select
                     {...field}
-                    placeholder="Select gender"
+                    placeholder={t("SELECT_GENDER")}
                     className="min-h-10 border-[#C4C4C4] border rounded-md capitalize [&>.ant-select-selector]:capitalize"
                     variant="filled"
                     status={errors?.Gender ? "error" : ""}
@@ -298,7 +298,7 @@ const AddEmployee = () => {
                   <Input
                     {...field}
                     variant="filled"
-                    placeholder="Enter phone number"
+                    placeholder={t("ENTER_PHONE_NUMBER")}
                     className="placeholder:capitalize"
                     status={errors?.PhoneNumber ? "error" : ""}
                   />
@@ -322,7 +322,7 @@ const AddEmployee = () => {
                   },
                   pattern: {
                     value: /^[a-zA-Z0-9._%+-]+$/,
-                    message: "Email is not valid",
+                    message: t("INVALID_EMAIL"),
                   },
                 }}
                 render={({ field }) => (
@@ -330,7 +330,7 @@ const AddEmployee = () => {
                     <Input
                       {...field}
                       variant="filled"
-                      placeholder="Enter email"
+                      placeholder={t("ENTER_EMAIL")}
                       // addonAfter={DOMAIN}
                       className="placeholder:capitalize [&_.ant-input]:py-[6px] border border-[#C4C4C4] rounded-l-md"
                       status={errors?.Email ? "error" : ""}
@@ -381,7 +381,7 @@ const AddEmployee = () => {
                   <Input
                     {...field}
                     variant="filled"
-                    placeholder="Enter user name"
+                    placeholder={t("ENTER_USER_NAME")}
                     className="placeholder:capitalize"
                     status={errors?.UserName ? "error" : ""}
                   />
@@ -415,7 +415,7 @@ const AddEmployee = () => {
                   <Input.Password
                     {...field}
                     variant="filled"
-                    placeholder="Enter Password"
+                    placeholder={t("ENTER_PASSWORD")}
                     className="placeholder:capitalize py-2 border-[#C4C4C4]"
                     status={errors?.Password ? "error" : ""}
                   />
@@ -468,7 +468,7 @@ const AddEmployee = () => {
                 render={({ field }) => (
                   <Select
                     {...field}
-                    placeholder="Select Role"
+                    placeholder={t("SELECT_ROLE")}
                     mode="tags"
                     className="h-auto border-[#C4C4C4] border rounded-md capitalize [&>.ant-select-selector]:capitalize [&_.ant-select-selection-wrap]:h-full [&_.ant-select-selection-wrap]:py-[3px] [&_.ant-select-selection-wrap]:capitalize"
                     variant="filled"
@@ -575,7 +575,7 @@ const AddEmployee = () => {
                   <Input
                     {...field}
                     variant="filled"
-                    placeholder="Enter id number"
+                    placeholder={t("ENTER_ID_NUMBER")}
                     className="placeholder:capitalize"
                     status={errors?.IdNumber ? "error" : ""}
                     maxLength={14}
@@ -606,7 +606,7 @@ const AddEmployee = () => {
                   <Input
                     {...field}
                     variant="filled"
-                    placeholder="Enter postal code"
+                    placeholder={t("ENTER_POSTAL_CODE")}
                     className="placeholder:capitalize"
                     status={errors?.PostalCode ? "error" : ""}
                   />
@@ -631,7 +631,7 @@ const AddEmployee = () => {
                   <Input
                     {...field}
                     variant="filled"
-                    placeholder="Enter address"
+                    placeholder={t("ENTER_ADDRESS")}
                     className="placeholder:capitalize"
                     status={errors?.Address ? "error" : ""}
                   />

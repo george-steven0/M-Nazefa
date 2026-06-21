@@ -200,7 +200,7 @@ const ReservationDetails = () => {
                         loading={loading}
                         className="bg-mainColor hover:bg-mainColor/90! border-none px-4 py-3 h-full rounded-md flex items-center justify-center font-semibold"
                       >
-                        {loading ? "Loading..." : t("DOWNLOAD_PDF")}
+                        {loading ? t("LOADING") : t("DOWNLOAD_PDF")}
                       </Button>
                     )}
                   </PDFDownloadLink>
@@ -219,7 +219,7 @@ const ReservationDetails = () => {
                       onClick={handleConfirmReservation}
                       className="h-full capitalize font-semibold border border-green-600 text-green-600 bg-green-600/20 hover:bg-green-600/40"
                     >
-                      Confirm Reservation
+                      {t("CONFIRM_RESERVATION")}
                     </Button>
                   )}
                 </div>

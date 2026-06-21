@@ -52,11 +52,12 @@ const ReservationFeedback = () => {
     isFetching,
   } = useGetAllReservationFeedbacksQuery();
 
+  // Only fetch reservations while the add modal is open
   const {
     data: reservations,
     isLoading: reservationsLoading,
     isFetching: reservationsIsFetching,
-  } = useGetAllReservationsQuery();
+  } = useGetAllReservationsQuery(isAddModalOpen ? undefined : skipToken);
 
   const {
     data: feedbackDetails,
@@ -150,6 +151,12 @@ const ReservationFeedback = () => {
       render: (text) => (
         <p className="max-w-[300px] truncate">{text || t("NA")}</p>
       ),
+    },
+    {
+      title: t("CREATED_BY"),
+      dataIndex: "createdByName",
+      key: "createdByName",
+      render: (text) => <p>{text || t("NA")}</p>,
     },
     {
       title: t("CREATION_DATE"),

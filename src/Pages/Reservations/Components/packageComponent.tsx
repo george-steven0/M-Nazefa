@@ -16,6 +16,7 @@ import {
 } from "../../../components/APIs/Packages/PACKAGES_QUERY";
 import { useEffect } from "react";
 import { useAppSelector } from "../../../components/APIs/store";
+import { useTranslation } from "react-i18next";
 
 type extraPackageProps = {
   index: number;
@@ -36,6 +37,7 @@ export default function ExtraPackage({
 }: extraPackageProps) {
 
   const { lang } = useAppSelector((state) => state?.lang);
+  const { t } = useTranslation();
 
   const packageId = useWatch({
     control,
@@ -85,7 +87,7 @@ export default function ExtraPackage({
 
       {!packageId ? (
         <div className="flex items-center justify-center h-full">
-          <Tag color="gold">Please select a package</Tag>
+          <Tag color="gold">{t("PLEASE_SELECT_PACKAGE")}</Tag>
         </div>
       ) : extraServicesLoading || extraServicesIsFetching ? (
         <Skeleton active paragraph={{ rows: 3 }} />

@@ -73,10 +73,10 @@ const MembershipForm = ({ open, close, t, data }: addRoleProps) => {
     try {
       if (data) {
         await editMembership(formatData).unwrap();
-        toast.success("membership updated successfully");
+        toast.success(t("MEMBERSHIP_UPDATED_SUCCESS"));
       } else {
         await addMembership(formatData).unwrap();
-        toast.success("membership added successfully");
+        toast.success(t("MEMBERSHIP_ADDED_SUCCESS"));
       }
       handleReset();
     } catch (error) {
@@ -91,7 +91,7 @@ const MembershipForm = ({ open, close, t, data }: addRoleProps) => {
 
         toast.error(errs);
       } else {
-        toast.error("Failed to update membership");
+        toast.error(t("MEMBERSHIP_UPDATE_FAILED"));
       }
     }
   };
@@ -122,7 +122,7 @@ const MembershipForm = ({ open, close, t, data }: addRoleProps) => {
                   <Input
                     {...field}
                     variant="filled"
-                    placeholder="Enter membership name"
+                    placeholder={t("ENTER_MEMBERSHIP_NAME")}
                     className="placeholder:capitalize"
                     status={errors?.name ? "error" : ""}
                   />
@@ -151,7 +151,7 @@ const MembershipForm = ({ open, close, t, data }: addRoleProps) => {
                   <Input
                     {...field}
                     variant="filled"
-                    placeholder="Enter membership code"
+                    placeholder={t("ENTER_MEMBERSHIP_CODE")}
                     className="placeholder:capitalize"
                     status={errors?.code ? "error" : ""}
                   />
@@ -249,7 +249,7 @@ const MembershipForm = ({ open, close, t, data }: addRoleProps) => {
                   <Input
                     {...field}
                     variant="filled"
-                    placeholder="Enter number of visits"
+                    placeholder={t("ENTER_NUMBER_OF_VISITS")}
                     className="placeholder:capitalize"
                     status={errors?.noOfVisits ? "error" : ""}
                   />
@@ -287,7 +287,7 @@ const MembershipForm = ({ open, close, t, data }: addRoleProps) => {
                   <Input
                     {...field}
                     variant="filled"
-                    placeholder="Enter percent"
+                    placeholder={t("ENTER_PERCENT")}
                     className="placeholder:capitalize"
                     status={errors?.percent ? "error" : ""}
                   />

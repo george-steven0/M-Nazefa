@@ -101,7 +101,7 @@ const Memberships = () => {
 
     {
       key: "actions",
-      title: "Actions",
+      title: t("ACTIONS"),
       render: (data) => <Actions data={data} t={t} />,
     },
   ];
@@ -124,7 +124,7 @@ const Memberships = () => {
   };
 
   const { SearchBox } = useSearchBox({
-    placeholder: "Search Memberships",
+    placeholder: t("SEARCH_MEMBERSHIPS"),
   });
 
   return (

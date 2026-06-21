@@ -1,5 +1,6 @@
-import { Modal, Button, Input, Select } from "antd";
-import { useForm, Controller } from "react-hook-form";
+import { Modal, Button, Input, Select, Radio } from "antd";
+import { useEffect } from "react";
+import { useForm, Controller, useFieldArray } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import type {
   APIErrorProps,
@@ -11,12 +12,22 @@ import {
 } from "../../../components/APIs/Workers/WORKERS_QUERY";
 import Astrisk from "../../../components/Common/Astrisk/astrisk";
 import { toast } from "react-toastify";
+import { AiOutlineDelete, AiOutlinePlus } from "react-icons/ai";
 
 interface WorkerFormModalProps {
   open: boolean;
   close: () => void;
   data?: workersFormProps;
 }
+
+type WorkerFormValues = {
+  name: string;
+  arName: string;
+  nationalId: string;
+  isMale: string | undefined;
+  isWorker: string | undefined;
+  phoneNumbers: { number: string }[];
+};
 
 const WorkerFormModal = ({ open, close, data }: WorkerFormModalProps) => {
   const { t } = useTranslation();
@@ -26,40 +37,61 @@ const WorkerFormModal = ({ open, close, data }: WorkerFormModalProps) => {
   const [addWorker, { isLoading: addLoading }] = useAddWorkerMutation();
   const [editWorker, { isLoading: editLoading }] = useEditWorkerMutation();
 
-  const defaultValues = {
+  const defaultValues: WorkerFormValues = {
     name: data?.name || "",
     arName: data?.arName || "",
-    phoneNumber: data?.phoneNumber || "",
     nationalId: data?.nationalId || "",
-    isMale: String(data?.isMale) || undefined,
+    isMale: data?.isMale !== undefined ? String(data?.isMale) : undefined,
+    isWorker: data?.isWorker !== undefined ? String(data?.isWorker) : undefined,
+    phoneNumbers:
+      data?.phoneNumbers && data.phoneNumbers.length > 0
+        ? data.phoneNumbers.map((number) => ({ number }))
+        : [{ number: "" }],
   };
-
-  //   console.log(defaultValues);
 
   const {
     control,
     handleSubmit,
     formState: { errors },
     reset,
-  } = useForm<workersFormProps>({
-    defaultValues: id ? defaultValues : undefined,
+  } = useForm<WorkerFormValues>({
+    defaultValues,
   });
 
-  const onSubmit = async (data: workersFormProps) => {
-    const values = {
-      ...data,
-      isMale: data.isMale === "true",
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: "phoneNumbers",
+  });
+
+  // Re-sync the form with the latest data whenever the modal is (re)opened,
+  // otherwise react-hook-form keeps the values captured on first mount.
+  useEffect(() => {
+    if (open) {
+      reset(defaultValues);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, data]);
+
+  const onSubmit = async (formData: WorkerFormValues) => {
+    const phoneNumbers = formData.phoneNumbers
+      .map((p) => p.number.trim())
+      .filter(Boolean);
+
+    const payload: workersFormProps = {
+      name: formData.name,
+      arName: formData.arName,
+      nationalId: formData.nationalId,
+      isMale: formData.isMale === "true",
+      isWorker: formData.isWorker === "true",
+      phoneNumbers,
     };
+
     try {
       if (id) {
-        const editData = {
-          ...values,
-          id,
-        };
-        await editWorker(editData).unwrap();
+        await editWorker({ ...payload, id }).unwrap();
         toast.success(t("WORKER_EDITED_SUCCESS"));
       } else {
-        await addWorker(values).unwrap();
+        await addWorker(payload).unwrap();
         toast.success(t("WORKER_ADDED_SUCCESS"));
       }
       handleClose();
@@ -144,7 +176,7 @@ const WorkerFormModal = ({ open, close, data }: WorkerFormModalProps) => {
                   message: t("MIN_LENGTH", { length: 3 }),
                 },
                 pattern: {
-                  value: /^[\u0600-\u06FF ]+$/,
+                  value: /^[؀-ۿ ]+$/,
                   message: t("ARABIC_LETTER"),
                 },
               }}
@@ -161,32 +193,6 @@ const WorkerFormModal = ({ open, close, data }: WorkerFormModalProps) => {
             {errors.arName && (
               <p className="text-red-500 text-xs mt-1">
                 {errors.arName.message}
-              </p>
-            )}
-          </div>
-
-          {/* Phone Number */}
-          <div>
-            <label className="block mb-1 font-medium capitalize">
-              {t("PHONE_NUMBER")} <Astrisk />
-            </label>
-            <Controller
-              name="phoneNumber"
-              control={control}
-              rules={{ required: t("REQUIRED") }}
-              render={({ field }) => (
-                <Input
-                  {...field}
-                  variant="filled"
-                  status={errors.phoneNumber ? "error" : ""}
-                  placeholder={t("PHONE_NUMBER")}
-                  className="py-2"
-                />
-              )}
-            />
-            {errors.phoneNumber && (
-              <p className="text-red-500 text-xs mt-1">
-                {errors.phoneNumber.message}
               </p>
             )}
           </div>
@@ -217,6 +223,32 @@ const WorkerFormModal = ({ open, close, data }: WorkerFormModalProps) => {
             {errors.isMale && (
               <p className="text-red-500 text-xs mt-1">
                 {errors.isMale.message}
+              </p>
+            )}
+          </div>
+
+          {/* Worker Type */}
+          <div>
+            <label className="block mb-1 font-medium capitalize">
+              {t("WORKER_TYPE")} <Astrisk />
+            </label>
+            <Controller
+              name="isWorker"
+              control={control}
+              rules={{ required: t("REQUIRED") }}
+              render={({ field }) => (
+                <Radio.Group
+                  {...field}
+                  className="flex items-center gap-4 h-10"
+                >
+                  <Radio value="true">{t("WORKER")}</Radio>
+                  <Radio value="false">{t("SUPERVISOR")}</Radio>
+                </Radio.Group>
+              )}
+            />
+            {errors.isWorker && (
+              <p className="text-red-500 text-xs mt-1">
+                {errors.isWorker.message}
               </p>
             )}
           </div>
@@ -254,7 +286,6 @@ const WorkerFormModal = ({ open, close, data }: WorkerFormModalProps) => {
                   status={errors.nationalId ? "error" : ""}
                   placeholder={t("ID_NUMBER")}
                   className="py-2"
-                  //   type="number"
                   maxLength={14}
                   minLength={14}
                 />
@@ -265,6 +296,70 @@ const WorkerFormModal = ({ open, close, data }: WorkerFormModalProps) => {
                 {errors.nationalId.message}
               </p>
             )}
+          </div>
+
+          {/* Phone Numbers (dynamic) */}
+          <div className="col-span-full">
+            <div className="flex items-center justify-between mb-2">
+              <label className="block font-medium capitalize">
+                {t("PHONE_NUMBERS")} <Astrisk />
+              </label>
+              <Button
+                type="dashed"
+                size="small"
+                icon={<AiOutlinePlus />}
+                onClick={() => append({ number: "" })}
+                className="capitalize"
+              >
+                {t("ADD_PHONE")}
+              </Button>
+            </div>
+
+            <div className="flex flex-col gap-3">
+              {fields.map((fieldItem, index) => (
+                <div key={fieldItem.id} className="flex flex-col gap-1">
+                  <div className="flex items-center gap-2">
+                    <Controller
+                      name={`phoneNumbers.${index}.number`}
+                      control={control}
+                      rules={{
+                        required: {
+                          value: true,
+                          message: t("REQUIRED"),
+                        },
+                        pattern: {
+                          value: /^[0-9+]+$/,
+                          message: t("ONLY_NUMBER"),
+                        },
+                      }}
+                      render={({ field }) => (
+                        <Input
+                          {...field}
+                          variant="filled"
+                          status={
+                            errors.phoneNumbers?.[index]?.number ? "error" : ""
+                          }
+                          placeholder={t("PHONE_NUMBER")}
+                          className="py-2"
+                        />
+                      )}
+                    />
+                    <Button
+                      danger
+                      shape="circle"
+                      icon={<AiOutlineDelete />}
+                      disabled={fields.length === 1}
+                      onClick={() => remove(index)}
+                    />
+                  </div>
+                  {errors.phoneNumbers?.[index]?.number && (
+                    <p className="text-red-500 text-xs">
+                      {errors.phoneNumbers?.[index]?.number?.message}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
         </section>
 

@@ -377,12 +377,12 @@ export default function PackageForm() {
     try {
       if (id) {
         await editPackage(formattedData).unwrap();
-        toast.success("Package updated successfully", {
+        toast.success(t("PACKAGE_UPDATED_SUCCESS"), {
           toastId: "package-updated",
         });
       } else {
         await addPackage(formattedData).unwrap();
-        toast.success("Package added successfully", {
+        toast.success(t("PACKAGE_ADDED_SUCCESS"), {
           toastId: "package-added",
         });
       }
@@ -430,12 +430,6 @@ export default function PackageForm() {
                 <Controller
                   control={control}
                   name="Logo"
-                  rules={{
-                    required: {
-                      value: true,
-                      message: t("REQUIRED"),
-                    },
-                  }}
                   render={({ field }) => (
                     <>
                       <ImgCrop rotationSlider>
@@ -454,7 +448,7 @@ export default function PackageForm() {
                           beforeUpload={() => false}
                           maxCount={1}
                         >
-                          {fileList.length < 1 && "+ Upload"}
+                          {fileList.length < 1 && `+ ${t("UPLOAD")}`}
                         </Upload>
                       </ImgCrop>
 
@@ -535,7 +529,7 @@ export default function PackageForm() {
                     <Input
                       {...field}
                       variant="filled"
-                      placeholder="Enter english title"
+                      placeholder={t("ENTER_TITLE_EN")}
                       className="placeholder:capitalize"
                       status={errors?.Title ? "error" : ""}
                     />
@@ -566,7 +560,7 @@ export default function PackageForm() {
                     <Input
                       {...field}
                       variant="filled"
-                      placeholder="Enter arabic title"
+                      placeholder={t("ENTER_TITLE_AR")}
                       className="placeholder:capitalize"
                       status={errors?.ArTitle ? "error" : ""}
                     />
@@ -597,7 +591,7 @@ export default function PackageForm() {
                     <Input
                       {...field}
                       variant="filled"
-                      placeholder="Enter english sub title"
+                      placeholder={t("ENTER_SUBTITLE_EN")}
                       className="placeholder:capitalize"
                       status={errors?.SubTitle ? "error" : ""}
                     />
@@ -628,7 +622,7 @@ export default function PackageForm() {
                     <Input
                       {...field}
                       variant="filled"
-                      placeholder="Enter arabic sub title"
+                      placeholder={t("ENTER_SUBTITLE_AR")}
                       className="placeholder:capitalize"
                       status={errors?.ArSubTitle ? "error" : ""}
                     />
@@ -657,7 +651,7 @@ export default function PackageForm() {
                     <Input
                       {...field}
                       variant="filled"
-                      placeholder="Enter description"
+                      placeholder={t("ENTER_DESCRIPTION")}
                       className="placeholder:capitalize"
                       status={errors?.Description ? "error" : ""}
                     />
@@ -688,7 +682,7 @@ export default function PackageForm() {
                       <Select
                         {...field}
                         className="min-h-10 border-[#C4C4C4] border rounded-md w-full"
-                        placeholder="Number of rooms"
+                        placeholder={t("ENTER_NUMBER_OF_ROOMS")}
                         variant="filled"
                         status={errors?.NumberofRooms ? "error" : ""}
                         options={Array.from({ length: 21 })?.map(
@@ -723,7 +717,7 @@ export default function PackageForm() {
                       <Select
                         {...field}
                         className="min-h-10 border-[#C4C4C4] border rounded-md w-full"
-                        placeholder="Number of workers"
+                        placeholder={t("ENTER_NUMBER_OF_WORKERS")}
                         variant="filled"
                         status={errors?.NumberofWorkers ? "error" : ""}
                         options={Array.from({ length: 21 })?.map(
@@ -762,7 +756,7 @@ export default function PackageForm() {
                       <Input
                         {...field}
                         variant="filled"
-                        placeholder="Enter Price"
+                        placeholder={t("ENTER_PRICE")}
                         className="placeholder:capitalize"
                         status={errors?.Price ? "error" : ""}
                       />
@@ -775,22 +769,15 @@ export default function PackageForm() {
 
               <div className="discount-wrapper col-span-full grid grid-cols-1 md:grid-cols-2 gap-5 [&>div>label]:block [&>div>label]:mb-1 [&>div>label]:capitalize [&>div>label]:font-medium [&>div>input]:border-[#C4C4C4] [&>div>input]:py-2 [&>div>p]:mt-1 [&>div>p]:text-xs [&>div>p]:capitalize [&>div>p]:text-mainRed">
                 <div>
-                  <label>
-                    {t("DISCOUNT_TYPE")} <Astrisk />
-                  </label>
+                  <label>{t("DISCOUNT_TYPE")}</label>
                   <Controller
                     control={control}
                     name="IsPercentage"
-                    rules={{
-                      required: {
-                        value: true,
-                        message: t("REQUIRED"),
-                      },
-                    }}
                     render={({ field }) => (
                       <Select
                         {...field}
                         variant="filled"
+                        allowClear
                         placeholder={t("SELECT_DISCOUNT_TYPE")}
                         className="w-full border border-[#C4C4C4] rounded-md h-10"
                         onChange={(value) => {
@@ -817,31 +804,30 @@ export default function PackageForm() {
 
                 <div>
                   <label>
-                    {t("DISCOUNT_VALUE")} <Astrisk />
+                    {t("DISCOUNT_VALUE")} {isPercentage ? <Astrisk /> : null}
                   </label>
                   <Controller
                     control={control}
                     name="Discount"
                     rules={{
-                      required: {
-                        value: true,
-                        message: t("REQUIRED"),
-                      },
-                      pattern: {
-                        value: /^[0-9]+$/,
-                        message: t("ONLY_NUMBER"),
-                      },
                       validate: (value) => {
+                        if (isPercentage && !value) {
+                          return t("REQUIRED");
+                        }
+                        if (value && !/^[0-9]+$/.test(String(value))) {
+                          return t("ONLY_NUMBER");
+                        }
                         if (isPercentage === "true" && Number(value) > 100) {
                           return t("VALUE_LIMIT", { value: 100 });
                         }
+                        return true;
                       },
                     }}
                     render={({ field }) => (
                       <Input
                         {...field}
                         variant="filled"
-                        placeholder="Enter discount value"
+                        placeholder={t("ENTER_DISCOUNT_VALUE")}
                         className="placeholder:capitalize"
                         status={errors?.Discount ? "error" : ""}
                         onBlur={() => trigger("Discount")}
@@ -1090,7 +1076,7 @@ export default function PackageForm() {
                         <Input
                           {...field}
                           variant="filled"
-                          placeholder="Enter tool"
+                          placeholder={t("ENTER_TOOL")}
                           className="placeholder:capitalize"
                           status={
                             errors?.Tools?.[index]?.value ? "error" : ""
@@ -1148,7 +1134,7 @@ export default function PackageForm() {
                         <Input
                           {...field}
                           variant="filled"
-                          placeholder="Enter supply"
+                          placeholder={t("ENTER_SUPPLY")}
                           className="placeholder:capitalize"
                           status={
                             errors?.Supplies?.[index]?.value ? "error" : ""
@@ -1206,7 +1192,7 @@ export default function PackageForm() {
                         <Input
                           {...field}
                           variant="filled"
-                          placeholder="Enter rule"
+                          placeholder={t("ENTER_RULE")}
                           className="placeholder:capitalize"
                           status={
                             errors?.Rules?.[index]?.value ? "error" : ""
@@ -1273,7 +1259,7 @@ export default function PackageForm() {
                               <Select
                                 {...field}
                                 variant="filled"
-                                placeholder="Select cleaning area"
+                                placeholder={t("SELECT_CLEANING_AREA")}
                                 className="min-h-10 border-[#C4C4C4] border rounded-md w-full"
                                 status={
                                   errors?.CleaningAreaDetails?.[index]
@@ -1332,7 +1318,7 @@ export default function PackageForm() {
                               <Input
                                 {...field}
                                 variant="filled"
-                                placeholder="Enter name (EN)"
+                                placeholder={t("ENTER_NAME_EN")}
                                 className="placeholder:capitalize"
                                 status={
                                   errors?.CleaningAreaDetails?.[index]?.Name
@@ -1374,7 +1360,7 @@ export default function PackageForm() {
                               <Input
                                 {...field}
                                 variant="filled"
-                                placeholder="Enter  name (AR)"
+                                placeholder={t("ENTER_NAME_AR")}
                                 className="placeholder:capitalize"
                                 status={
                                   errors?.CleaningAreaDetails?.[index]?.ArName
@@ -1423,7 +1409,7 @@ export default function PackageForm() {
                             <Input
                               {...field}
                               variant="filled"
-                              placeholder="Enter description"
+                              placeholder={t("ENTER_DESCRIPTION")}
                               className="placeholder:capitalize w-full"
                               status={
                                 errors?.CleaningAreaDetails?.[index]?.Description
@@ -1497,7 +1483,7 @@ export default function PackageForm() {
                             <Input
                               {...field}
                               variant="filled"
-                              placeholder="Enter name (EN)"
+                              placeholder={t("ENTER_NAME_EN")}
                               className="placeholder:capitalize"
                               status={
                                 errors?.ExtraServices?.[index]?.Name
@@ -1534,7 +1520,7 @@ export default function PackageForm() {
                             <Input
                               {...field}
                               variant="filled"
-                              placeholder="Enter  name (AR)"
+                              placeholder={t("ENTER_NAME_AR")}
                               className="placeholder:capitalize"
                               status={
                                 errors?.ExtraServices?.[index]?.ArName
@@ -1573,7 +1559,7 @@ export default function PackageForm() {
                             <Input
                               {...field}
                               variant="filled"
-                              placeholder="Enter price"
+                              placeholder={t("ENTER_PRICE")}
                               status={
                                 errors?.ExtraServices?.[index]?.Price
                                   ? "error"

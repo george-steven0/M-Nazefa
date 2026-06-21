@@ -1,6 +1,7 @@
 import { BsArrowRight } from "react-icons/bs";
 import { BsArrowLeft } from "react-icons/bs";
 import { Pagination, type PaginationProps } from "antd";
+import { useTranslation } from "react-i18next";
 
 type paginationProps = {
   pagination?: { CurrentPage: number; NumberOfItemsPerPage: number };
@@ -14,6 +15,7 @@ const CustomPagination = ({
   pagination,
   total,
 }: paginationProps) => {
+  const { t } = useTranslation();
   const itemRender: PaginationProps["itemRender"] = (
     _,
     type,
@@ -23,14 +25,14 @@ const CustomPagination = ({
       return (
         <a className="flex items-center gap-2 text-[#4C4C4C]">
           <BsArrowLeft />
-          Previous
+          {t("PREVIOUS")}
         </a>
       );
     }
     if (type === "next") {
       return (
         <a className="flex items-center gap-2 text-[#4C4C4C]">
-          Next
+          {t("NEXT")}
           <BsArrowRight />
         </a>
       );

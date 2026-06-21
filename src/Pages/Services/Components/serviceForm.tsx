@@ -73,11 +73,11 @@ const ServiceForm = () => {
     try {
       if (id) {
         await editService(data).unwrap();
-        toast.success("Service edited successfully");
+        toast.success(t("SERVICE_EDITED_SUCCESS"));
           navigate("/services");
       } else {
         await addService(data).unwrap();
-        toast.success("Service added successfully");
+        toast.success(t("SERVICE_ADDED_SUCCESS"));
           navigate("/services");
       }
     } catch (error) {
@@ -87,7 +87,7 @@ const ServiceForm = () => {
           toast.error(message);
         });
       } else {
-        toast.error(id ? "Failed to edit service" : "Failed to add service");
+        toast.error(id ? t("SERVICE_EDIT_FAILED") : t("SERVICE_ADD_FAILED"));
       }
     }
 
@@ -125,7 +125,7 @@ const ServiceForm = () => {
                       <Input
                         {...field}
                         variant="filled"
-                        placeholder="Enter title (EN)"
+                        placeholder={t("ENTER_TITLE_EN")}
                         className="placeholder:capitalize"
                         status={errors?.title ? "error" : ""}
                       />
@@ -153,7 +153,7 @@ const ServiceForm = () => {
                       <Input
                         {...field}
                         variant="filled"
-                        placeholder="Enter title (AR)"
+                        placeholder={t("ENTER_TITLE_AR")}
                         className="placeholder:capitalize"
                         status={errors?.arTitle ? "error" : ""}
                       />
@@ -184,7 +184,7 @@ const ServiceForm = () => {
                         loading={packagesLoading || packagesFetching}
                         // defaultValue="male"
                         style={{ width: "100%" }}
-                        placeholder="Please Select package"
+                        placeholder={t("PLEASE_SELECT_PACKAGE")}
                         value={field.value?.map((item) => item?.packageId)}
                         onChange={(ids) => {
                           field.onChange(
@@ -219,7 +219,7 @@ const ServiceForm = () => {
                       <Input
                         {...field}
                         variant="filled"
-                        placeholder="Enter Description"
+                        placeholder={t("ENTER_DESCRIPTION")}
                         className="placeholder:capitalize min-h-[80px]"
                         status={errors?.description ? "error" : ""}
                       />

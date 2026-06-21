@@ -59,10 +59,10 @@ const CleaningAreaForm = ({ open, close, t, data, type }: FormPropsType) => {
     try {
       if (type === "add") {
         await addCleaningArea(data).unwrap();
-        toast.success("Cleaning area added successfully");
+        toast.success(t("CLEANING_AREA_ADDED_SUCCESS"));
       } else {
         await editCleaningArea(data).unwrap();
-        toast.success("Cleaning area updated successfully");
+        toast.success(t("CLEANING_AREA_UPDATED_SUCCESS"));
       }
       handleReset();
     } catch (error) {
@@ -79,8 +79,8 @@ const CleaningAreaForm = ({ open, close, t, data, type }: FormPropsType) => {
       } else {
         toast.error(
           type === "add"
-            ? "Failed to add cleaning area"
-            : "Failed to update cleaning area",
+            ? t("CLEANING_AREA_ADD_FAILED")
+            : t("CLEANING_AREA_UPDATE_FAILED"),
         );
       }
     }
@@ -117,7 +117,7 @@ const CleaningAreaForm = ({ open, close, t, data, type }: FormPropsType) => {
                   <Input
                     {...field}
                     variant="filled"
-                    placeholder="Enter name (EN)"
+                    placeholder={t("ENTER_NAME_EN")}
                     className="placeholder:capitalize"
                     status={errors?.name ? "error" : ""}
                   />
@@ -150,7 +150,7 @@ const CleaningAreaForm = ({ open, close, t, data, type }: FormPropsType) => {
                   <Input
                     {...field}
                     variant="filled"
-                    placeholder="Enter name (AR)"
+                    placeholder={t("ENTER_NAME_AR")}
                     className="placeholder:capitalize"
                     status={errors?.arName ? "error" : ""}
                   />

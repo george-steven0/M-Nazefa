@@ -65,7 +65,7 @@ export default function HoldReservationModal({
                     format="DD-MM-YYYY"
                     //   showTime
                     showNow
-                    placeholder="Select Date"
+                    placeholder={t("SELECT_DATE")}
                   />
                 )}
               />
@@ -91,7 +91,7 @@ export default function HoldReservationModal({
                       format="DD-MM-YYYY"
                       //   showTime
                       showNow
-                      placeholder="Select Date"
+                      placeholder={t("SELECT_DATE")}
                     />
 
                     {/* {console.log(field.value)} */}

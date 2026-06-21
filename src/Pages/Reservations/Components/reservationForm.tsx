@@ -342,10 +342,10 @@ const ReservationForm = () => {
           ...formattedData,
           id: reservatinId!,
         } as reservationFormProps).unwrap();
-        toast.success("Reservation updated successfully");
+        toast.success(t("RESERVATION_UPDATED_SUCCESS"));
       } else {
         await addReservation(formattedData).unwrap();
-        toast.success("Reservation added successfully");
+        toast.success(t("RESERVATION_ADDED_SUCCESS"));
       }
       navigate("/reservations");
       reset();

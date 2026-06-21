@@ -74,7 +74,7 @@ export const Reservations = () => {
         reservationId,
         isActive: false,
       }).unwrap();
-      toast.success("Reservation Cancelled Successfully");
+      toast.success(t("RESERVATION_CANCELLED_SUCCESS"));
     } catch (error) {
       const err = error as APIErrorProps;
       err?.data?.errorMessages?.forEach((message) => {
@@ -184,30 +184,30 @@ export const Reservations = () => {
   };
 
   const { SearchBox } = useSearchBox({
-    placeholder: "Search Reservations",
+    placeholder: t("SEARCH_RESERVATIONS"),
   });
 
   const columns: TableProps<serviceFormProps>["columns"] = [
     {
-      title: "ID",
+      title: t("ID"),
       dataIndex: "id",
       key: "id",
       render: (text) => <p>{text}</p>,
     },
     {
-      title: "Customer Name",
+      title: t("CUSTOMER_NAME"),
       dataIndex: "customerName",
       key: "customerName",
       render: (text) => <p>{text}</p>,
     },
     {
-      title: "Reservation Date",
+      title: t("RESERVATION_DATE"),
       dataIndex: "reservationDate",
       key: "reservationDate",
       render: (text) => <span>{dayjs(text).format("DD-MM-YYYY hh:mm A")}</span>,
     },
     {
-      title: "Reservation Amount",
+      title: t("RESERVATION_AMOUNT"),
       dataIndex: "reservationAmount",
       key: "reservationAmount",
       render: (text) => <p>{text} L.E</p>,
@@ -219,7 +219,7 @@ export const Reservations = () => {
       render: (text) => <p>{text}</p>,
     },
     {
-      title: "General Comments",
+      title: t("GENERAL_COMMENTS"),
       dataIndex: "generalComments",
       key: "generalComments",
       render: (text) => <span>{text}</span>,
@@ -294,7 +294,7 @@ export const Reservations = () => {
       ),
     },
     {
-      title: "Actions",
+      title: t("ACTIONS"),
       render: (data) => <Actions data={data} />,
     },
   ];
@@ -380,7 +380,7 @@ export const Reservations = () => {
     try {
       await addHoldReservation(formData).unwrap();
       closeHoldReservationModal();
-      toast.success("Available Appointments Updated Successfully");
+      toast.success(t("AVAILABLE_APPOINTMENTS_UPDATED_SUCCESS"));
     } catch (error) {
       const err = error as APIErrorProps;
       // console.log(err);
@@ -393,7 +393,7 @@ export const Reservations = () => {
           err?.data?.errorMessage && err?.data?.errorMessage.join("\n");
         toast.error(errs);
       } else {
-        toast.error("Failed to update available appointments");
+        toast.error(t("UPDATE_APPOINTMENTS_FAILED"));
       }
     }
   };

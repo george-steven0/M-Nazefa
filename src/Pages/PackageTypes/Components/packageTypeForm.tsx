@@ -65,10 +65,10 @@ const PackageTypeForm = ({
     try {
       if (type === "add") {
         await addPackageType(data).unwrap();
-        toast.success("Package type added successfully");
+        toast.success(t("PACKAGE_TYPE_ADDED_SUCCESS"));
       } else {
         await editPackageType(data).unwrap();
-        toast.success("Package type updated successfully");
+        toast.success(t("PACKAGE_TYPE_UPDATED_SUCCESS"));
       }
       handleReset();
     } catch (error) {
@@ -85,8 +85,8 @@ const PackageTypeForm = ({
       } else {
         toast.error(
           type === "add"
-            ? "Failed to add package type"
-            : "Failed to update package type",
+            ? t("PACKAGE_TYPE_ADD_FAILED")
+            : t("PACKAGE_TYPE_UPDATE_FAILED"),
         );
       }
     }
@@ -122,7 +122,7 @@ const PackageTypeForm = ({
                   <Input
                     {...field}
                     variant="filled"
-                    placeholder="Enter name (EN)"
+                    placeholder={t("ENTER_NAME_EN")}
                     className="placeholder:capitalize"
                     status={errors?.name ? "error" : ""}
                   />
@@ -155,7 +155,7 @@ const PackageTypeForm = ({
                   <Input
                     {...field}
                     variant="filled"
-                    placeholder="Enter name (AR)"
+                    placeholder={t("ENTER_NAME_AR")}
                     className="placeholder:capitalize"
                     status={errors?.arName ? "error" : ""}
                   />

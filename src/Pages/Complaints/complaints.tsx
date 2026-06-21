@@ -13,16 +13,20 @@ import {
   useGetComplaintByIdQuery,
 } from "../../components/APIs/Complaints/COMPLAINT_QUERY";
 import { useGetAllReservationsQuery } from "../../components/APIs/Reservations/RESERVATION_QUERY";
+import { useGetAllWorkersQuery } from "../../components/APIs/Workers/WORKERS_QUERY";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import { AiOutlineEye } from "react-icons/ai";
+import { BsBoxSeam } from "react-icons/bs";
 import { skipToken } from "@reduxjs/toolkit/query";
 import TextArea from "antd/es/input/TextArea";
 import dayjs from "dayjs";
+import { useAppSelector } from "../../components/APIs/store";
 
 const Complaints = () => {
   const { t } = useTranslation();
+  const { lang } = useAppSelector((state) => state?.lang);
 
   // ── State ──────────────────────────────────────────────────────────────────
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -38,11 +42,20 @@ const Complaints = () => {
     isFetching,
   } = useGetAllComplaintsQuery();
 
+  // Only fetch reservations & workers while the add modal is open
   const {
     data: reservations,
     isLoading: reservationsLoading,
     isFetching: reservationsIsFetching,
-  } = useGetAllReservationsQuery();
+  } = useGetAllReservationsQuery(isAddModalOpen ? undefined : skipToken);
+
+  const {
+    data: workers,
+    isLoading: workersLoading,
+    isFetching: workersIsFetching,
+  } = useGetAllWorkersQuery(
+    isAddModalOpen ? { page: 1, size: 1000 } : skipToken,
+  );
 
   const {
     data: complaintDetails,
@@ -66,6 +79,7 @@ const Complaints = () => {
     defaultValues: {
       reservationId: "",
       comment: "",
+      workerIds: [],
     },
   });
 
@@ -76,7 +90,7 @@ const Complaints = () => {
 
   // ── Handlers ───────────────────────────────────────────────────────────────
   const openAddModal = () => {
-    reset({ reservationId: "", comment: "" });
+    reset({ reservationId: "", comment: "", workerIds: [] });
     setIsAddModalOpen(true);
   };
 
@@ -131,6 +145,12 @@ const Complaints = () => {
       ),
     },
     {
+      title: t("CREATED_BY"),
+      dataIndex: "createdBy",
+      key: "createdBy",
+      render: (text) => <p>{text || t("NA")}</p>,
+    },
+    {
       title: t("CREATION_DATE"),
       dataIndex: "creationDate",
       key: "creationDate",
@@ -183,6 +203,36 @@ const Complaints = () => {
             columns={columns}
             dataSource={data}
             loading={isLoading || isFetching}
+            expandable={{
+              expandedRowRender: (row) => (
+                <section className="flex flex-col gap-1">
+                  <div className="flex justify-between flex-wrap gap-4">
+                    {row?.workers && row?.workers?.length !== 0 ? (
+                      row?.workers?.map((worker) => (
+                        <div key={worker.workerId} className="flex gap-2">
+                          <span className="w-[3px] h-6 bg-mainOrange rounded-full" />
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold text-gray-600">
+                              {t("WORKER")} :{" "}
+                            </span>
+                            <span className="text-gray-500">
+                              {lang === "ar"
+                                ? worker.workerArName
+                                : worker.workerName}
+                            </span>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="flex items-center gap-2 justify-center w-full text-gray-300 capitalize">
+                        <BsBoxSeam size={20} />
+                        <span>{t("NO_DATA_FOUND")}</span>
+                      </p>
+                    )}
+                  </div>
+                </section>
+              ),
+            }}
           />
         </section>
       </div>
@@ -240,6 +290,37 @@ const Complaints = () => {
             </div>
 
             <div>
+              <label>{t("WORKERS")}</label>
+              <Controller
+                name="workerIds"
+                control={control}
+                render={({ field }) => (
+                  <Select
+                    {...field}
+                    mode="multiple"
+                    allowClear
+                    loading={workersLoading || workersIsFetching}
+                    className="min-h-10 border-[#C4C4C4] border rounded-md [&>.ant-select-selector]:capitalize"
+                    variant="filled"
+                    placeholder={t("SELECT_WORKERS")}
+                    style={{ width: "100%" }}
+                    showSearch
+                    optionFilterProp="label"
+                    filterOption={(input, option) =>
+                      (option?.label ?? "")
+                        .toLowerCase()
+                        .includes(input.toLowerCase())
+                    }
+                    options={workers?.data?.map((worker) => ({
+                      value: worker.id,
+                      label: worker.name || worker.arName || worker.id,
+                    }))}
+                  />
+                )}
+              />
+            </div>
+
+            <div>
               <label>{t("COMMENT")}</label>
               <Controller
                 name="comment"
@@ -263,6 +344,8 @@ const Complaints = () => {
               />
               {errors.comment?.message && <p>{errors.comment?.message}</p>}
             </div>
+
+            
           </section>
 
           <section className="flex gap-4 justify-end mt-4 [&>button]:min-w-[140px] [&>button]:min-h-10 [&>button]:py-2 [&>button]:capitalize">

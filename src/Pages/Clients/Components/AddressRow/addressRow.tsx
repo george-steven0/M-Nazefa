@@ -167,7 +167,7 @@ const AddressRow = ({
               <Select
                 {...field}
                 className="min-h-10 border-[#C4C4C4] border rounded-md w-full"
-                placeholder="Select city"
+                placeholder={t("SELECT_CITY")}
                 variant="filled"
                 status={
                   errors?.customerAddresses?.[index]?.cityId ? "error" : ""
@@ -210,7 +210,7 @@ const AddressRow = ({
               <Select
                 {...field}
                 className="min-h-10 border-[#C4C4C4] border rounded-md w-full"
-                placeholder="Select area"
+                placeholder={t("SELECT_AREA")}
                 variant="filled"
                 disabled={!cityId}
                 status={
@@ -247,7 +247,7 @@ const AddressRow = ({
               <Input
                 {...field}
                 variant="filled"
-                placeholder="Enter street"
+                placeholder={t("ENTER_STREET")}
                 className="placeholder:capitalize"
                 status={
                   errors?.customerAddresses?.[index]?.street ? "error" : ""
@@ -276,7 +276,7 @@ const AddressRow = ({
               <Input
                 {...field}
                 variant="filled"
-                placeholder="Enter apartment number"
+                placeholder={t("ENTER_APARTMENT_NUMBER")}
                 className="placeholder:capitalize"
                 status={
                   errors?.customerAddresses?.[index]?.apartment ? "error" : ""
@@ -309,7 +309,7 @@ const AddressRow = ({
               <Input
                 {...field}
                 variant="filled"
-                placeholder="Enter floor number"
+                placeholder={t("ENTER_FLOOR_NUMBER")}
                 className="placeholder:capitalize"
                 status={
                   errors?.customerAddresses?.[index]?.floor ? "error" : ""
@@ -368,7 +368,7 @@ const AddressRow = ({
               <Input
                 {...field}
                 variant="filled"
-                placeholder="Enter landmark"
+                placeholder={t("ENTER_LANDMARK")}
                 className="placeholder:capitalize"
                 status={
                   errors?.customerAddresses?.[index]?.landmark ? "error" : ""
@@ -396,7 +396,7 @@ const AddressRow = ({
               <Input
                 {...field}
                 variant="filled"
-                placeholder="Enter description"
+                placeholder={t("ENTER_DESCRIPTION")}
                 className="placeholder:capitalize"
                 status={
                   errors?.customerAddresses?.[index]?.fullDescription
@@ -437,7 +437,7 @@ const AddressRow = ({
               <Input
                 {...field}
                 variant="filled"
-                placeholder="Enter space"
+                placeholder={t("ENTER_SPACE")}
                 className="placeholder:capitalize"
                 status={
                   errors?.customerAddresses?.[index]?.space ? "error" : ""
@@ -466,7 +466,7 @@ const AddressRow = ({
               <Select
                 {...field}
                 className="min-h-10 border-[#C4C4C4] border rounded-md capitalize w-full"
-                placeholder="Select address type"
+                placeholder={t("SELECT_ADDRESS_TYPE")}
                 variant="filled"
                 status={
                   errors?.customerAddresses?.[index]?.addressTypeId
@@ -511,7 +511,7 @@ const AddressRow = ({
               <Select
                 {...field}
                 className="min-h-10 border-[#C4C4C4] border rounded-md capitalize w-full"
-                placeholder="Select building type"
+                placeholder={t("SELECT_BUILDING_TYPE")}
                 variant="filled"
                 status={
                   errors?.customerAddresses?.[index]?.BuildingTypeId
@@ -557,7 +557,7 @@ const AddressRow = ({
               <Select
                 {...field}
                 className="min-h-10 border-[#C4C4C4] border rounded-md w-full"
-                placeholder="Number of floors"
+                placeholder={t("NUMBER_OF_FLOORS")}
                 variant="filled"
                 status={
                   errors?.customerAddresses?.[index]?.noOfFloors ? "error" : ""
@@ -591,7 +591,7 @@ const AddressRow = ({
               <Select
                 {...field}
                 className="min-h-10 border-[#C4C4C4] border rounded-md w-full"
-                placeholder="Select land type"
+                placeholder={t("SELECT_LAND_TYPE")}
                 variant="filled"
                 status={
                   errors?.customerAddresses?.[index]?.LandTypeId ? "error" : ""
@@ -746,7 +746,7 @@ const AddressRow = ({
               <Select
                 {...field}
                 className="min-h-10 border-[#C4C4C4] border rounded-md w-full"
-                placeholder="Number of windows"
+                placeholder={t("NUMBER_OF_WINDOWS")}
                 variant="filled"
                 status={
                   errors?.customerAddresses?.[index]?.numberOfWindows
@@ -783,7 +783,7 @@ const AddressRow = ({
               <Select
                 {...field}
                 className="min-h-10 border-[#C4C4C4] border rounded-md w-full"
-                placeholder="Number of bedrooms"
+                placeholder={t("NUMBER_OF_BEDROOMS")}
                 variant="filled"
                 status={
                   errors?.customerAddresses?.[index]?.numberOfBedrooms
@@ -820,7 +820,7 @@ const AddressRow = ({
               <Select
                 {...field}
                 className="min-h-10 border-[#C4C4C4] border rounded-md w-full"
-                placeholder="Number of bathrooms"
+                placeholder={t("NUMBER_OF_BATHROOMS")}
                 variant="filled"
                 status={
                   errors?.customerAddresses?.[index]?.numberOfBathrooms
@@ -857,7 +857,7 @@ const AddressRow = ({
               <Select
                 {...field}
                 className="min-h-10 border-[#C4C4C4] border rounded-md w-full"
-                placeholder="Number of kitchens"
+                placeholder={t("NUMBER_OF_KITCHENS")}
                 variant="filled"
                 status={
                   errors?.customerAddresses?.[index]?.numberOfKitchens
@@ -894,7 +894,7 @@ const AddressRow = ({
               <Select
                 {...field}
                 className="min-h-10 border-[#C4C4C4] border rounded-md w-full"
-                placeholder="Number of livingrooms"
+                placeholder={t("NUMBER_OF_LIVINGROOMS")}
                 variant="filled"
                 status={
                   errors?.customerAddresses?.[index]?.numberOfLivingRooms
@@ -971,7 +971,7 @@ const AddressRow = ({
               <Input
                 {...field}
                 variant="filled"
-                placeholder="Enter landline"
+                placeholder={t("ENTER_LANDLINE")}
                 className="placeholder:capitalize"
                 status={
                   errors?.customerAddresses?.[index]?.landLine ? "error" : ""
@@ -1190,7 +1190,7 @@ const AddressRow = ({
                       <Select
                         {...field}
                         className="min-h-10 border-[#C4C4C4] border rounded-md w-full rounded-e-none"
-                        placeholder="Select worker"
+                        placeholder={t("SELECT_WORKER")}
                         variant="filled"
                         status={
                           (
@@ -1323,7 +1323,7 @@ const AddressRow = ({
                       <Select
                         {...field}
                         className="min-h-10 border-[#C4C4C4] border rounded-md w-full rounded-e-none"
-                        placeholder="Select worker"
+                        placeholder={t("SELECT_WORKER")}
                         variant="filled"
                         status={
                           (

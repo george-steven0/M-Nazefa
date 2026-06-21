@@ -333,11 +333,11 @@ const ClientForm = () => {
     try {
       if (id) {
         await editClient(cleanData).unwrap();
-        toast.success("Customer updated successfully");
+        toast.success(t("CUSTOMER_UPDATED_SUCCESS"));
         navigate("/clients");
       } else {
         await addNewClient(cleanData).unwrap();
-        toast.success("Customer added successfully");
+        toast.success(t("CUSTOMER_ADDED_SUCCESS"));
         navigate("/clients");
       }
     } catch (error) {
@@ -421,7 +421,7 @@ const ClientForm = () => {
                       <Input
                         {...field}
                         variant="filled"
-                        placeholder="Enter first name"
+                        placeholder={t("ENTER_FIRST_NAME")}
                         className="placeholder:capitalize"
                         status={errors?.firstName ? "error" : ""}
                       />
@@ -451,7 +451,7 @@ const ClientForm = () => {
                       <Input
                         {...field}
                         variant="filled"
-                        placeholder="Enter middle name"
+                        placeholder={t("ENTER_MIDDLE_NAME")}
                         className="placeholder:capitalize"
                         status={errors?.middleName ? "error" : ""}
                       />
@@ -481,7 +481,7 @@ const ClientForm = () => {
                       <Input
                         {...field}
                         variant="filled"
-                        placeholder="Enter last name"
+                        placeholder={t("ENTER_LAST_NAME")}
                         className="placeholder:capitalize"
                         status={errors?.lastName ? "error" : ""}
                       />
@@ -521,7 +521,7 @@ const ClientForm = () => {
                       <Input
                         {...field}
                         variant="filled"
-                        placeholder="Enter id number"
+                        placeholder={t("ENTER_ID_NUMBER")}
                         className="placeholder:capitalize"
                         status={errors?.idNumber ? "error" : ""}
                         maxLength={14}
@@ -555,7 +555,7 @@ const ClientForm = () => {
                       <Input
                         {...field}
                         variant="filled"
-                        placeholder="Enter email"
+                        placeholder={t("ENTER_EMAIL")}
                         className="placeholder:capitalize"
                         status={errors?.email ? "error" : ""}
                       />
@@ -580,7 +580,7 @@ const ClientForm = () => {
                       <Select
                         {...field}
                         className="min-h-10 border-[#C4C4C4] border rounded-md w-full"
-                        placeholder="Select customer type"
+                        placeholder={t("SELECT_CUSTOMER_TYPE")}
                         variant="filled"
                         status={errors?.CustomerTypeId ? "error" : ""}
                         loading={
@@ -696,7 +696,7 @@ const ClientForm = () => {
                             <Select
                               {...field}
                               className="min-h-10 border-[#C4C4C4] border rounded-md w-full"
-                              placeholder="Select membership"
+                              placeholder={t("SELECT_MEMBERSHIP")}
                               variant="filled"
                               status={errors?.membershipId ? "error" : ""}
                               showSearch={true}
@@ -798,7 +798,7 @@ const ClientForm = () => {
                                 <Input
                                   {...field}
                                   variant="filled"
-                                  placeholder="Enter phone number"
+                                  placeholder={t("ENTER_PHONE_NUMBER")}
                                   className={`placeholder:capitalize border-[#C4C4C4] border ${
                                     phones?.length > 1
                                       ? "rounded-s-md"
@@ -863,7 +863,7 @@ const ClientForm = () => {
                               {...field}
                               maxLength={10}
                               variant="filled"
-                              placeholder="Enter whats app number"
+                              placeholder={t("ENTER_WHATSAPP_NUMBER")}
                               className={`placeholder:capitalize border-[#C4C4C4] border rounded-e-md py-2 min-w-[250px]`}
                               status={errors?.whatsAppNumber ? "error" : ""}
                             />
@@ -924,7 +924,7 @@ const ClientForm = () => {
                       <TextArea
                         {...field}
                         variant="filled"
-                        placeholder="Enter general notes"
+                        placeholder={t("ENTER_GENERAL_NOTES")}
                         className="placeholder:capitalize border-[#C4C4C4] border rounded-md py-2 min-h-[70px] resize-none"
                         status={errors?.generalNotes ? "error" : ""}
                       />

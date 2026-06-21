@@ -51,7 +51,7 @@ const ChangePassword = ({
 
     try {
       await changePassword(formatData).unwrap();
-      toast.success("Password changed successfully");
+      toast.success(t("PASSWORD_CHANGED_SUCCESS"));
       handleReset();
       if (currentUser) {
         localStorage.clear();
@@ -68,7 +68,7 @@ const ChangePassword = ({
         const errs = err?.data?.errorMessage?.join("\n");
         toast.error(errs);
       } else {
-        toast.error("Failed to change password");
+        toast.error(t("PASSWORD_CHANGE_FAILED"));
       }
     }
   };
@@ -120,7 +120,7 @@ const ChangePassword = ({
                   <Input.Password
                     {...field}
                     variant="filled"
-                    placeholder="Enter new password"
+                    placeholder={t("ENTER_NEW_PASSWORD")}
                     className="placeholder:capitalize"
                     status={errors?.newPassword ? "error" : ""}
                   />

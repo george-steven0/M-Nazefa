@@ -11,25 +11,25 @@ const ErrorBoundary = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
 
-  let title = "Something went wrong";
-  let subTitle = "Sorry, an unexpected error has occurred.";
+  let title = t("SOMETHING_WENT_WRONG");
+  let subTitle = t("UNEXPECTED_ERROR_MESSAGE");
   let status: "403" | "404" | "500" | "error" = "error";
 
   if (isRouteErrorResponse(error)) {
     if (error.status === 404) {
       title = "404";
-      subTitle = "Sorry, the page you visited does not exist.";
+      subTitle = t("PAGE_NOT_FOUND_MESSAGE");
       status = "404";
     } else if (error.status === 401) {
       title = "401";
-      subTitle = "Sorry, you are not authorized to access this page.";
+      subTitle = t("UNAUTHORIZED_ACCESS");
       status = "403";
     } else if (error.status === 503) {
       title = "503";
-      subTitle = "Sorry, our service is currently unavailable.";
+      subTitle = t("SERVICE_UNAVAILABLE_MESSAGE");
       status = "500";
     } else {
-      title = "Error";
+      title = t("ERROR_TITLE");
       subTitle = error.statusText || error.data?.message || "Unknown Error";
       status = "error";
     }
@@ -49,7 +49,7 @@ const ErrorBoundary = () => {
             onClick={() => navigate("/")}
             className="bg-mainColor hover:bg-mainColor/90"
           >
-            {t("Back Home")}
+            {t("BACK_HOME")}
           </Button>
         }
       />

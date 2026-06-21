@@ -92,7 +92,7 @@ const Messages = () => {
                     mode="multiple"
                     allowClear
                     style={{ width: "100%" }}
-                    placeholder="Please Select Customer"
+                    placeholder={t("PLEASE_SELECT_CUSTOMER")}
                     showSearch
                     optionFilterProp="label"
                     filterOption={false}
@@ -152,7 +152,7 @@ const Messages = () => {
                   <TextArea
                     {...field}
                     variant="filled"
-                    placeholder="Enter message"
+                    placeholder={t("ENTER_MESSAGE")}
                     className="placeholder:capitalize min-h-[220px]"
                     status={errors?.message ? "error" : ""}
                   />

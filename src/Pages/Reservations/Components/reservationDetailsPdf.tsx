@@ -1,5 +1,6 @@
 import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
 import dayjs from "dayjs";
+import { useTranslation } from "react-i18next";
 import type {
   clientFormPropsType,
   reservationDetailsData,
@@ -178,11 +179,12 @@ export const ReservationDetailsPdf = ({
   customer?: clientFormPropsType;
   address?: pdfAddress;
 }) => {
+  const { t } = useTranslation();
   if (!data)
     return (
       <Document>
         <Page size="A4">
-          <Text>No Data</Text>
+          <Text>{t("NO_DATA_FOUND")}</Text>
         </Page>
       </Document>
     );
@@ -197,17 +199,17 @@ export const ReservationDetailsPdf = ({
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.headerText}>
-            <Text style={styles.headerTitle}>Reservation Details</Text>
+            <Text style={styles.headerTitle}>{t("RESERVATION_DETAILS")}</Text>
             <Text style={styles.headerSubtitle}>REF: #{data.id || "N/A"}</Text>
           </View>
           <View style={{ alignItems: "flex-end" }}>
-            <Text style={styles.label}>Date</Text>
+            <Text style={styles.label}>{t("DATE")}</Text>
             <Text style={styles.value}>
               {data.reservationDate
                 ? dayjs(data.reservationDate).format("DD/MM/YYYY")
                 : "N/A"}
             </Text>
-            <Text style={[styles.label, { marginTop: 4 }]}>Time</Text>
+            <Text style={[styles.label, { marginTop: 4 }]}>{t("TIME")}</Text>
             <Text style={styles.value}>
               {data.reservationDate
                 ? dayjs(data.reservationDate).format("hh:mm A")
@@ -218,10 +220,10 @@ export const ReservationDetailsPdf = ({
 
         {/* Customer Information */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Customer Information</Text>
+          <Text style={styles.sectionTitle}>{t("CUSTOMER_INFORMATION")}</Text>
           <View style={styles.row}>
             <View style={styles.col}>
-              <Text style={styles.label}>First Name</Text>
+              <Text style={styles.label}>{t("FIRST_NAME")}</Text>
               <Text style={styles.value}>
                 {customer?.firstName ||
                   data.customerName?.split(" ")[0] ||
@@ -229,17 +231,17 @@ export const ReservationDetailsPdf = ({
               </Text>
             </View>
             <View style={styles.col}>
-              <Text style={styles.label}>Middle Name</Text>
+              <Text style={styles.label}>{t("MIDDLE_NAME")}</Text>
               <Text style={styles.value}>{customer?.middleName || "N/A"}</Text>
             </View>
             <View style={styles.col}>
-              <Text style={styles.label}>Last Name</Text>
+              <Text style={styles.label}>{t("LAST_NAME")}</Text>
               <Text style={styles.value}>{customer?.lastName || "N/A"}</Text>
             </View>
           </View>
           <View style={styles.row}>
             <View style={styles.col}>
-              <Text style={styles.label}>National ID</Text>
+              <Text style={styles.label}>{t("NATIONAL_ID")}</Text>
               <Text style={styles.value}>
                 {(customer?.idNumber as string) ||
                   data.customerNationalId ||
@@ -247,7 +249,7 @@ export const ReservationDetailsPdf = ({
               </Text>
             </View>
             <View style={styles.col}>
-              <Text style={styles.label}>Phone</Text>
+              <Text style={styles.label}>{t("PHONE")}</Text>
               <Text style={styles.value}>
                 {customer?.phoneNumbers?.map((p) => p.phoneNumber).join(", ") ||
                   data.customerPhoneNumbers
@@ -257,21 +259,21 @@ export const ReservationDetailsPdf = ({
               </Text>
             </View>
             <View style={styles.col}>
-              <Text style={styles.label}>Email</Text>
+              <Text style={styles.label}>{t("EMAIL")}</Text>
               <Text style={styles.value}>{customer?.email || "N/A"}</Text>
             </View>
           </View>
           <View style={styles.row}>
             <View style={styles.col}>
-              <Text style={styles.label}>Customer Type</Text>
+              <Text style={styles.label}>{t("CUSTOMER_TYPE")}</Text>
               <Text style={styles.value}>
                 {customer?.customerTypeName || "N/A"}
               </Text>
             </View>
             <View style={styles.col}>
-              <Text style={styles.label}>Has Membership</Text>
+              <Text style={styles.label}>{t("HAS_MEMBERSHIP")}</Text>
               <Text style={styles.value}>
-                {customer?.hasMembership ? "Yes" : "No"}
+                {customer?.hasMembership ? t("YES") : t("NO")}
               </Text>
             </View>
             {/* <View style={styles.col}>
@@ -283,17 +285,17 @@ export const ReservationDetailsPdf = ({
           </View>
           <View style={styles.row}>
             <View style={styles.col}>
-              <Text style={styles.label}>WhatsApp</Text>
+              <Text style={styles.label}>{t("WHATSAPP")}</Text>
               <Text style={styles.value}>
                 {(customer?.whatsAppNumber as string) || "N/A"}
               </Text>
             </View>
             <View style={styles.col}>
-              <Text style={styles.label}>Old Customer</Text>
-              <Text style={styles.value}>{customer?.isOld ? "Yes" : "No"}</Text>
+              <Text style={styles.label}>{t("OLD_CUSTOMER")}</Text>
+              <Text style={styles.value}>{customer?.isOld ? t("YES") : t("NO")}</Text>
             </View>
             <View style={styles.col}>
-              <Text style={styles.label}>No. of Reservations</Text>
+              <Text style={styles.label}>{t("NO_OF_RESERVATIONS")}</Text>
               <Text style={styles.value}>
                 {(customer?.noOfReservations as string) || "0"}
               </Text>
@@ -301,7 +303,7 @@ export const ReservationDetailsPdf = ({
           </View>
           <View style={styles.row}>
             <View style={styles.col}>
-              <Text style={styles.label}>Last Reservation Date</Text>
+              <Text style={styles.label}>{t("LAST_RESERVATION_DATE")}</Text>
               <Text style={styles.value}>
                 {customer?.lastReservationDate
                   ? dayjs(customer.lastReservationDate).format("DD/MM/YYYY")
@@ -309,13 +311,13 @@ export const ReservationDetailsPdf = ({
               </Text>
             </View>
             <View style={styles.col}>
-              <Text style={styles.label}>Customer Favourites</Text>
+              <Text style={styles.label}>{t("CUSTOMER_FAVOURITES")}</Text>
               <Text style={styles.value}>
                 {`${customer?.customerFavourites?.favoriteList?.length || 0} Fav / ${customer?.customerFavourites?.notRecommendedWorkerList?.length || 0} Not Rec`}
               </Text>
             </View>
             <View style={styles.col}>
-              <Text style={styles.label}>General Notes</Text>
+              <Text style={styles.label}>{t("GENERAL_NOTES")}</Text>
               <Text style={styles.value}>
                 {customer?.generalNotes || "N/A"}
               </Text>
@@ -325,22 +327,22 @@ export const ReservationDetailsPdf = ({
 
         {/* Selected Address Details */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Selected Address Details</Text>
+          <Text style={styles.sectionTitle}>{t("SELECTED_ADDRESS_DETAILS")}</Text>
           <View style={styles.row}>
             <View style={styles.col}>
-              <Text style={styles.label}>Address</Text>
+              <Text style={styles.label}>{t("ADDRESS")}</Text>
               <Text style={styles.value}>
                 {data.customerAddressName || "N/A"}
               </Text>
             </View>
             <View style={styles.col}>
-              <Text style={styles.label}>City</Text>
+              <Text style={styles.label}>{t("CITY")}</Text>
               <Text style={styles.value}>
                 {data.cityName || address?.cityName?.toString() || "N/A"}
               </Text>
             </View>
             <View style={styles.col}>
-              <Text style={styles.label}>Area</Text>
+              <Text style={styles.label}>{t("AREA")}</Text>
               <Text style={styles.value}>
                 {data.areaName || address?.areaName?.toString() || "N/A"}
               </Text>
@@ -348,15 +350,15 @@ export const ReservationDetailsPdf = ({
           </View>
           <View style={styles.row}>
             <View style={styles.col}>
-              <Text style={styles.label}>Street</Text>
+              <Text style={styles.label}>{t("STREET")}</Text>
               <Text style={styles.value}>{address?.street || "N/A"}</Text>
             </View>
             <View style={styles.col}>
-              <Text style={styles.label}>Apartment</Text>
+              <Text style={styles.label}>{t("APARTMENT")}</Text>
               <Text style={styles.value}>{address?.apartment || "N/A"}</Text>
             </View>
             <View style={styles.col}>
-              <Text style={styles.label}>Floor</Text>
+              <Text style={styles.label}>{t("FLOOR")}</Text>
               <Text style={styles.value}>
                 {address?.floor?.toString() || "N/A"}
               </Text>
@@ -364,13 +366,13 @@ export const ReservationDetailsPdf = ({
           </View>
           <View style={styles.row}>
             <View style={styles.col}>
-              <Text style={styles.label}>Landmark</Text>
+              <Text style={styles.label}>{t("LANDMARK")}</Text>
               <Text style={styles.value}>
                 {address?.landMark || address?.landmark || "N/A"}
               </Text>
             </View>
             <View style={[styles.col, { flex: 2 }]}>
-              <Text style={styles.label}>Description</Text>
+              <Text style={styles.label}>{t("DESCRIPTION")}</Text>
               <Text style={styles.value}>
                 {address?.fullDescription || "N/A"}
               </Text>
@@ -378,7 +380,7 @@ export const ReservationDetailsPdf = ({
           </View>
           <View style={styles.row}>
             <View style={styles.col}>
-              <Text style={styles.label}>Notes</Text>
+              <Text style={styles.label}>{t("NOTES")}</Text>
               <Text style={styles.value}>{address?.notes || "N/A"}</Text>
             </View>
           </View>
@@ -386,26 +388,26 @@ export const ReservationDetailsPdf = ({
 
         {/* Building Details */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Building Details</Text>
+          <Text style={styles.sectionTitle}>{t("BUILDING_DETAILS")}</Text>
           <View style={styles.row}>
             <View style={styles.col}>
-              <Text style={styles.label}>Space</Text>
+              <Text style={styles.label}>{t("SPACE")}</Text>
               <Text style={styles.value}>{address?.space || "N/A"}</Text>
             </View>
             <View style={styles.col}>
-              <Text style={styles.label}>Kitchens</Text>
+              <Text style={styles.label}>{t("KITCHENS")}</Text>
               <Text style={styles.value}>
                 {address?.numberOfKitchens?.toString() || "0"}
               </Text>
             </View>
             <View style={styles.col}>
-              <Text style={styles.label}>Bedrooms</Text>
+              <Text style={styles.label}>{t("BEDROOMS")}</Text>
               <Text style={styles.value}>
                 {address?.numberOfBedrooms?.toString() || "0"}
               </Text>
             </View>
             <View style={styles.col}>
-              <Text style={styles.label}>Bathrooms</Text>
+              <Text style={styles.label}>{t("BATHROOMS")}</Text>
               <Text style={styles.value}>
                 {address?.numberOfBathrooms?.toString() || "0"}
               </Text>
@@ -413,19 +415,19 @@ export const ReservationDetailsPdf = ({
           </View>
           <View style={styles.row}>
             <View style={styles.col}>
-              <Text style={styles.label}>Living Rooms</Text>
+              <Text style={styles.label}>{t("NUMBER_OF_LIVING_ROOMS")}</Text>
               <Text style={styles.value}>
                 {address?.numberOfLivingRooms?.toString() || "0"}
               </Text>
             </View>
             <View style={styles.col}>
-              <Text style={styles.label}>Reception Rooms</Text>
+              <Text style={styles.label}>{t("NUMBER_OF_RECEPTION_ROOMS")}</Text>
               <Text style={styles.value}>
                 {address?.numberOfReceptionrooms?.toString() || "0"}
               </Text>
             </View>
             <View style={styles.col}>
-              <Text style={styles.label}>Floors</Text>
+              <Text style={styles.label}>{t("FLOORS")}</Text>
               <Text style={styles.value}>
                 {address?.noOfFloors?.toString() ||
                   address?.numberOfFloors?.toString() ||
@@ -433,7 +435,7 @@ export const ReservationDetailsPdf = ({
               </Text>
             </View>
             <View style={styles.col}>
-              <Text style={styles.label}>Windows</Text>
+              <Text style={styles.label}>{t("WINDOWS")}</Text>
               <Text style={styles.value}>
                 {address?.numberOfWindows?.toString() || "0"}
               </Text>
@@ -441,21 +443,21 @@ export const ReservationDetailsPdf = ({
           </View>
           <View style={styles.row}>
             <View style={styles.col}>
-              <Text style={styles.label}>Has Pets</Text>
+              <Text style={styles.label}>{t("HAS_PETS")}</Text>
               <Text style={styles.value}>
-                {address?.hasPets ? "Yes" : "No"}
+                {address?.hasPets ? t("YES") : t("NO")}
               </Text>
             </View>
             <View style={styles.col}>
-              <Text style={styles.label}>Insects</Text>
-              <Text style={styles.value}>{data.insects ? "Yes" : "No"}</Text>
+              <Text style={styles.label}>{t("INSECTS")}</Text>
+              <Text style={styles.value}>{data.insects ? t("YES") : t("NO")}</Text>
             </View>
             <View style={styles.col}>
-              <Text style={styles.label}>Rodents</Text>
-              <Text style={styles.value}>{data.rodents ? "Yes" : "No"}</Text>
+              <Text style={styles.label}>{t("RODENTS")}</Text>
+              <Text style={styles.value}>{data.rodents ? t("YES") : t("NO")}</Text>
             </View>
             <View style={styles.col}>
-              <Text style={styles.label}>Apartment Closing</Text>
+              <Text style={styles.label}>{t("APARTMENT_CLOSING_PERIOD")}</Text>
               <Text style={styles.value}>
                 {data.apartmentClosingPeriod || "N/A"}
               </Text>
@@ -463,7 +465,7 @@ export const ReservationDetailsPdf = ({
           </View>
           <View style={styles.row}>
             <View style={styles.col}>
-              <Text style={styles.label}>General Comments</Text>
+              <Text style={styles.label}>{t("GENERAL_COMMENTS")}</Text>
               <Text style={styles.value}>{data.generalComments || "N/A"}</Text>
             </View>
           </View>
@@ -471,7 +473,7 @@ export const ReservationDetailsPdf = ({
 
         {/* Packages Section */}
         <View style={styles.packagesSection} break wrap>
-          <Text style={styles.sectionTitle}>Selected Packages</Text>
+          <Text style={styles.sectionTitle}>{t("SELECTED_PACKAGES")}</Text>
 
           {(data.getPackageDtoList || []).map((pkg, index: number) => {
             const packageDto = pkg.getPackageDto || {};
@@ -507,7 +509,7 @@ export const ReservationDetailsPdf = ({
                 <View style={styles.packageHeader}>
                   {/* use title directly, assuming standard font for pdf. Arabic might not render correctly without custom fonts, but keeping it simple as requested */}
                   <Text style={styles.packageTitle}>
-                    {packageDto.title || "Package"}
+                    {packageDto.title || t("PACKAGE")}
                   </Text>
                   <Text style={styles.packageAmount}>
                     {calculatedTotal.toLocaleString()} L.E
@@ -516,19 +518,19 @@ export const ReservationDetailsPdf = ({
 
                 <View style={styles.row}>
                   <View style={styles.col}>
-                    <Text style={styles.label}>Base Price</Text>
+                    <Text style={styles.label}>{t("BASE_PRICE")}</Text>
                     <Text style={styles.value}>
                       {basePrice} L.E {count > 1 ? `x ${count}` : ""}
                     </Text>
                   </View>
                   <View style={styles.col}>
-                    <Text style={styles.label}>Workers</Text>
+                    <Text style={styles.label}>{t("WORKERS")}</Text>
                     <Text style={styles.value}>
                       {packageDto.numberOfWorkers || "N/A"}
                     </Text>
                   </View>
                   <View style={styles.col}>
-                    <Text style={styles.label}>Rooms</Text>
+                    <Text style={styles.label}>{t("ROOMS")}</Text>
                     <Text style={styles.value}>
                       {packageDto.numberOfRooms || "N/A"}
                     </Text>
@@ -538,10 +540,10 @@ export const ReservationDetailsPdf = ({
                 {discount > 0 && (
                   <View style={[styles.row, { marginTop: 4 }]}>
                     <View style={styles.col}>
-                      <Text style={styles.label}>Discount</Text>
+                      <Text style={styles.label}>{t("DISCOUNT")}</Text>
                       <Text style={[styles.value, { color: "#ef4444" }]}>
                         - {discountAmount.toLocaleString()} L.E (
-                        {isPercentage ? `${discount}%` : "Fixed"})
+                        {isPercentage ? `${discount}%` : t("FIXED")})
                       </Text>
                     </View>
                   </View>
@@ -549,7 +551,7 @@ export const ReservationDetailsPdf = ({
 
                 {extraServices.length > 0 && (
                   <View style={{ marginTop: 8 }}>
-                    <Text style={styles.label}>Extra Services</Text>
+                    <Text style={styles.label}>{t("EXTRA_SERVICES")}</Text>
                     {extraServices.map((es, esIdx) => (
                       <View key={esIdx} style={styles.extraServiceItem}>
                         <Text style={styles.extraServiceText}>
@@ -571,7 +573,7 @@ export const ReservationDetailsPdf = ({
         <View style={styles.summaryContainer}>
           <View style={styles.summaryBox}>
             <View style={styles.summaryTotal}>
-              <Text style={styles.summaryTotalText}>Total Amount</Text>
+              <Text style={styles.summaryTotalText}>{t("TOTAL_AMOUNT")}</Text>
               <Text style={styles.summaryTotalText}>
                 {grandTotal.toLocaleString()} L.E
               </Text>
@@ -581,7 +583,7 @@ export const ReservationDetailsPdf = ({
 
         {/* Footer */}
         <Text style={styles.footer}>
-          Generated on {dayjs().format("DD/MM/YYYY hh:mm A")} • Madame Nazifa
+          {t("GENERATED_ON")} {dayjs().format("DD/MM/YYYY hh:mm A")} • Madame Nazifa
           Services
         </Text>
       </Page>

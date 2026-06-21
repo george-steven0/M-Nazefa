@@ -1,14 +1,14 @@
 import { BiSearchAlt } from "react-icons/bi";
 import { Button, Input, Space } from "antd";
 import { useEffect, useState, type ChangeEvent } from "react";
+import { useTranslation } from "react-i18next";
 
 type searchBoxProps = {
   placeholder?: string;
 };
 
-export const useSearchBox = ({
-  placeholder = "Search...",
-}: searchBoxProps = {}) => {
+export const useSearchBox = ({ placeholder }: searchBoxProps = {}) => {
+  const { t } = useTranslation();
   const [searchValue, setSearchValue] = useState<string>("");
   const [debounceValue, setdebounceValue] = useState<string>("");
 
@@ -35,7 +35,7 @@ export const useSearchBox = ({
 
     <Space.Compact className="w-full">
       <Input
-        placeholder={placeholder ?? "Search..."}
+        placeholder={placeholder ?? t("SEARCH")}
         allowClear
         onChange={handleSearchChange}
         className="py-2"

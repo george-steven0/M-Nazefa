@@ -4,12 +4,14 @@ import { ConfigProvider, Switch } from "antd";
 import { useToggleServiceMutation } from "../../../components/APIs/Services/SERVICES_QUERY";
 import { toast } from "react-toastify";
 import type { APIErrorProps, serviceFormProps } from "../../../components/Utilities/Types/types";
+import { useTranslation } from "react-i18next";
 
 type serviceCardProps = {
   data:serviceFormProps,
   lang:string
 }
 const ServiceCard = ({ data,lang }:serviceCardProps) => {
+  const { t } = useTranslation();
 
   const navigate = useNavigate();
   const handleNavigateView = () => {
@@ -22,7 +24,7 @@ const ServiceCard = ({ data,lang }:serviceCardProps) => {
     try {
         await toggleService({serviceId: data?.id || '', isActive: checked}).unwrap();
         if (toggleSuccess) {
-          toast.success("Service toggled successfully");
+          toast.success(t("SERVICE_TOGGLED_SUCCESS"));
         }
     } catch (error) {
        const err = error as APIErrorProps;
@@ -72,7 +74,7 @@ const ServiceCard = ({ data,lang }:serviceCardProps) => {
 
         <div className="card-description">
           <p title="" className="line-clamp-3 text-[#646363] text-sm">
-            {data?.description || 'No Description'}
+            {data?.description || t("NO_DESCRIPTION")}
           </p>
         </div>
 

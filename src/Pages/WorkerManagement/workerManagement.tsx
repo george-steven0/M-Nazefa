@@ -1,6 +1,12 @@
 import { useTranslation } from "react-i18next";
 import Title from "../../components/Common/Title/title";
-import { Button, DatePicker, Table, type TableProps } from "antd";
+import {
+  Button,
+  DatePicker,
+  Popconfirm,
+  Table,
+  type TableProps,
+} from "antd";
 import type {
   APIErrorProps,
   workerManagementFormProps,
@@ -8,6 +14,7 @@ import type {
 } from "../../components/Utilities/Types/types";
 import {
   useAddDurationMutation,
+  useDeleteWorkerManagementByListIdMutation,
   useGetDurationBetweenDatesQuery,
 } from "../../components/APIs/WorkerManagement/WORKER_MANAGEMENT_QUERY";
 import { useState } from "react";
@@ -15,7 +22,10 @@ import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import dayjs, { type Dayjs } from "dayjs";
 import { fullDateFormat } from "../../components/Utilities/helper";
+import { BiEdit } from "react-icons/bi";
+import { AiOutlineDelete } from "react-icons/ai";
 import WorkerManagementForm from "./Components/workerManagementForm";
+import EditWorkerManagementForm from "./Components/editWorkerManagementForm";
 
 const { RangePicker } = DatePicker;
 
@@ -24,6 +34,10 @@ const WorkerManagement = () => {
 
   // ── State ──────────────────────────────────────────────────────────────────
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [recordToEdit, setRecordToEdit] =
+    useState<workerManagementResponseProps | null>(null);
+  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   const [dateRange, setDateRange] = useState<[Dayjs, Dayjs]>([
     dayjs().startOf("day"),
     dayjs().endOf("day"),
@@ -44,6 +58,16 @@ const WorkerManagement = () => {
     reset();
   };
 
+  const openEditModal = (record: workerManagementResponseProps) => {
+    setRecordToEdit(record);
+    setIsEditModalOpen(true);
+  };
+
+  const closeEditModal = () => {
+    setIsEditModalOpen(false);
+    setRecordToEdit(null);
+  };
+
   // ── Queries ────────────────────────────────────────────────────────────────
   const {
     data: durations,
@@ -53,6 +77,23 @@ const WorkerManagement = () => {
     from: dateRange[0].startOf("day").toISOString(),
     to: dateRange[1].endOf("day").toISOString(),
   });
+
+  // ── Delete ─────────────────────────────────────────────────────────────────
+  const [deleteWorkerManagement, { isLoading: isDeleteLoading }] =
+    useDeleteWorkerManagementByListIdMutation();
+
+  const handleDeleteSelected = async () => {
+    try {
+      await deleteWorkerManagement(selectedRowKeys as (string | number)[]).unwrap();
+      toast.success(t("WORKER_MANAGEMENT_DELETED_SUCCESS"));
+      setSelectedRowKeys([]);
+    } catch (error) {
+      const err = error as APIErrorProps;
+      err?.data?.errorMessages?.forEach((message) => {
+        toast.error(message);
+      });
+    }
+  };
 
   const handleDateRangeChange = (
     dates: [Dayjs | null, Dayjs | null] | null,
@@ -88,20 +129,24 @@ const WorkerManagement = () => {
       key: "date",
       render: (text) => <span>{fullDateFormat(text) || t("NA")}</span>,
     },
-    // {
-    //   title: t("ACTIONS"),
-    //   key: "actions",
-    //   render: () => (
-    //     <div>
-    //       <Button
-    //         onClick={() => openAddModal({ type: "view" })}
-    //         className="bg-gray-200 hover:bg-gray-50 text-mainColor border-gray-300"
-    //       >
-    //         <FaEye size={18} />
-    //       </Button>
-    //     </div>
-    //   ),
-    // },
+    {
+      title: t("NOTES"),
+      dataIndex: "notes",
+      key: "notes",
+      render: (text) => <p>{text || t("NA")}</p>,
+    },
+    {
+      title: t("ACTIONS"),
+      key: "actions",
+      render: (_, record) => (
+        <Button
+          shape="circle"
+          className="hover:bg-mainColor/60 hover:text-white hover:border-transparent size-10 [&>span]:flex [&>span]:items-center"
+          onClick={() => openEditModal(record)}
+          icon={<BiEdit size={20} />}
+        />
+      ),
+    },
   ];
 
   const data: workerManagementResponseProps[] = durations?.data || [];
@@ -110,6 +155,20 @@ const WorkerManagement = () => {
   const handleTitleComponent = () => {
     return (
       <div className="flex gap-2 items-center [&>button]:py-5 [&>button]:capitalize">
+        {selectedRowKeys.length > 0 && (
+          <Popconfirm
+            title={t("DELETE_SELECTED")}
+            description={t("DELETE_CONFIRM_MESSAGE")}
+            okText={t("DELETE")}
+            cancelText={t("CANCEL")}
+            okButtonProps={{ danger: true, loading: isDeleteLoading }}
+            onConfirm={handleDeleteSelected}
+          >
+            <Button danger icon={<AiOutlineDelete size={16} />}>
+              {t("DELETE_SELECTED")} ({selectedRowKeys.length})
+            </Button>
+          </Popconfirm>
+        )}
         <Button onClick={openAddModal} className="text-white bg-mainColor">
           {t("ADD_DURATION")}
         </Button>
@@ -182,6 +241,10 @@ const WorkerManagement = () => {
         <section className="mt-8">
           <Table<workerManagementResponseProps>
             rowKey="id"
+            rowSelection={{
+              selectedRowKeys,
+              onChange: (keys) => setSelectedRowKeys(keys),
+            }}
             columns={columns}
             dataSource={data}
             loading={isLoading || isFetching}
@@ -199,6 +262,13 @@ const WorkerManagement = () => {
         errors={errors}
         t={t}
         isAddDurationLoading={isAddDurationLoading}
+      />
+
+      {/* ── Edit Worker Management Modal ──────────────────────────────────── */}
+      <EditWorkerManagementForm
+        open={isEditModalOpen}
+        close={closeEditModal}
+        record={recordToEdit}
       />
     </main>
   );

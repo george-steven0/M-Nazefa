@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import avatar from "../../../assets/imgs/logo-cropped.svg";
 import type { employeeResponseProps } from "../../../components/Utilities/Types/types";
 
@@ -5,6 +6,7 @@ type employeeCardProps = {
   employee: employeeResponseProps;
 };
 const EmployeeCard = ({ employee }: employeeCardProps) => {
+  const { t } = useTranslation();
   // console.log(employee);
 
   return (
@@ -36,14 +38,14 @@ const EmployeeCard = ({ employee }: employeeCardProps) => {
               ? employee?.roles
                   .map((role) => role?.replace(/([a-z])([A-Z])/g, "$1 $2"))
                   .join(", ")
-              : "Role"
+              : t("ROLE")
           }
         >
           {employee?.roles && employee?.roles.length > 0
             ? employee?.roles
                 .map((role) => role?.replace(/([a-z])([A-Z])/g, "$1 $2"))
                 .join(", ")
-            : "Role"}
+            : t("ROLE")}
         </p>
       </div>
     </div>

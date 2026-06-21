@@ -314,7 +314,7 @@ const ViewClient = () => {
               {/* WhatsApp */}
               <InfoRow
                 icon={<FaWhatsapp size={16} className="text-green-500" />}
-                label="WhatsApp"
+                label={t("WHATSAPP")}
                 value={
                   customer?.whatsAppNumber ? (
                     <a
@@ -334,7 +334,7 @@ const ViewClient = () => {
               {/* Email */}
               <InfoRow
                 icon={<MdOutlineMail size={16} />}
-                label="Email"
+                label={t("EMAIL")}
                 value={
                   customer?.email ? (
                     <a
@@ -380,7 +380,7 @@ const ViewClient = () => {
               {/* Status */}
               <InfoRow
                 icon={<PiWarningCircleLight size={16} />}
-                label="Status"
+                label={t("STATUS")}
                 value={
                   <span
                     className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-0.5 rounded-full ${

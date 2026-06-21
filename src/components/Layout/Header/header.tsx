@@ -1,25 +1,29 @@
 import { AiOutlineMenu } from "react-icons/ai";
-import { IoMdNotifications } from "react-icons/io";
+// import { IoMdNotifications } from "react-icons/io";
 import { FaUserCircle } from "react-icons/fa";
-import { Button } from "antd";
-// import { useTranslation } from "react-i18next";
-// import ReactCountryFlag from "react-country-flag";
-// import { useAppDispatch } from "../../APIs/store";
-// import { changeLang } from "../../APIs/Language/lang";
+import { Button, Select, Skeleton } from "antd";
+import { useTranslation } from "react-i18next";
+import ReactCountryFlag from "react-country-flag";
+import { useAppDispatch } from "../../APIs/store";
+import { changeLang } from "../../APIs/Language/lang";
+import { useGetUserQuery } from "../../APIs/EmployeesQuery/EMPLOYEES_QUERY";
 
-// const languages = [
-//   { label: "EN", value: "en", countryCode: "US" },
-//   { label: "AR", value: "ar", countryCode: "EG" },
-// ];
+const languages = [
+  { label: "EN", value: "en", countryCode: "US" },
+  { label: "AR", value: "ar", countryCode: "EG" },
+];
 
 const Header = ({ toggleNav }: { toggleNav: () => void }) => {
-  // const { i18n } = useTranslation();
-  // const dispatch = useAppDispatch();
+  const { i18n } = useTranslation();
+  const dispatch = useAppDispatch();
+  const { data:user, isLoading:isUserLoading,isFetching:isUserFetching } = useGetUserQuery();
 
-  // const changeLanguage = (lang: string) => {
-  //   i18n.changeLanguage(lang);
-  //   dispatch(changeLang(lang));
-  // };
+  const loadingUser = isUserFetching || isUserLoading
+
+  const changeLanguage = (lang: string) => {
+    i18n.changeLanguage(lang);
+    dispatch(changeLang(lang));
+  };
   return (
     <div className="bg-lightGray w-full min-h-20 flex items-center justify-between md:justify-end px-8">
       <div className="block md:hidden">
@@ -32,16 +36,16 @@ const Header = ({ toggleNav }: { toggleNav: () => void }) => {
       </div>
 
       <div className="flex items-center gap-5">
-        <section>
+        {/* <section>
           <IoMdNotifications size={20} />
-        </section>
+        </section> */}
 
         <section className="flex items-center gap-2">
           <FaUserCircle size={30} />
-          <span>User</span>
+          <span className="capitalize text-sm">{loadingUser ? <Skeleton.Input size="small" active /> : user?.data?.firstName + " " + user?.data?.lastName}</span>
         </section>
 
-        {/* <section className="change-lang-wrapper">
+        <section className="change-lang-wrapper">
           <Select
             value={i18n.language}
             onChange={changeLanguage}
@@ -69,7 +73,7 @@ const Header = ({ toggleNav }: { toggleNav: () => void }) => {
               );
             }}
           />
-        </section> */}
+        </section>
       </div>
     </div>
   );

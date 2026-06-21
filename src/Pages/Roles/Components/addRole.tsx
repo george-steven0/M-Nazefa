@@ -32,7 +32,7 @@ const AddRole = ({ open, close, t }: addRoleProps) => {
 
     try {
       await addRole(data).unwrap();
-      toast.success("Role added successfully");
+      toast.success(t("ROLE_ADDED_SUCCESS"));
       handleReset();
     } catch (error) {
       const err = error as APIErrorProps;
@@ -46,7 +46,7 @@ const AddRole = ({ open, close, t }: addRoleProps) => {
           err?.data?.errorMessage && err?.data?.errorMessage.join("\n");
         toast.error(errs);
       } else {
-        toast.error("Failed to add role");
+        toast.error(t("ROLE_ADD_FAILED"));
       }
     }
   };
@@ -77,7 +77,7 @@ const AddRole = ({ open, close, t }: addRoleProps) => {
                   <Input
                     {...field}
                     variant="filled"
-                    placeholder="Enter role name"
+                    placeholder={t("ENTER_ROLE_NAME")}
                     className="placeholder:capitalize"
                     status={errors?.name ? "error" : ""}
                   />
@@ -106,7 +106,7 @@ const AddRole = ({ open, close, t }: addRoleProps) => {
                   <Input
                     {...field}
                     variant="filled"
-                    placeholder="Enter role description"
+                    placeholder={t("ENTER_ROLE_DESCRIPTION")}
                     className="placeholder:capitalize"
                     status={errors?.description ? "error" : ""}
                   />

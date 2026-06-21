@@ -1,6 +1,7 @@
 import type {
   APIResponse,
   SingleAPIResponse,
+  workerManagementEditProps,
   workerManagementFilterParams,
   workerManagementFormProps,
   workerManagementResponseProps,
@@ -61,6 +62,30 @@ const workerManagementQuery = API.injectEndpoints({
       }),
       providesTags: ["workerManagement"],
     }),
+
+    editWorkerManagement: builder.mutation<
+      SingleAPIResponse<workerManagementResponseProps>,
+      workerManagementEditProps
+    >({
+      query: ({ id, ...body }) => ({
+        url: "/WorkerManagement/EditWorkerManagement",
+        method: "POST",
+        body: { id, ...body },
+      }),
+      invalidatesTags: ["workerManagement"],
+    }),
+
+    deleteWorkerManagementByListId: builder.mutation<
+      SingleAPIResponse<workerManagementResponseProps>,
+      (string | number)[]
+    >({
+      query: (ids) => ({
+        url: "/WorkerManagement/DeleteWorkerManagementByListId",
+        method: "POST",
+        body: ids,
+      }),
+      invalidatesTags: ["workerManagement"],
+    }),
   }),
 });
 
@@ -69,4 +94,6 @@ export const {
   useGetDurationByDateQuery,
   useGetDurationByIdQuery,
   useGetDurationBetweenDatesQuery,
+  useEditWorkerManagementMutation,
+  useDeleteWorkerManagementByListIdMutation,
 } = workerManagementQuery;

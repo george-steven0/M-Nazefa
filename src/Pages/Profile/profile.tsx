@@ -48,7 +48,7 @@ export default function Profile() {
             <h1 className="text-2xl md:text-3xl font-medium text-mainTextDark">
               {user?.firstName || user?.lastName
                 ? `${user?.firstName || ""} ${user?.lastName || ""}`.trim()
-                : "User Profile"}
+                : t("USER_PROFILE")}
             </h1>
             <p className="text-mainTextLight text-sm md:text-base mb-1">
               @{displayValue(user?.userName)}
@@ -66,7 +66,7 @@ export default function Profile() {
               </div>
             ) : (
               <span className="bg-[#895f12] text-[#d4a436] border border-[#785d1d] px-3 py-1 rounded-full text-xs font-medium w-fit mt-1">
-                {t("No roles assigned")}
+                {t("NO_ROLES_ASSIGNED")}
               </span>
             )}
           </div>
@@ -75,19 +75,19 @@ export default function Profile() {
         {/* Personal Info Section */}
         <div className="p-6 md:p-8 border-b border-mainBorderLight capitalize">
           <h2 className="text-xs font-semibold text-mainTextLight tracking-widest uppercase mb-4 md:mb-6">
-            {t("PERSONAL INFO")}
+            {t("PERSONAL_INFO")}
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
             <InfoBox
-              label={t("First name")}
+              label={t("FIRST_NAME")}
               value={displayValue(user?.firstName)}
             />
             <InfoBox
-              label={t("Last name")}
+              label={t("LAST_NAME")}
               value={displayValue(user?.lastName)}
             />
             <InfoBox
-              label={t("Gender")}
+              label={t("GENDER")}
               value={displayValue(user?.gender)}
               indicator={
                 user?.gender?.toLowerCase() === "male"
@@ -98,7 +98,7 @@ export default function Profile() {
               }
             />
             <InfoBox
-              label={t("Date of birth")}
+              label={t("DATE_OF_BIRTH")}
               value={formatDate(user?.dateOfBirth)}
             />
           </div>
@@ -111,35 +111,35 @@ export default function Profile() {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
             <InfoBox
-              label={t("Email")}
+              label={t("EMAIL")}
               value={displayValue(user?.email)}
               isLink={user?.email ? true : false}
             />
             <InfoBox
-              label={t("Phone number")}
+              label={t("PHONE_NUMBER")}
               value={displayValue(user?.phoneNumber)}
             />
             <InfoBox
-              label={t("Postal code")}
+              label={t("POSTAL_CODE")}
               value={displayValue(user?.postalCode)}
             />
-            <InfoBox label={t("Address")} value={displayValue(user?.address)} />
+            <InfoBox label={t("ADDRESS")} value={displayValue(user?.address)} />
           </div>
         </div>
 
         {/* Work Info Section */}
         <div className="p-6 md:p-8">
           <h2 className="text-xs font-semibold text-mainTextLight tracking-widest uppercase mb-4 md:mb-6">
-            {t("WORK INFO")}
+            {t("WORK_INFO")}
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
-            <InfoBox label={t("Work ID")} value={displayValue(user?.workId)} />
+            <InfoBox label={t("WORK_ID")} value={displayValue(user?.workId)} />
             <InfoBox
-              label={t("ID number")}
+              label={t("ID_NUMBER")}
               value={displayValue(user?.idNumber)}
             />
             <InfoBox
-              label={t("Starting date")}
+              label={t("STARTING_DATE")}
               value={formatDate(user?.startingDate)}
             />
             {/* <InfoBox

@@ -53,7 +53,7 @@ const Clients = () => {
   });
 
   const { SearchBox, debounceValue } = useSearchBox({
-    placeholder: "Search Clients",
+    placeholder: t("SEARCH_CLIENTS"),
   });
   const {
     data: customers,
@@ -70,7 +70,7 @@ const Clients = () => {
 
   const columns: TableProps<clientFormPropsType>["columns"] = [
     {
-      title: "ID",
+      title: t("ID"),
       dataIndex: "id",
       key: "id",
       render: (text) => <p>{text}</p>,
@@ -117,7 +117,7 @@ const Clients = () => {
     },
 
     {
-      title: "Status",
+      title: t("STATUS"),
       dataIndex: "isActive",
       key: "status",
       render: (data) => (
@@ -134,7 +134,7 @@ const Clients = () => {
     },
     {
       key: "actions",
-      title: "Actions",
+      title: t("ACTIONS"),
       render: (data) => <Actions data={data} />,
     },
   ];

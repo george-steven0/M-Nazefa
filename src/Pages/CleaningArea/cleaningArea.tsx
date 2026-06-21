@@ -60,13 +60,13 @@ export default function CLeaningArea() {
       key: "name",
       title: t("NAME_EN"),
       dataIndex: "name",
-      render: (text) => <span>{text || "N/A"}</span>,
+      render: (text) => <span>{text || t("NA")}</span>,
     },
     {
       key: "arName",
       title: t("NAME_AR"),
       dataIndex: "arName",
-      render: (text) => <span>{text || "N/A"}</span>,
+      render: (text) => <span>{text || t("NA")}</span>,
     },
     {
       key: "actions",
@@ -91,7 +91,7 @@ export default function CLeaningArea() {
   };
 
   const { SearchBox } = useSearchBox({
-    placeholder: "Search cleaning areas",
+    placeholder: t("SEARCH_CLEANING_AREAS"),
   });
 
   return (

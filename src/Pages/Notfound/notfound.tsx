@@ -1,9 +1,11 @@
 import { Button, Result } from "antd";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { getFirstAllowedPath } from "../../Utilities/utilities";
 
 export default function Notfound() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   return (
     <div className="flex flex-col gap-5 h-screen items-center justify-center">
@@ -18,14 +20,14 @@ export default function Notfound() {
       <Result
         status="404"
         title="404"
-        subTitle="Sorry, the page you visited does not exist."
+        subTitle={t("PAGE_NOT_FOUND_MESSAGE")}
         extra={
           <Button
             onClick={() => navigate(getFirstAllowedPath())}
             type="primary"
             className=" py-5 min-w-xl"
           >
-            Go Home
+            {t("GO_HOME")}
           </Button>
         }
       />

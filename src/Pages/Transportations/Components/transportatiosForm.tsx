@@ -142,7 +142,7 @@ export default function TransportationForm({
                   <Select
                     {...field}
                     className="min-h-10 border-[#C4C4C4] border rounded-md w-full"
-                    placeholder="Select city"
+                    placeholder={t("SELECT_CITY")}
                     variant="filled"
                     status={errors?.cityId ? "error" : ""}
                     loading={isCitiesLoading || isCitiesFetching}
@@ -181,7 +181,7 @@ export default function TransportationForm({
                   <Select
                     {...field}
                     className="min-h-10 border-[#C4C4C4] border rounded-md w-full"
-                    placeholder="Select area"
+                    placeholder={t("SELECT_AREA")}
                     variant="filled"
                     status={errors?.areaId ? "error" : ""}
                     loading={isAreasLoading || isAreasFetching}
@@ -217,7 +217,7 @@ export default function TransportationForm({
                   <Input
                     {...field}
                     className="min-h-10 border-[#C4C4C4] border rounded-md w-full"
-                    placeholder="Enter fee"
+                    placeholder={t("ENTER_FEE")}
                     variant="filled"
                     status={errors?.fee ? "error" : ""}
                     type="number"

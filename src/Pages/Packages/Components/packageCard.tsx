@@ -23,7 +23,7 @@ const PackageCard = ({ id, data }: packageCardProps) => {
 
   const handleTogglePackage = async (status: boolean) => {
     if (!isAdmin() && !isSuperAdmin()) {
-      toast.error("You are not authorized to perform this action", {
+      toast.error(t("UNAUTHORIZED_ACTION"), {
         toastId: "unauthorized",
       });
       return;
@@ -35,11 +35,11 @@ const PackageCard = ({ id, data }: packageCardProps) => {
 
     try {
       await togglePackage(data).unwrap();
-      toast.success("Package status updated successfully");
+      toast.success(t("PACKAGE_STATUS_UPDATED_SUCCESS"));
     } catch (error) {
       const err = error as APIErrorProps;
       console.error(err);
-      toast.error(`Failed to set package status`);
+      toast.error(t("PACKAGE_STATUS_FAILED"));
     }
   };
 

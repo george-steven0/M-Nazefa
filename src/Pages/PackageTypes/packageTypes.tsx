@@ -51,7 +51,7 @@ export default function PackageTypes() {
 
   const columns: TableProps<seedersProps>["columns"] = [
     {
-      title: "ID",
+      title: t("ID"),
       dataIndex: "id",
       key: "id",
       render: (text) => <p>{text}</p>,
@@ -60,13 +60,13 @@ export default function PackageTypes() {
       key: "name",
       title: t("NAME_EN"),
       dataIndex: "name",
-      render: (text) => <span>{text || "N/A"}</span>,
+      render: (text) => <span>{text || t("NA")}</span>,
     },
     {
       key: "arName",
       title: t("NAME_AR"),
       dataIndex: "arName",
-      render: (text) => <span>{text || "N/A"}</span>,
+      render: (text) => <span>{text || t("NA")}</span>,
     },
     {
       key: "actions",
@@ -91,7 +91,7 @@ export default function PackageTypes() {
   };
 
   const { SearchBox } = useSearchBox({
-    placeholder: "Search Package Types",
+    placeholder: t("SEARCH_PACKAGE_TYPES"),
   });
 
   return (

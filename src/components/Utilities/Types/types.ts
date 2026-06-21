@@ -493,12 +493,13 @@ export type reservationDetailsData = {
   };
 };
 export type workersFormProps = {
-  id: string;
+  id?: string;
   name: string;
   arName: string;
-  phoneNumber: string;
+  phoneNumbers: string[];
   nationalId: string;
   isMale: boolean | string | undefined;
+  isWorker?: boolean | string | undefined;
 };
 
 export type assignWorkerFormProps = {
@@ -679,13 +680,24 @@ export type mostUsedPackage = {
 export type complaintFormProps = {
   reservationId: string | number;
   comment: string;
+  workerIds?: (string | number)[];
+};
+
+export type complaintWorkerProps = {
+  workerId: string | number;
+  workerName: string;
+  workerArName: string;
 };
 
 export type complaintResponseProps = {
   id: string | number;
   reservationId: string | number;
+  customerId?: string | number;
   comment: string;
+  createdBy?: string;
   createdAt?: string;
+  creationDate?: string;
+  workers?: complaintWorkerProps[];
 };
 
 export type feedbackFormProps = {
@@ -699,6 +711,7 @@ export type feedbackResponseProps = {
   reservationId: string | number;
   rate: number;
   comment: string;
+  createdBy?: string;
   creationDate?: string;
 };
 
@@ -711,11 +724,21 @@ export type workerManagementFormProps = {
 
 export type workerManagementResponseProps = {
   id: string | number;
-  startDate: string;
-  endDate: string;
-  workersNo: number;
+  startDate?: string;
+  endDate?: string;
+  workersNo?: number;
+  availableNoWorkers?: number;
+  remainNoOfWorkers?: number;
+  date?: string;
   notes?: string;
   creationDate?: string;
+};
+
+export type workerManagementEditProps = {
+  id: string | number;
+  availableNoWorkers: number;
+  remainNoOfWorkers: number;
+  notes?: string;
 };
 
 export type workerManagementFilterParams = {

@@ -94,7 +94,7 @@ const Navbar = ({
       },
       {
         id: "people",
-        name: t("PEOPLE") || "People",
+        name: t("PEOPLE") || "People & workforce",
         icon: <AiOutlineTeam />,
         children: [
           {
@@ -120,13 +120,20 @@ const Navbar = ({
               PERMISSIONS.DELETE_CLIENT,
             ],
           },
-
           {
             id: "workers",
             name: t("WORKERS"),
             path: "/workers",
             icon: employeesIcon,
             permissions: [PERMISSIONS.VIEW_WORKERS],
+          },
+          {
+            id: "worker_management",
+            name: t("WORKER_MANAGEMENT"),
+            path: "/worker-management",
+            icon: <PiClockUser />,
+            iconType: "fontIcon",
+            permissions: [PERMISSIONS.VIEW_WORKER_MANAGEMENT],
           },
         ],
       },
@@ -189,6 +196,29 @@ const Navbar = ({
             ],
           },
           {
+            id: "complaints",
+            name: t("COMPLAINTS"),
+            path: "/complaints",
+            icon: <RiCustomerService2Fill />,
+            iconType: "fontIcon",
+            permissions: [PERMISSIONS.VIEW_COMPLAINTS],
+          },
+          {
+            id: "reservation_feedback",
+            name: t("FEEDBACKS"),
+            path: "/reservation-feedback",
+            icon: <MdOutlineFeedback />,
+            iconType: "fontIcon",
+            permissions: [PERMISSIONS.VIEW_RESERVATION_FEEDBACK],
+          },
+          {
+            id: "messages",
+            name: t("MESSAGES"),
+            path: "/messages",
+            icon: messagesIcon,
+            permissions: [PERMISSIONS.VIEW_MESSAGES],
+          },
+          {
             id: "memberships",
             name: t("MEMBERSHIPS"),
             path: "/memberships",
@@ -229,18 +259,10 @@ const Navbar = ({
         ],
       },
       {
-        id: "SETTINGS",
-        name: t("SETTINGS") || "Settings",
+        id: "access_control",
+        name: t("ACCESS_CONTROL") || "Access control",
         icon: <IoSettingsOutline />,
         children: [
-          {
-            id: "worker_management",
-            name: t("WORKER_MANAGEMENT"),
-            path: "/worker-management",
-            icon: <PiClockUser />,
-            iconType: "fontIcon",
-            permissions: [PERMISSIONS.VIEW_WORKER_MANAGEMENT],
-          },
           {
             id: "roles",
             name: t("ROLES"),
@@ -249,39 +271,8 @@ const Navbar = ({
             iconType: "fontIcon",
             permissions: [PERMISSIONS.VIEW_ROLES],
           },
-          {
-            id: "complaints",
-            name: t("COMPLAINTS"),
-            path: "/complaints",
-            icon: <RiCustomerService2Fill />,
-            iconType: "fontIcon",
-            permissions: [PERMISSIONS.VIEW_COMPLAINTS],
-          },
-          {
-            id: "reservation_feedback",
-            name: t("FEEDBACKS"),
-            path: "/reservation-feedback",
-            icon: <MdOutlineFeedback />,
-            iconType: "fontIcon",
-            permissions: [PERMISSIONS.VIEW_RESERVATION_FEEDBACK],
-          },
-          {
-            id: "messages",
-            name: t("MESSAGES"),
-            path: "/messages",
-            icon: messagesIcon,
-            permissions: [PERMISSIONS.VIEW_MESSAGES],
-          },
         ],
       },
-      // {
-      //   id: "settings",
-      //   name: t("SETTINGS") || "Settings",
-      //   icon: <AiOutlineSetting />,
-      //   children: [
-
-      //   ],
-      // },
     ],
     [t],
   );

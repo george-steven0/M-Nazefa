@@ -11,6 +11,7 @@ import { useGetAllWorkersQuery } from "../../components/APIs/Workers/WORKERS_QUE
 import useCustomDataTable from "../../components/Common/Datatable/dataTable";
 import WorkerFormModal from "./Components/workerFormModal";
 import { fullDateFormat } from "../../components/Utilities/helper";
+import { FaPhone } from "react-icons/fa";
 
 const Actions = ({ data }: { data: workersFormProps }) => {
   // handle edit modal
@@ -92,8 +93,24 @@ const Workers = () => {
     },
     {
       title: t("PHONE_NUMBER"),
-      dataIndex: "phoneNumber",
-      key: "phoneNumber",
+      dataIndex: "phoneNumbers",
+      key: "phoneNumbers",
+      render: (phones: string[]) => {
+        const list = Array.isArray(phones) ? phones : phones ? [phones] : [];
+
+        if (list.length === 0) return <span>{t("NA")}</span>;
+
+        return (
+          <div className="flex flex-col gap-1">
+            {list.map((phone, index) => (
+              <span key={index} className="flex items-center gap-1.5" dir="ltr">
+                <FaPhone className="text-mainColor shrink-0 rotate-90" />
+                {phone}
+              </span>
+            ))}
+          </div>
+        );
+      },
     },
     {
       title: t("JOINING_DATE"),
@@ -161,7 +178,7 @@ const Workers = () => {
   };
 
   const { SearchBox } = useSearchBox({
-    placeholder: "Search workers",
+    placeholder: t("SEARCH_WORKERS"),
   });
 
   const isChildPage =

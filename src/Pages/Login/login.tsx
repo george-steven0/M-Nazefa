@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Controller, useForm } from "react-hook-form";
 import type {
   APIErrorProps,
@@ -12,6 +13,7 @@ import navVector from "../../assets/imgs/navbarVector.svg";
 import { getFirstAllowedPath } from "../../Utilities/utilities";
 
 const Login = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const {
     handleSubmit,
@@ -26,7 +28,7 @@ const Login = () => {
       const res = await login(data).unwrap();
       // console.log(res);
       if (res?.isSuccess) {
-        toast.success("Login Successfully");
+        toast.success(t("LOGIN_SUCCESS"));
         localStorage.setItem("mNazTk", res?.data?.token);
         localStorage.setItem("mNazRole", JSON.stringify(res?.data?.rolesList));
         localStorage.setItem("uid", res?.data?.id ?? "");
@@ -46,7 +48,7 @@ const Login = () => {
       <section className="size-full flex flex-col gap-4 items-center justify-center">
         <div>
           <p className="lg:text-4xl font-semibold bg-linear-to-r from-mainColor to-[#1d6987] text-transparent bg-clip-text">
-            Welcome Back!
+            {t("WELCOME_BACK")}
           </p>
         </div>
         <div className="flex flex-col items-center gap-5 min-w-[350px] min-h-[350px] p-4 rounded-md shadow-md bg-white">
@@ -63,18 +65,18 @@ const Login = () => {
                 rules={{
                   required: {
                     value: true,
-                    message: "Email is required",
+                    message: t("EMAIL_REQUIRED"),
                   },
                   pattern: {
                     value: /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/,
-                    message: "Email is not valid",
+                    message: t("INVALID_EMAIL"),
                   },
                 }}
                 render={({ field }) => {
                   return (
                     <Input
                       {...field}
-                      placeholder="Enter Email"
+                      placeholder={t("ENTER_EMAIL")}
                       status={errors.email ? "error" : ""}
                     />
                   );
@@ -94,14 +96,14 @@ const Login = () => {
                 rules={{
                   required: {
                     value: true,
-                    message: "Password is required",
+                    message: t("PASSWORD_REQUIRED"),
                   },
                 }}
                 render={({ field }) => {
                   return (
                     <Input.Password
                       {...field}
-                      placeholder="Enter Password"
+                      placeholder={t("ENTER_PASSWORD")}
                       status={errors.password ? "error" : ""}
                     />
                   );
@@ -120,7 +122,7 @@ const Login = () => {
               className="w-full bg-mainColor text-white py-5"
               loading={isLoading}
             >
-              Login
+              {t("LOGIN")}
             </Button>
           </form>
         </div>

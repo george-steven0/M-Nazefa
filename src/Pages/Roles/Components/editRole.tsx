@@ -51,7 +51,7 @@ const EditRole = ({ open, close, t, data }: editRoleProps) => {
 
     try {
       await editRole(formattedData).unwrap();
-      toast.success("Role edited successfully");
+      toast.success(t("ROLE_EDITED_SUCCESS"));
       handleReset();
     } catch (error) {
       const err = error as APIErrorProps;
@@ -65,7 +65,7 @@ const EditRole = ({ open, close, t, data }: editRoleProps) => {
           err?.data?.errorMessage && err?.data?.errorMessage.join("\n");
         toast.error(errs);
       } else {
-        toast.error("Failed to edit role");
+        toast.error(t("ROLE_EDIT_FAILED"));
       }
     }
   };
@@ -96,7 +96,7 @@ const EditRole = ({ open, close, t, data }: editRoleProps) => {
                   <Input
                     {...field}
                     variant="filled"
-                    placeholder="Enter role name"
+                    placeholder={t("ENTER_ROLE_NAME")}
                     className="placeholder:capitalize"
                     status={errors?.name ? "error" : ""}
                   />
@@ -125,7 +125,7 @@ const EditRole = ({ open, close, t, data }: editRoleProps) => {
                   <Input
                     {...field}
                     variant="filled"
-                    placeholder="Enter role description"
+                    placeholder={t("ENTER_ROLE_DESCRIPTION")}
                     className="placeholder:capitalize"
                     status={errors?.description ? "error" : ""}
                   />
