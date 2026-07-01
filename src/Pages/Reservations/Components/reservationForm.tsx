@@ -1487,7 +1487,7 @@ const ReservationForm = () => {
 
               <section className="packages-wrapper">
                 <div className="packages-title flex items-center gap-3 capitalize col-span-full text-xl text-[#1D1B1B] font-semibold">
-                  <span>{t("EXTRA_SERVICE_DETAILS")}</span>
+                  <span>{t("SERVICE_AND_PACKAGES_DETAILS")}</span>
 
                   <Button
                     onClick={handlePackageAppend}

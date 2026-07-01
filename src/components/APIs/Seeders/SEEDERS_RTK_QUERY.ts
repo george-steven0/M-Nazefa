@@ -187,6 +187,13 @@ const seeders = API.injectEndpoints({
         method: "GET",
       }),
     }),
+
+    getReservationListDDL: build.query<APIResponse<seedersProps>, void>({
+      query: () => ({
+        url: `/DDL/GetReservationListDDL`,
+        method: "GET",
+      }),
+    }),
   }), // builder braces
 });
 export const {
@@ -206,4 +213,5 @@ export const {
   useGetExtraServicesListQuery,
   useGetAllPackagesListQuery,
   useGetAllWorkersListQuery,
+  useGetReservationListDDLQuery,
 } = seeders;

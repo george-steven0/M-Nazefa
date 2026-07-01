@@ -33,7 +33,6 @@ import type {
   assignWorkerFormProps,
 } from "../../../components/Utilities/Types/types";
 import { toast } from "react-toastify";
-import PayemntsModal from "./payemntsDeatils";
 
 const { Text, Title: TypographyTitle } = Typography;
 
@@ -878,8 +877,6 @@ const ReservationDetails = () => {
         workers={reservation?.reservationWorkers}
         loading={assignWorkerLoading}
       />
-
-      <PayemntsModal />
     </>
   );
 };
