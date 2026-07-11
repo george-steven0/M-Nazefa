@@ -256,6 +256,19 @@ const Navbar = ({
               PERMISSIONS.DELETE_CLEANING_AREA,
             ],
           },
+          {
+            id: "cleaning_area_service",
+            name: t("CLEANING_AREA_SERVICES"),
+            path: "/cleaning_area_service",
+            icon: <AiOutlineTool />,
+            iconType: "fontIcon",
+            permissions: [
+              PERMISSIONS.ADD_CLEANING_AREA_SERVICE,
+              PERMISSIONS.EDIT_CLEANING_AREA_SERVICE,
+              PERMISSIONS.VIEW_CLEANING_AREA_SERVICE,
+              PERMISSIONS.DELETE_CLEANING_AREA_SERVICE,
+            ],
+          },
         ],
       },
       {

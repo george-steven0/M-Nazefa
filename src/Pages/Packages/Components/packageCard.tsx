@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import packageIcon from "../../../assets/imgs/packageIconDark.svg";
-import { ConfigProvider, Switch } from "antd";
+import { ConfigProvider, Popconfirm, Switch } from "antd";
 import type {
   APIErrorProps,
   packageCard,
@@ -8,9 +8,13 @@ import type {
 import { useAppSelector } from "../../../components/APIs/store";
 import defImg from "../../../assets/imgs/logo.svg";
 import { t } from "i18next";
-import { useTogglePackageMutation } from "../../../components/APIs/Packages/PACKAGES_QUERY";
+import {
+  useDeletePackageMutation,
+  useTogglePackageMutation,
+} from "../../../components/APIs/Packages/PACKAGES_QUERY";
 import { toast } from "react-toastify";
 import { isAdmin, isSuperAdmin } from "../../../Utilities/utilities";
+import { AiOutlineDelete } from "react-icons/ai";
 type packageCardProps = {
   id: number | string;
   data: packageCard;
@@ -19,7 +23,25 @@ const PackageCard = ({ id, data }: packageCardProps) => {
   const { lang } = useAppSelector((state) => state.lang);
 
   const [togglePackage, { isLoading }] = useTogglePackageMutation();
+  const [deletePackage, { isLoading: isDeleteLoading }] =
+    useDeletePackageMutation();
   // console.log(data);
+
+  const canManage = isAdmin() || isSuperAdmin();
+
+  const handleDeletePackage = async () => {
+    try {
+      await deletePackage({ id }).unwrap();
+      toast.success(t("PACKAGE_DELETED_SUCCESS"));
+    } catch (error) {
+      const err = error as APIErrorProps;
+      if (err?.data?.errorMessages?.length) {
+        err.data.errorMessages.forEach((message) => toast.error(message));
+      } else {
+        toast.error(t("PACKAGE_DELETE_FAILED"));
+      }
+    }
+  };
 
   const handleTogglePackage = async (status: boolean) => {
     if (!isAdmin() && !isSuperAdmin()) {
@@ -52,6 +74,25 @@ const PackageCard = ({ id, data }: packageCardProps) => {
   return (
     <div className="border bg-[#F5F4F4] border-[#c4c4c4] p-4 rounded-lg shadow-sm">
       <div className="w-full flex flex-col gap-4 relative max-h-[350px] overflow-hidden">
+        {canManage && (
+          <Popconfirm
+            title={t("DELETE_PACKAGE")}
+            description={t("DELETE_PACKAGE_CONFIRM")}
+            okText={t("DELETE")}
+            cancelText={t("CANCEL")}
+            okButtonProps={{ danger: true, loading: isDeleteLoading }}
+            onConfirm={handleDeletePackage}
+          >
+            <button
+              type="button"
+              onClick={(e) => e.stopPropagation()}
+              aria-label={t("DELETE_PACKAGE")}
+              className="absolute top-2 end-2 z-10 flex size-9 items-center justify-center rounded-full bg-white/90 text-mainRed shadow-md backdrop-blur-sm transition-all duration-300 hover:bg-mainRed hover:text-white hover:scale-110"
+            >
+              <AiOutlineDelete size={18} />
+            </button>
+          </Popconfirm>
+        )}
         <div
           className="card-img h-[150px] cursor-pointer overflow-hidden rounded-sm"
           onClick={handleNavigateView}

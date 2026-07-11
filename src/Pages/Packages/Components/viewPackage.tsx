@@ -12,7 +12,11 @@ import type { APIErrorProps } from "../../../components/Utilities/Types/types";
 import { toast } from "react-toastify";
 import { FaPoundSign } from "react-icons/fa";
 import { LuPackageOpen } from "react-icons/lu";
-import { MdOutlineAddHome, MdOutlineDiscount } from "react-icons/md";
+import {
+  MdOutlineAddHome,
+  MdOutlineCleaningServices,
+  MdOutlineDiscount,
+} from "react-icons/md";
 import { HiOutlineUserGroup } from "react-icons/hi2";
 import { isAdmin, isSuperAdmin } from "../../../Utilities/utilities";
 
@@ -84,8 +88,9 @@ const ViewPackage = () => {
         <Skeleton active paragraph={{ rows: 15 }} />
       ) : (
         <>
-          <header className="view-package-title flex items-stretch gap-4 relative">
-            <div>
+          <header className="view-package-title flex justify-between items-start gap-4 relative">
+            <section className="flex items-start gap-2">
+              <div>
               <Image
                 className="w-[200px] h-[200px] object-cover rounded-lg"
                 src={packageById?.data?.logo || def}
@@ -118,8 +123,9 @@ const ViewPackage = () => {
                 </span>
               </h1>
             </div>
+            </section>
 
-            <div className="absolute top-0 right-0">
+            <div className="">
               {handleNavigateButton()}
             </div>
           </header>
@@ -195,21 +201,60 @@ const ViewPackage = () => {
 
           <section className="cleaning-extra-wrapper">
             <div className="flex items-start justify-between gap-8 [&>article]:basis-full [&>article]:md:basis-1/2">
-              <article className="max-w-1/2 overflow-x-auto ">
-                <label className="text-lg font-semibold capitalize mb-2 block">
+              <article className="overflow-x-auto">
+                <label className="text-lg font-semibold capitalize mb-3 block">
                   {t("CLEANING_AREA")}:
                 </label>
 
-                <div className="flex items-center gap-2">
-                  {packageById?.data?.cleaningAreaDetails?.map((item) => (
-                    <Tag
-                      key={item?.id}
-                      className="capitalize rounded-full flex items-center px-3 bg-green-500/20 text-green-700 border-green-500"
-                    >
-                      {lang === "ar" ? item?.arName : item?.name}
-                    </Tag>
-                  ))}
-                </div>
+                {packageById?.data?.cleaningAreaDetails?.length ? (
+                  <div className="flex flex-col gap-3">
+                    {packageById?.data?.cleaningAreaDetails?.map((item) => (
+                      <div
+                        key={item?.id}
+                        className="group relative overflow-hidden rounded-xl border border-green-500/30 bg-green-500/5 p-4 transition-all duration-300 hover:border-green-500/60 hover:shadow-md hover:shadow-green-500/10"
+                      >
+                        <span className="absolute inset-y-0 start-0 w-1 bg-green-500" />
+                        <div className="flex items-start gap-3 ps-2">
+                          <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-green-500/15 text-green-600">
+                            <MdOutlineCleaningServices size={18} />
+                          </span>
+                          <div className="flex flex-col gap-1">
+                            <span className="font-semibold capitalize text-green-800">
+                              {lang === "ar" ? item?.arName : item?.name}
+                            </span>
+                            {item?.description ? (
+                              <p className="text-sm leading-relaxed text-gray-500">
+                                {item?.description}
+                              </p>
+                            ) : null}
+
+                            {item?.cleaningAreaServices?.length ? (
+                              <div className="mt-2 flex flex-col gap-1.5">
+                                <span className="text-xs font-medium capitalize text-green-700/80">
+                                  {t("CLEANING_AREA_SERVICES")}:
+                                </span>
+                                <div className="flex flex-wrap items-center gap-1.5">
+                                  {item?.cleaningAreaServices?.map((service) => (
+                                    <span
+                                      key={service?.id}
+                                      className="rounded-full bg-green-500/15 px-2.5 py-0.5 text-xs font-medium capitalize text-green-700"
+                                    >
+                                      {lang === "ar"
+                                        ? service?.arName
+                                        : service?.name}
+                                    </span>
+                                  ))}
+                                </div>
+                              </div>
+                            ) : null}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-400">{t("NA")}</p>
+                )}
               </article>
 
               <article>

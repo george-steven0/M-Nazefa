@@ -8,8 +8,8 @@ import {
 import { toast } from "react-toastify";
 
 const baseQuery = fetchBaseQuery({
-  baseUrl: "https://api.madamenazifa.com",
-  // baseUrl: "https://apitest.madamenazifa.com",
+  // baseUrl: "https://api.madamenazifa.com",
+  baseUrl: "https://apitest.madamenazifa.com",
   prepareHeaders: (headers) => {
     const token = localStorage.getItem("mNazTk");
     if (token) {
@@ -114,6 +114,7 @@ export const API = createApi({
     "memberships",
     "packageTypes",
     "CleaningArea",
+    "cleaningAreaServices",
     "reservations",
     "holdReservation",
     "workers",

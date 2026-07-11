@@ -42,6 +42,12 @@ export const PERMISSIONS = {
   VIEW_CLEANING_AREA: "view_cleaning_area",
   DELETE_CLEANING_AREA: "delete_cleaning_area",
 
+  // Cleaning Area Service
+  ADD_CLEANING_AREA_SERVICE: "add_cleaning_area_service",
+  EDIT_CLEANING_AREA_SERVICE: "edit_cleaning_area_service",
+  VIEW_CLEANING_AREA_SERVICE: "view_cleaning_area_service",
+  DELETE_CLEANING_AREA_SERVICE: "delete_cleaning_area_service",
+
   // Dashboard
   VIEW_DASHBOARD: "view_dashboard",
   //   VIEW_DASHBOARD_ANALYTICS: "view_dashboard_analytics",

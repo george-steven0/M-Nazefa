@@ -1,9 +1,7 @@
 import { Button, Input, Modal, Select } from "antd";
 import { Controller, useForm } from "react-hook-form";
-import type {
-  APIErrorProps,
-  areaFormProps,
-} from "../../../components/Utilities/Types/types";
+import type { areaFormProps } from "../../../components/Utilities/Types/types";
+import { handleApiError } from "../../../components/Utilities/helper";
 import type { TFunction } from "i18next";
 import { toast } from "react-toastify";
 import { useGetCitiesQuery } from "../../../components/APIs/Seeders/SEEDERS_RTK_QUERY";
@@ -37,26 +35,13 @@ const AddArea = ({ open, close, t }: areaPropsType) => {
     close();
   };
   const submitForm = async (data: areaFormProps) => {
-    console.log(data);
 
     try {
       await addArea(data).unwrap();
       toast.success(t("AREA_ADDED_SUCCESS"));
       handleReset();
     } catch (error) {
-      const err = error as APIErrorProps;
-      // console.log(err);
-
-      if (
-        err?.data?.validationErrors &&
-        err?.data?.validationErrors.length > 0
-      ) {
-        const errs =
-          err?.data?.errorMessage && err?.data?.errorMessage.join("\n");
-        toast.error(errs);
-      } else {
-        toast.error(t("AREA_ADD_FAILED"));
-      }
+      handleApiError(error, t("AREA_ADD_FAILED"));
     }
   };
   return (

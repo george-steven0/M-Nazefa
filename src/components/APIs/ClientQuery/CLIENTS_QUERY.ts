@@ -115,6 +115,20 @@ const clients = API.injectEndpoints({
         { type: "clients", id: "LIST" },
       ],
     }),
+
+    deleteCustomer: build.mutation<
+      SingleAPIResponse<clientFormPropsType>,
+      { id: string | number }
+    >({
+      query: ({ id }) => ({
+        url: `/Customer/DeleteCustomer`,
+        method: "POST",
+        headers: {
+          id: String(id),
+        },
+      }),
+      invalidatesTags: [{ type: "clients", id: "LIST" }, "dashboardMetrics"],
+    }),
   }),
 });
 
@@ -124,4 +138,5 @@ export const {
   useAddNewClientMutation,
   useEditClientMutation,
   useDeactivateClientMutation,
+  useDeleteCustomerMutation,
 } = clients;

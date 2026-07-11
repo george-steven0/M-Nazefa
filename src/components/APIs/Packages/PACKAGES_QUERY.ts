@@ -64,6 +64,20 @@ const packagesQuery = API.injectEndpoints({
       invalidatesTags: ["packages"],
     }),
 
+    deletePackage: builder.mutation<
+      SingleAPIResponse<packageFormProps>,
+      { id: string | number }
+    >({
+      query: ({ id }) => ({
+        url: `/Package/DeletePackage`,
+        method: "POST",
+        headers: {
+          id: String(id),
+        },
+      }),
+      invalidatesTags: ["packages"],
+    }),
+
     addPackageType: builder.mutation<
       SingleAPIResponse<packageFormProps>,
       seedersProps
@@ -109,6 +123,7 @@ export const {
   useAddPackageMutation,
   useEditPackageMutation,
   useTogglePackageMutation,
+  useDeletePackageMutation,
   useGetPackageByIdQuery,
   useAddPackageTypeMutation,
   useEditPackageTypeMutation,

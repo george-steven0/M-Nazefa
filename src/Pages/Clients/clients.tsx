@@ -1,29 +1,59 @@
-import { AiOutlineEye } from "react-icons/ai";
+import { AiOutlineDelete, AiOutlineEye } from "react-icons/ai";
 import { BiEdit } from "react-icons/bi";
 import {
   Button,
   Dropdown,
+  Popconfirm,
   type MenuProps,
   type TablePaginationConfig,
   type TableProps,
 } from "antd";
-import type { clientFormPropsType } from "../../components/Utilities/Types/types";
+import type {
+  APIErrorProps,
+  clientFormPropsType,
+} from "../../components/Utilities/Types/types";
 import Title from "../../components/Common/Title/title";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useSearchBox } from "../../components/Common/Search/searchInput";
-import { useGetAllCustomersQuery } from "../../components/APIs/ClientQuery/CLIENTS_QUERY";
+import {
+  useGetAllCustomersQuery,
+  useDeleteCustomerMutation,
+} from "../../components/APIs/ClientQuery/CLIENTS_QUERY";
 import { useTranslation } from "react-i18next";
 import useCustomDataTable from "../../components/Common/Datatable/dataTable";
 import { useState } from "react";
 import { MdFilterAlt } from "react-icons/md";
 import { fullDateFormat } from "../../components/Utilities/helper";
+import { toast } from "react-toastify";
+import { isAdmin, isSuperAdmin } from "../../Utilities/utilities";
 
 const Actions = ({ data }: { data: clientFormPropsType }) => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const handleNavigate = (type: string) => {
     navigate(`${type}-client?id=${data?.id}`);
     // console.log(data);
   };
+
+  const [deleteCustomer, { isLoading: isDeleteLoading }] =
+    useDeleteCustomerMutation();
+
+  const canManage = isAdmin() || isSuperAdmin();
+
+  const handleDelete = async () => {
+    try {
+      await deleteCustomer({ id: data?.id ?? "" }).unwrap();
+      toast.success(t("CUSTOMER_DELETED_SUCCESS"));
+    } catch (error) {
+      const err = error as APIErrorProps;
+      if (err?.data?.errorMessages?.length) {
+        err.data.errorMessages.forEach((message) => toast.error(message));
+      } else {
+        toast.error(t("CUSTOMER_DELETE_FAILED"));
+      }
+    }
+  };
+
   return (
     <div className="flex items-center gap-2">
       <Button
@@ -38,6 +68,23 @@ const Actions = ({ data }: { data: clientFormPropsType }) => {
         onClick={() => handleNavigate("view")}
         icon={<AiOutlineEye size={20} />}
       />
+      {canManage && (
+        <Popconfirm
+          title={t("DELETE_CUSTOMER")}
+          description={t("DELETE_CUSTOMER_CONFIRM")}
+          okText={t("DELETE")}
+          cancelText={t("CANCEL")}
+          okButtonProps={{ danger: true, loading: isDeleteLoading }}
+          onConfirm={handleDelete}
+        >
+          <Button
+            danger
+            shape="circle"
+            className="size-10 [&>span]:flex [&>span]:items-center"
+            icon={<AiOutlineDelete size={20} />}
+          />
+        </Popconfirm>
+      )}
     </div>
   );
 };

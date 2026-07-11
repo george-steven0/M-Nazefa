@@ -1,5 +1,6 @@
 import dayjs from "dayjs";
-import type { FileType } from "./Types/types";
+import { toast } from "react-toastify";
+import type { APIErrorProps, FileType } from "./Types/types";
 import utc from "dayjs/plugin/utc"; // Required for the 'Z' (UTC) output
 import timezone from "dayjs/plugin/timezone";
 dayjs.extend(utc);
@@ -54,4 +55,32 @@ export const DateOnlyFormat = (date: string) => {
   if (!date) return;
   const format = dayjs(date)?.format("DD-MM-YYYY");
   return format;
+};
+
+/**
+ * Shows backend error messages from a failed API request as a toast.
+ *
+ * When the response carries validation errors, their messages are shown
+ * (joined by new lines); otherwise the provided translated `fallbackMessage`
+ * is shown instead.
+ *
+ * @param error - The error caught from an RTK Query `.unwrap()` call.
+ * @param fallbackMessage - Already-translated message to show when the
+ *   response has no validation error messages (e.g. `t("AREA_ADD_FAILED")`).
+ */
+export const handleApiError = (
+  error: unknown,
+  fallbackMessage: string,
+): void => {
+  const err = error as APIErrorProps;
+  const validationErrors = err?.data?.validationErrors;
+
+  if (validationErrors && validationErrors.length > 0) {
+    const messages = err?.data?.errorMessage?.length
+      ? err.data.errorMessage.join("\n")
+      : validationErrors.join("\n");
+    toast.error(messages);
+  } else {
+    toast.error(fallbackMessage);
+  }
 };

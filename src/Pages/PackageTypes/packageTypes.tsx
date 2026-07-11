@@ -90,9 +90,19 @@ export default function PackageTypes() {
     );
   };
 
-  const { SearchBox } = useSearchBox({
+  const { SearchBox, debounceValue } = useSearchBox({
     placeholder: t("SEARCH_PACKAGE_TYPES"),
   });
+
+  const searchTerm = debounceValue.trim().toLowerCase();
+  const filteredData = searchTerm
+    ? data.filter(
+        (item) =>
+          item?.name?.toLowerCase().includes(searchTerm) ||
+          item?.arName?.toLowerCase().includes(searchTerm) ||
+          String(item?.id ?? "").includes(searchTerm),
+      )
+    : data;
 
   return (
     <div className="package-types-page-wrapper">
@@ -108,7 +118,7 @@ export default function PackageTypes() {
         <Table<seedersProps>
           rowKey={"id"}
           columns={columns}
-          dataSource={data || []}
+          dataSource={filteredData}
           loading={isLoading || isFetching}
           // onRow={(record) => ({
           //   onClick: () => handleRowClick(record),

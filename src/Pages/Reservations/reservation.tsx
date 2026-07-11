@@ -22,6 +22,7 @@ import ComplaintForm from "../Complaints/Components/complaintForm";
 import FeedbackForm from "../ReservationFeedback/Components/feedbackForm";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
+import { handleApiError } from "../../components/Utilities/helper";
 import { useAppSelector } from "../../components/APIs/store";
 import { BsBoxSeam } from "react-icons/bs";
 import { isAdmin, isSuperAdmin } from "../../Utilities/utilities";
@@ -323,19 +324,7 @@ export const Reservations = () => {
       closeHoldReservationModal();
       toast.success(t("AVAILABLE_APPOINTMENTS_UPDATED_SUCCESS"));
     } catch (error) {
-      const err = error as APIErrorProps;
-      // console.log(err);
-
-      if (
-        err?.data?.validationErrors &&
-        err?.data?.validationErrors.length > 0
-      ) {
-        const errs =
-          err?.data?.errorMessage && err?.data?.errorMessage.join("\n");
-        toast.error(errs);
-      } else {
-        toast.error(t("UPDATE_APPOINTMENTS_FAILED"));
-      }
+      handleApiError(error, t("UPDATE_APPOINTMENTS_FAILED"));
     }
   };
 

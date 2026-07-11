@@ -1,9 +1,7 @@
 import { Button, Input, Modal } from "antd";
 import { Controller, useForm } from "react-hook-form";
-import type {
-  APIErrorProps,
-  rolesFormProps,
-} from "../../../components/Utilities/Types/types";
+import type { rolesFormProps } from "../../../components/Utilities/Types/types";
+import { handleApiError } from "../../../components/Utilities/helper";
 import type { TFunction } from "i18next";
 import { toast } from "react-toastify";
 import { useAddRoleMutation } from "../../../components/APIs/Roles/ROLE_QUERY";
@@ -35,19 +33,7 @@ const AddRole = ({ open, close, t }: addRoleProps) => {
       toast.success(t("ROLE_ADDED_SUCCESS"));
       handleReset();
     } catch (error) {
-      const err = error as APIErrorProps;
-      // console.log(err);
-
-      if (
-        err?.data?.validationErrors &&
-        err?.data?.validationErrors.length > 0
-      ) {
-        const errs =
-          err?.data?.errorMessage && err?.data?.errorMessage.join("\n");
-        toast.error(errs);
-      } else {
-        toast.error(t("ROLE_ADD_FAILED"));
-      }
+      handleApiError(error, t("ROLE_ADD_FAILED"));
     }
   };
   return (

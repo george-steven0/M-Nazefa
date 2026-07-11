@@ -1,24 +1,56 @@
 // import { AiOutlineEye } from "react-icons/ai";
 import { BiEdit } from "react-icons/bi";
-import { Button, type TablePaginationConfig, type TableProps } from "antd";
+import { AiOutlineDelete } from "react-icons/ai";
+import {
+  Button,
+  Popconfirm,
+  type TablePaginationConfig,
+  type TableProps,
+} from "antd";
 import { useTranslation } from "react-i18next";
 import Title from "../../components/Common/Title/title";
 import { Outlet, useLocation } from "react-router-dom";
 import { useSearchBox } from "../../components/Common/Search/searchInput";
 import { useState } from "react";
-import type { workersFormProps } from "../../components/Utilities/Types/types";
-import { useGetAllWorkersQuery } from "../../components/APIs/Workers/WORKERS_QUERY";
+import type {
+  APIErrorProps,
+  workersFormProps,
+} from "../../components/Utilities/Types/types";
+import {
+  useGetAllWorkersQuery,
+  useDeleteWorkerMutation,
+} from "../../components/APIs/Workers/WORKERS_QUERY";
 import useCustomDataTable from "../../components/Common/Datatable/dataTable";
 import WorkerFormModal from "./Components/workerFormModal";
 import { fullDateFormat } from "../../components/Utilities/helper";
 import { FaPhone } from "react-icons/fa";
+import { toast } from "react-toastify";
+import { isAdmin, isSuperAdmin } from "../../Utilities/utilities";
 
 const Actions = ({ data }: { data: workersFormProps }) => {
+  const { t } = useTranslation();
   // handle edit modal
   const [openEditModal, setOpenEditModal] = useState<boolean>(false);
   const toggleEditModal = () => setOpenEditModal((prev) => !prev);
 
-  // console.log("actions", data);
+  const [deleteWorker, { isLoading: isDeleteLoading }] =
+    useDeleteWorkerMutation();
+
+  const canManage = isAdmin() || isSuperAdmin();
+
+  const handleDelete = async () => {
+    try {
+      await deleteWorker({ id: data?.id ?? "" }).unwrap();
+      toast.success(t("WORKER_DELETED_SUCCESS"));
+    } catch (error) {
+      const err = error as APIErrorProps;
+      if (err?.data?.errorMessages?.length) {
+        err.data.errorMessages.forEach((message) => toast.error(message));
+      } else {
+        toast.error(t("WORKER_DELETE_FAILED"));
+      }
+    }
+  };
 
   return (
     <>
@@ -29,6 +61,23 @@ const Actions = ({ data }: { data: workersFormProps }) => {
           onClick={toggleEditModal}
           icon={<BiEdit size={20} />}
         />
+        {canManage && (
+          <Popconfirm
+            title={t("DELETE_WORKER")}
+            description={t("DELETE_WORKER_CONFIRM")}
+            okText={t("DELETE")}
+            cancelText={t("CANCEL")}
+            okButtonProps={{ danger: true, loading: isDeleteLoading }}
+            onConfirm={handleDelete}
+          >
+            <Button
+              danger
+              shape="circle"
+              className="size-10 [&>span]:flex [&>span]:items-center"
+              icon={<AiOutlineDelete size={20} />}
+            />
+          </Popconfirm>
+        )}
         {/* <Button
         className="hover:bg-mainGray/60 hover:text-white hover:border-transparent size-10 [&>span]:flex [&>span]:items-center"
         shape="circle"
@@ -57,6 +106,10 @@ const Workers = () => {
     pageSize: 10,
   });
 
+  const { SearchBox, debounceValue } = useSearchBox({
+    placeholder: t("SEARCH_WORKERS"),
+  });
+
   const {
     data: workers,
     isLoading,
@@ -64,6 +117,7 @@ const Workers = () => {
   } = useGetAllWorkersQuery({
     page: pagination.current,
     size: pagination.pageSize,
+    search: encodeURIComponent(debounceValue),
   });
 
   const columns: TableProps<workersFormProps>["columns"] = [
@@ -176,10 +230,6 @@ const Workers = () => {
       </div>
     );
   };
-
-  const { SearchBox } = useSearchBox({
-    placeholder: t("SEARCH_WORKERS"),
-  });
 
   const isChildPage =
     pathname.includes("add-worker") || pathname.includes("edit-worker");

@@ -1,34 +1,41 @@
-import { Button, Input, Modal } from "antd";
+import { Button, Input, Modal, Switch } from "antd";
 import { Controller, useForm } from "react-hook-form";
-import type { seedersProps } from "../../../components/Utilities/Types/types";
+import type { cleaningAreaServiceProps } from "../../../components/Utilities/Types/types";
 import { handleApiError } from "../../../components/Utilities/helper";
 import type { TFunction } from "i18next";
 import { toast } from "react-toastify";
 import { useEffect, useMemo } from "react";
 import {
-  useAddCleaningAreaMutation,
-  useEditCleaningAreaMutation,
-} from "../../../components/APIs/CleaningArea/CLEANING_AREA_QUERY";
+  useAddCleaningAreaServiceMutation,
+  useEditCleaningAreaServiceMutation,
+} from "../../../components/APIs/CleaningAreaService/CLEANING_AREA_SERVICE_QUERY";
 
 type FormPropsType = {
   open: boolean;
   close: () => void;
   t: TFunction;
-  data?: seedersProps;
+  data?: cleaningAreaServiceProps;
   type?: string;
 };
 
-const CleaningAreaForm = ({ open, close, t, data, type }: FormPropsType) => {
-  const [addCleaningArea, { isLoading: addLoading }] =
-    useAddCleaningAreaMutation();
-  const [editCleaningArea, { isLoading: editLoading }] =
-    useEditCleaningAreaMutation();
+const CleaningAreaServiceForm = ({
+  open,
+  close,
+  t,
+  data,
+  type,
+}: FormPropsType) => {
+  const [addCleaningAreaService, { isLoading: addLoading }] =
+    useAddCleaningAreaServiceMutation();
+  const [editCleaningAreaService, { isLoading: editLoading }] =
+    useEditCleaningAreaServiceMutation();
 
   const defaultValues = useMemo(() => {
     return {
       id: data?.id,
       name: data?.name,
       arName: data?.arName,
+      active: data?.active ?? true,
     };
   }, [data]);
 
@@ -37,8 +44,8 @@ const CleaningAreaForm = ({ open, close, t, data, type }: FormPropsType) => {
     handleSubmit,
     reset,
     formState: { errors },
-  } = useForm<seedersProps>({
-    defaultValues: type === "add" ? {} : defaultValues,
+  } = useForm<cleaningAreaServiceProps>({
+    defaultValues: type === "add" ? { active: true } : defaultValues,
   });
 
   useEffect(() => {
@@ -51,32 +58,34 @@ const CleaningAreaForm = ({ open, close, t, data, type }: FormPropsType) => {
     reset();
     close();
   };
-  const submitForm = async (data: seedersProps) => {
-    // console.log(data);
 
+  const submitForm = async (formData: cleaningAreaServiceProps) => {
     try {
       if (type === "add") {
-        await addCleaningArea(data).unwrap();
-        toast.success(t("CLEANING_AREA_ADDED_SUCCESS"));
+        await addCleaningAreaService(formData).unwrap();
+        toast.success(t("CLEANING_AREA_SERVICE_ADDED_SUCCESS"));
       } else {
-        await editCleaningArea(data).unwrap();
-        toast.success(t("CLEANING_AREA_UPDATED_SUCCESS"));
+        await editCleaningAreaService(formData).unwrap();
+        toast.success(t("CLEANING_AREA_SERVICE_UPDATED_SUCCESS"));
       }
       handleReset();
     } catch (error) {
       handleApiError(
         error,
         type === "add"
-          ? t("CLEANING_AREA_ADD_FAILED")
-          : t("CLEANING_AREA_UPDATE_FAILED"),
+          ? t("CLEANING_AREA_SERVICE_ADD_FAILED")
+          : t("CLEANING_AREA_SERVICE_UPDATE_FAILED"),
       );
     }
   };
+
   return (
     <div>
       <Modal
         title={
-          type === "add" ? t("ADD_CLEANING_AREA") : t("EDIT_CLEANING_AREA")
+          type === "add"
+            ? t("ADD_CLEANING_AREA_SERVICE")
+            : t("EDIT_CLEANING_AREA_SERVICE")
         }
         closable={{ "aria-label": "Close Button" }}
         open={open}
@@ -129,7 +138,7 @@ const CleaningAreaForm = ({ open, close, t, data, type }: FormPropsType) => {
                     message: t("REQUIRED"),
                   },
                   pattern: {
-                    value: /^[\u0600-\u06FF0-9\s]+$/,
+                    value: /^[؀-ۿ0-9\s]+$/,
                     message: t("ARABIC_LETTER"),
                   },
                 }}
@@ -150,6 +159,24 @@ const CleaningAreaForm = ({ open, close, t, data, type }: FormPropsType) => {
                 </p>
               ) : null}
             </div>
+
+            <div className="flex items-center gap-3">
+              <label className="mb-0 font-medium capitalize">
+                {t("STATUS")}
+              </label>
+              <Controller
+                control={control}
+                name="active"
+                render={({ field }) => (
+                  <Switch
+                    checked={field.value}
+                    onChange={field.onChange}
+                    checkedChildren={t("ACTIVE")}
+                    unCheckedChildren={t("INACTIVE")}
+                  />
+                )}
+              />
+            </div>
           </div>
 
           <div className="w-full flex justify-between [&>button]:min-w-[120px] [&>button]:py-5 [&>button]:capitalize mt-8">
@@ -168,4 +195,4 @@ const CleaningAreaForm = ({ open, close, t, data, type }: FormPropsType) => {
   );
 };
 
-export default CleaningAreaForm;
+export default CleaningAreaServiceForm;

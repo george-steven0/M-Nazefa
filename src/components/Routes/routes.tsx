@@ -36,6 +36,7 @@ import Memberships from "../../Pages/Membership/memberShip";
 import PackageForm from "../../Pages/Packages/Components/packageForm";
 import PackageTypes from "../../Pages/PackageTypes/packageTypes";
 import CLeaningArea from "../../Pages/CleaningArea/cleaningArea";
+import CleaningAreaService from "../../Pages/CleaningAreaService/cleaningAreaService";
 import ReservationForm from "../../Pages/Reservations/Components/reservationForm";
 import Profile from "../../Pages/Profile/profile";
 import TransportationFees from "../../Pages/Transportations/transportations";
@@ -241,6 +242,15 @@ export const routes = createBrowserRouter([
             element: <CLeaningArea />,
             handle: {
               permission: PERMISSIONS.VIEW_CLEANING_AREA,
+            },
+          },
+
+          // Cleaning Area Service
+          {
+            path: "cleaning_area_service",
+            element: <CleaningAreaService />,
+            handle: {
+              permission: PERMISSIONS.VIEW_CLEANING_AREA_SERVICE,
             },
           },
 

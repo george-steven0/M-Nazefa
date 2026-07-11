@@ -1,9 +1,7 @@
 import { Button, Input, Modal } from "antd";
 import { Controller, useForm } from "react-hook-form";
-import type {
-  APIErrorProps,
-  changePasswordForm,
-} from "../../../components/Utilities/Types/types";
+import type { changePasswordForm } from "../../../components/Utilities/Types/types";
+import { handleApiError } from "../../../components/Utilities/helper";
 import type { TFunction } from "i18next";
 import { useChangePasswordMutation } from "../../../components/APIs/EmployeesQuery/EMPLOYEES_QUERY";
 import { toast } from "react-toastify";
@@ -59,18 +57,7 @@ const ChangePassword = ({
         navigate("/login");
       }
     } catch (error) {
-      const err = error as APIErrorProps;
-      // console.log(err);
-
-      if (
-        err?.data?.validationErrors &&
-        err?.data?.validationErrors.length > 0
-      ) {
-        const errs = err?.data?.errorMessage?.join("\n");
-        toast.error(errs);
-      } else {
-        toast.error(t("PASSWORD_CHANGE_FAILED"));
-      }
+      handleApiError(error, t("PASSWORD_CHANGE_FAILED"));
     }
   };
   return (

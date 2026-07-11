@@ -50,9 +50,13 @@ const Packages = () => {
         <Title title={t("PACKAGES")} component={handleAddButton} />
       </section>
 
-      <section className="packages-card-wrapper max-h-[70vh] overflow-y-auto mt-8 grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-5">
+      <section className={`packages-card-wrapper max-h-[70vh] overflow-y-auto mt-8 grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-5`}>
         {isLoading || isFetching ? (
-          <Skeleton active paragraph={{ rows: 3 }} />
+          <>
+            {Array.from({ length: 9 }).map((_, index) => (
+              <Skeleton active paragraph={{ rows: 3 }} key={index} className="mb-6" />
+            ))}
+          </>
         ) : (
           packages?.data?.map((item, index) => (
             <PackageCard key={index} id={item.id} data={item} />

@@ -1,9 +1,7 @@
 import { Button, Input, Modal } from "antd";
 import { Controller, useForm } from "react-hook-form";
-import type {
-  APIErrorProps,
-  seedersProps,
-} from "../../../components/Utilities/Types/types";
+import type { seedersProps } from "../../../components/Utilities/Types/types";
+import { handleApiError } from "../../../components/Utilities/helper";
 import type { TFunction } from "i18next";
 import { toast } from "react-toastify";
 import {
@@ -72,23 +70,12 @@ const PackageTypeForm = ({
       }
       handleReset();
     } catch (error) {
-      const err = error as APIErrorProps;
-      // console.log(err);
-
-      if (
-        err?.data?.validationErrors &&
-        err?.data?.validationErrors.length > 0
-      ) {
-        const errs =
-          err?.data?.errorMessage && err?.data?.errorMessage.join("\n");
-        toast.error(errs);
-      } else {
-        toast.error(
-          type === "add"
-            ? t("PACKAGE_TYPE_ADD_FAILED")
-            : t("PACKAGE_TYPE_UPDATE_FAILED"),
-        );
-      }
+      handleApiError(
+        error,
+        type === "add"
+          ? t("PACKAGE_TYPE_ADD_FAILED")
+          : t("PACKAGE_TYPE_UPDATE_FAILED"),
+      );
     }
   };
   return (
@@ -114,7 +101,7 @@ const PackageTypeForm = ({
                     message: t("REQUIRED"),
                   },
                   pattern: {
-                    value: /^[a-zA-Z0-9\s]+$/,
+                    value: /^[a-zA-Z0-9\s!@#$%^&*()_+=~`|;:'",.<>?{}[\]\\/-]+$/,
                     message: t("ENGLISH_LETTER"),
                   },
                 }}
@@ -147,7 +134,7 @@ const PackageTypeForm = ({
                     message: t("REQUIRED"),
                   },
                   pattern: {
-                    value: /^[\u0600-\u06FF0-9\s]+$/,
+                    value: /^[\u0600-\u06FF0-9\s!@#$%^&*()_+=~`|;:'",.<>?{}[\]\\/-]+$/,
                     message: t("ARABIC_LETTER"),
                   },
                 }}

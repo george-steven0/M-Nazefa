@@ -1,9 +1,7 @@
 import { Button, Input, Modal } from "antd";
 import { Controller, useForm } from "react-hook-form";
-import type {
-  APIErrorProps,
-  rolesFormProps,
-} from "../../../components/Utilities/Types/types";
+import type { rolesFormProps } from "../../../components/Utilities/Types/types";
+import { handleApiError } from "../../../components/Utilities/helper";
 import type { TFunction } from "i18next";
 import { toast } from "react-toastify";
 import { useEditRoleMutation } from "../../../components/APIs/Roles/ROLE_QUERY";
@@ -54,19 +52,7 @@ const EditRole = ({ open, close, t, data }: editRoleProps) => {
       toast.success(t("ROLE_EDITED_SUCCESS"));
       handleReset();
     } catch (error) {
-      const err = error as APIErrorProps;
-      // console.log(err);
-
-      if (
-        err?.data?.validationErrors &&
-        err?.data?.validationErrors.length > 0
-      ) {
-        const errs =
-          err?.data?.errorMessage && err?.data?.errorMessage.join("\n");
-        toast.error(errs);
-      } else {
-        toast.error(t("ROLE_EDIT_FAILED"));
-      }
+      handleApiError(error, t("ROLE_EDIT_FAILED"));
     }
   };
   return (

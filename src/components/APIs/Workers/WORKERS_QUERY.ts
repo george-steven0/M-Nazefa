@@ -1,7 +1,7 @@
 import type {
   APIParams,
   APIResponse,
-  //   SingleAPIResponse,
+  SingleAPIResponse,
   workersFormProps,
 } from "../../Utilities/Types/types";
 import { API } from "../apiSlice";
@@ -9,7 +9,7 @@ import { API } from "../apiSlice";
 const workers = API.injectEndpoints({
   endpoints: (builder) => ({
     getAllWorkers: builder.query<APIResponse<workersFormProps>, APIParams>({
-      query: ({ page, size }) => {
+      query: ({ page, size, search }) => {
         const myPage = page ? String(page) : "1";
         const mySize = size ? String(size) : "10";
 
@@ -18,6 +18,7 @@ const workers = API.injectEndpoints({
           headers: {
             CurrentPage: myPage,
             NumberOfItemsPerPage: mySize,
+            SearchKey: search ?? "",
           },
         };
       },
@@ -61,6 +62,20 @@ const workers = API.injectEndpoints({
       }),
       invalidatesTags: [{ type: "workers", id: "LIST" }],
     }),
+
+    deleteWorker: builder.mutation<
+      SingleAPIResponse<workersFormProps>,
+      { id: string | number }
+    >({
+      query: ({ id }) => ({
+        url: `/Worker/DeleteWorker`,
+        method: "POST",
+        headers: {
+          id: String(id),
+        },
+      }),
+      invalidatesTags: [{ type: "workers", id: "LIST" }],
+    }),
   }),
 });
 
@@ -68,4 +83,5 @@ export const {
   useGetAllWorkersQuery,
   useAddWorkerMutation,
   useEditWorkerMutation,
+  useDeleteWorkerMutation,
 } = workers;

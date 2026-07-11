@@ -30,6 +30,7 @@ import { skipToken } from "@reduxjs/toolkit/query";
 import { useGetPackageTypesQuery } from "../../../components/APIs/Seeders/SEEDERS_RTK_QUERY";
 import { useAppSelector } from "../../../components/APIs/store";
 import { useGetCleaningAreasQuery } from "../../../components/APIs/CleaningArea/CLEANING_AREA_QUERY";
+import { useGetAllCleaningAreaServicesQuery } from "../../../components/APIs/CleaningAreaService/CLEANING_AREA_SERVICE_QUERY";
 import Astrisk from "../../../components/Common/Astrisk/astrisk";
 
 export default function PackageForm() {
@@ -48,6 +49,12 @@ export default function PackageForm() {
     isLoading: isCleaningAreasLoading,
     isFetching: isCleaningAreasFetching,
   } = useGetCleaningAreasQuery();
+
+  const {
+    data: cleaningAreaServices,
+    isLoading: isCleaningAreaServicesLoading,
+    isFetching: isCleaningAreaServicesFetching,
+  } = useGetAllCleaningAreaServicesQuery({ page: 1, size: 1000 });
 
   // const {
   //   data: extraServices,
@@ -90,10 +97,11 @@ export default function PackageForm() {
     Price: packageById?.data?.price,
     CleaningAreaDetails: packageById?.data?.cleaningAreaDetails?.map(
       (cleaningArea) => ({
-        CleaningAreaId: cleaningArea.cleaningAreaId,
-        ArName: cleaningArea.arName,
-        Name: cleaningArea.name,
-        Description: cleaningArea.description,
+        CleaningAreaId: cleaningArea?.cleaningAreaId,
+        ArName: cleaningArea?.arName,
+        Name: cleaningArea?.name,
+        Description: cleaningArea?.description,
+        CleaningAreaServiceIds: cleaningArea?.cleaningAreaServices?.map((service) => service.id) ?? [],
       }),
     ),
     ExtraServices: packageById?.data?.extraServices?.map((extraService) => ({
@@ -137,6 +145,7 @@ export default function PackageForm() {
               ArName: "",
               Name: "",
               Description: "",
+              CleaningAreaServiceIds: [],
             },
           ],
           ExtraServices: [
@@ -234,6 +243,7 @@ export default function PackageForm() {
       ArName: "",
       Name: "",
       Description: "",
+      CleaningAreaServiceIds: [],
     });
   };
 
@@ -349,10 +359,21 @@ export default function PackageForm() {
             // Loop through the sub-keys of the object
             // Result: key[index].subKey -> PackageDetails[0].NumberofRooms
             Object.entries(item).forEach(([subKey, subValue]) => {
-              formattedData.append(
-                `${key}[${index}].${subKey}`,
-                String(subValue),
-              );
+              if (Array.isArray(subValue)) {
+                // Nested arrays (e.g. CleaningAreaServiceIds) ->
+                // key[index].subKey[subIndex]
+                subValue.forEach((sub, subIndex) => {
+                  formattedData.append(
+                    `${key}[${index}].${subKey}[${subIndex}]`,
+                    String(sub),
+                  );
+                });
+              } else {
+                formattedData.append(
+                  `${key}[${index}].${subKey}`,
+                  String(subValue),
+                );
+              }
             });
           } else {
             // Handle arrays of primitives or files
@@ -1244,7 +1265,7 @@ export default function PackageForm() {
                       <div className="flex items-center gap-5 [&>div>label]:block [&>div>label]:mb-1 [&>div>label]:capitalize [&>div>label]:font-medium [&>div>input]:border-[#C4C4C4] [&>div>input]:py-2 [&>div>p]:mt-1 [&>div>p]:text-xs [&>div>p]:capitalize [&>div>p]:text-mainRed">
                         <div className="grow">
                           <label>
-                            {t("SELECT_CLEANING_AREA")} <Astrisk />
+                            #{index + 1} {t("SELECT_CLEANING_AREA")} <Astrisk />
                           </label>
                           <Controller
                             control={control}
@@ -1392,6 +1413,39 @@ export default function PackageForm() {
                         </div>
                       </div>
 
+                      <div className="mt-3 [&>label]:block [&>label]:mb-1 [&>label]:capitalize [&>label]:font-medium">
+                        <label>{t("CLEANING_AREA_SERVICES")}</label>
+                        <Controller
+                          control={control}
+                          name={`CleaningAreaDetails.${index}.CleaningAreaServiceIds`}
+                          render={({ field }) => (
+                            <Select
+                              {...field}
+                              mode="multiple"
+                              variant="filled"
+                              allowClear
+                              placeholder={t("SELECT_CLEANING_AREA_SERVICES")}
+                              className="w-full border border-[#C4C4C4] rounded-md h-10 [&_.ant-select-selection-wrap]:h-full"
+                              loading={
+                                isCleaningAreaServicesLoading ||
+                                isCleaningAreaServicesFetching
+                              }
+                              options={cleaningAreaServices?.data?.map(
+                                (service) => ({
+                                  value: service.id,
+                                  label:
+                                    lang === "ar"
+                                      ? service.arName
+                                      : service.name,
+                                }),
+                              )}
+                              showSearch
+                              optionFilterProp="label"
+                            />
+                          )}
+                        />
+                      </div>
+
                       <div className="mt-3 [&>label]:block [&>label]:mb-1 [&>label]:capitalize [&>label]:font-medium [&>input]:border-[#C4C4C4] [&>input]:py-2 [&>p]:mt-1 [&>p]:text-xs [&>p]:capitalize [&>p]:text-mainRed">
                         <label>
                           {t("DESCRIPTION")} <Astrisk />
@@ -1429,6 +1483,8 @@ export default function PackageForm() {
                           </p>
                         ) : null}
                       </div>
+
+                      
                     </div>
                   ))}
                 </div>

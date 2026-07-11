@@ -265,12 +265,14 @@ export type packageFormProps = {
     ArName: string;
     Name: string;
     Description: string;
+    CleaningAreaServiceIds?: (string | number)[];
   }[];
   cleaningAreaDetails?: {
     CleaningAreaId: string;
     ArName: string;
     Name: string;
     Description: string;
+    CleaningAreaServiceIds?: (string | number)[];
   }[];
   ExtraServices: {
     ArName: string;
@@ -318,6 +320,11 @@ export type packageCard = {
     arName: string;
     name: string;
     description: string;
+    cleaningAreaServices?: {
+      id: string | number;
+      name: string;
+      arName: string;
+    }[];
   }[];
   extraServices?: {
     arName: string;
@@ -570,6 +577,13 @@ export type seedersProps = {
   id?: string;
   name: string;
   arName: string;
+};
+
+export type cleaningAreaServiceProps = {
+  id?: number | string;
+  name: string;
+  arName: string;
+  active: boolean;
 };
 
 export type membershipFormProps = {
