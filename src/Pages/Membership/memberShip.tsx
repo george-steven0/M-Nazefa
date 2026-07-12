@@ -1,4 +1,4 @@
-import { Button, Table, type TableProps } from "antd";
+import { Button, Popconfirm, Table, type TableProps } from "antd";
 import type { membershipFormProps } from "../../components/Utilities/Types/types";
 import { useTranslation } from "react-i18next";
 import Title from "../../components/Common/Title/title";
@@ -6,11 +6,18 @@ import { useSearchBox } from "../../components/Common/Search/searchInput";
 import type { TFunction } from "i18next";
 import { useState } from "react";
 import { BiEdit } from "react-icons/bi";
-import { useGetAllMembershipsQuery } from "../../components/APIs/Membership/MEMBERSHIP_QUERY";
+import { AiOutlineDelete } from "react-icons/ai";
+import { toast } from "react-toastify";
+import {
+  useGetAllMembershipsQuery,
+  useDeleteMembershipMutation,
+} from "../../components/APIs/Membership/MEMBERSHIP_QUERY";
 import {
   DateOnlyFormat,
   fullDateFormat,
+  handleApiError,
 } from "../../components/Utilities/helper";
+import { isAdmin, isSuperAdmin } from "../../Utilities/utilities";
 import MembershipForm from "./Components/membershipForm";
 
 const Actions = ({ data, t }: { data: membershipFormProps; t: TFunction }) => {
@@ -18,6 +25,20 @@ const Actions = ({ data, t }: { data: membershipFormProps; t: TFunction }) => {
 
   const handleEditMembershipToggle = () => {
     setEditMembership((prev) => !prev);
+  };
+
+  const [deleteMembership, { isLoading: isDeleteLoading }] =
+    useDeleteMembershipMutation();
+
+  const canManage = isAdmin() || isSuperAdmin();
+
+  const handleDelete = async () => {
+    try {
+      await deleteMembership({ id: String(data?.id ?? "") }).unwrap();
+      toast.success(t("MEMBERSHIP_DELETED_SUCCESS"));
+    } catch (error) {
+      handleApiError(error, t("MEMBERSHIP_DELETE_FAILED"));
+    }
   };
 
   return (
@@ -29,6 +50,24 @@ const Actions = ({ data, t }: { data: membershipFormProps; t: TFunction }) => {
         // onClick={handleNavigateEdit}
         icon={<BiEdit size={20} />}
       />
+
+      {canManage && (
+        <Popconfirm
+          title={t("DELETE_MEMBERSHIP")}
+          description={t("DELETE_MEMBERSHIP_CONFIRM")}
+          okText={t("DELETE")}
+          cancelText={t("CANCEL")}
+          okButtonProps={{ danger: true, loading: isDeleteLoading }}
+          onConfirm={handleDelete}
+        >
+          <Button
+            danger
+            shape="circle"
+            className="size-10 [&>span]:flex [&>span]:items-center"
+            icon={<AiOutlineDelete size={20} />}
+          />
+        </Popconfirm>
+      )}
 
       <MembershipForm
         open={editMembership}

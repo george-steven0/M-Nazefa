@@ -1,16 +1,75 @@
 import { useTranslation } from "react-i18next";
+import type { TFunction } from "i18next";
 import Title from "../../components/Common/Title/title";
 import { useSearchBox } from "../../components/Common/Search/searchInput";
-import { Button, Table, type TableProps } from "antd";
+import { Button, Popconfirm, Table, type TableProps } from "antd";
 import type { complaintResponseProps } from "../../components/Utilities/Types/types";
-import { useGetAllComplaintsQuery } from "../../components/APIs/Complaints/COMPLAINT_QUERY";
+import {
+  useGetAllComplaintsQuery,
+  useDeleteComplaintMutation,
+} from "../../components/APIs/Complaints/COMPLAINT_QUERY";
 import { useState } from "react";
-import { AiOutlineEye } from "react-icons/ai";
+import { AiOutlineDelete, AiOutlineEye } from "react-icons/ai";
 import { BsBoxSeam } from "react-icons/bs";
 import dayjs from "dayjs";
+import { toast } from "react-toastify";
 import { useAppSelector } from "../../components/APIs/store";
+import { handleApiError } from "../../components/Utilities/helper";
+import { isAdmin, isSuperAdmin } from "../../Utilities/utilities";
 import ComplaintForm from "./Components/complaintForm";
 import ViewComplaint from "./Components/viewComplaint";
+
+const Actions = ({
+  row,
+  t,
+  onView,
+}: {
+  row: complaintResponseProps;
+  t: TFunction;
+  onView: (id: string) => void;
+}) => {
+  const [deleteComplaint, { isLoading: isDeleteLoading }] =
+    useDeleteComplaintMutation();
+
+  const canManage = isAdmin() || isSuperAdmin();
+
+  const handleDelete = async () => {
+    try {
+      await deleteComplaint({ id: row?.id ?? "" }).unwrap();
+      toast.success(t("COMPLAINT_DELETED_SUCCESS"));
+    } catch (error) {
+      handleApiError(error, t("COMPLAINT_DELETE_FAILED"));
+    }
+  };
+
+  return (
+    <div className="flex items-center gap-2">
+      <Button
+        className="hover:bg-mainGray/60 hover:text-white hover:border-transparent size-10 [&>span]:flex [&>span]:items-center"
+        shape="circle"
+        onClick={() => onView(row?.id?.toString())}
+        icon={<AiOutlineEye size={20} />}
+      />
+      {canManage && (
+        <Popconfirm
+          title={t("DELETE_COMPLAINT")}
+          description={t("DELETE_COMPLAINT_CONFIRM")}
+          okText={t("DELETE")}
+          cancelText={t("CANCEL")}
+          okButtonProps={{ danger: true, loading: isDeleteLoading }}
+          onConfirm={handleDelete}
+        >
+          <Button
+            danger
+            shape="circle"
+            className="size-10 [&>span]:flex [&>span]:items-center"
+            icon={<AiOutlineDelete size={20} />}
+          />
+        </Popconfirm>
+      )}
+    </div>
+  );
+};
 
 const Complaints = () => {
   const { t } = useTranslation();
@@ -93,14 +152,7 @@ const Complaints = () => {
     {
       title: t("ACTIONS"),
       key: "actions",
-      render: (row) => (
-        <Button
-          className="hover:bg-mainGray/60 hover:text-white hover:border-transparent size-10 [&>span]:flex [&>span]:items-center"
-          shape="circle"
-          onClick={() => openViewModal(row?.id?.toString())}
-          icon={<AiOutlineEye size={20} />}
-        />
-      ),
+      render: (row) => <Actions row={row} t={t} onView={openViewModal} />,
     },
   ];
 

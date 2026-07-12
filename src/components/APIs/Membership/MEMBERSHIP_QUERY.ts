@@ -69,8 +69,10 @@ const membership = API.injectEndpoints({
     >({
       query: ({ id }) => ({
         url: "/Membership/DeleteMembership",
-        method: "DELETE",
-        body: id,
+        method: "POST",
+        headers: {
+          id: id,
+        },
       }),
       invalidatesTags: [{ type: "memberships", id: "LIST" }],
     }),
@@ -82,4 +84,5 @@ export const {
   useGetMembershipByIdQuery,
   useAddMembershipMutation,
   useEditMembershipMutation,
+  useDeleteMembershipMutation,
 } = membership;

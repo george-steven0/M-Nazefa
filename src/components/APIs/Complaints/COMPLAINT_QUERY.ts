@@ -38,6 +38,20 @@ const complaintQuery = API.injectEndpoints({
       }),
       invalidatesTags: ["complaints"],
     }),
+
+    deleteComplaint: builder.mutation<
+      SingleAPIResponse<complaintResponseProps>,
+      { id: string | number }
+    >({
+      query: ({ id }) => ({
+        url: `/api/ReservationComplaint/DeleteReservationComplaint`,
+        method: "POST",
+        headers: {
+          id: String(id),
+        }
+      }),
+      invalidatesTags: ["complaints"],
+    }),
   }),
 });
 
@@ -45,4 +59,5 @@ export const {
   useGetAllComplaintsQuery,
   useGetComplaintByIdQuery,
   useAddComplaintMutation,
+  useDeleteComplaintMutation,
 } = complaintQuery;
