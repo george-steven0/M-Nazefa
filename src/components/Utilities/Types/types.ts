@@ -252,8 +252,9 @@ export type packageFormProps = {
   Discount: string;
   // WhatYouWillHaveOnIt: string;
   // WhatYouwouldntHaveOnIt: string;
-  Tools: { value: string }[];
-  Supplies: { value: string }[];
+  ToolIds: (string | number)[];
+  SupplyIds: (string | number)[];
+  MachineIds: (string | number)[];
   Rules: { value: string }[];
   Logo: string | File;
   // workingHours: string;
@@ -298,8 +299,9 @@ export type packageCard = {
   discount: string | number;
   packageTypeName?: string;
   packageTypeArName?: string;
-  tools: string[];
-  supplies: string[];
+  tools: packageToolItem[];
+  supplies: packageToolItem[];
+  machines: packageToolItem[];
   rules: string[];
   logo: string;
   isActive: boolean;
@@ -577,6 +579,20 @@ export type seedersProps = {
   id?: string;
   name: string;
   arName: string;
+};
+
+export type toolProps = {
+  id?: number | string;
+  name: string;
+  arName?: string;
+  type: string;
+  isActive?: boolean;
+};
+
+export type packageToolItem = {
+  id: number | string;
+  name: string;
+  arName?: string;
 };
 
 export type cleaningAreaServiceProps = {

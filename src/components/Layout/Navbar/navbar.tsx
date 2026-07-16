@@ -22,6 +22,7 @@ import {
 } from "react-icons/md";
 import { FaMapLocation, FaVanShuttle } from "react-icons/fa6";
 import { LuPackagePlus } from "react-icons/lu";
+import { GiToolbox } from "react-icons/gi";
 import {
   AiOutlineDashboard,
   AiOutlineTeam,
@@ -174,6 +175,18 @@ const Navbar = ({
               PERMISSIONS.ADD_PACKAGE_TYPE,
               PERMISSIONS.EDIT_PACKAGE_TYPE,
               PERMISSIONS.VIEW_PACKAGE_TYPE,
+            ],
+          },
+          {
+            id: "tools",
+            name: t("TOOLS"),
+            path: "/tools",
+            icon: <GiToolbox />,
+            iconType: "fontIcon",
+            permissions: [
+              PERMISSIONS.ADD_TOOL,
+              PERMISSIONS.EDIT_TOOL,
+              PERMISSIONS.VIEW_TOOL,
             ],
           },
         ],

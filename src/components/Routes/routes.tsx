@@ -35,6 +35,7 @@ import Unauthorized from "../../Pages/Unauthorized/unauthorized";
 import Memberships from "../../Pages/Membership/memberShip";
 import PackageForm from "../../Pages/Packages/Components/packageForm";
 import PackageTypes from "../../Pages/PackageTypes/packageTypes";
+import Tools from "../../Pages/Tools/tools";
 import CLeaningArea from "../../Pages/CleaningArea/cleaningArea";
 import CleaningAreaService from "../../Pages/CleaningAreaService/cleaningAreaService";
 import ReservationForm from "../../Pages/Reservations/Components/reservationForm";
@@ -233,6 +234,15 @@ export const routes = createBrowserRouter([
             element: <PackageTypes />,
             handle: {
               permission: PERMISSIONS.VIEW_PACKAGE_TYPE,
+            },
+          },
+
+          // Tools
+          {
+            path: "tools",
+            element: <Tools />,
+            handle: {
+              permission: PERMISSIONS.VIEW_TOOL,
             },
           },
 

@@ -281,7 +281,7 @@ const ViewPackage = () => {
 
           <hr className="my-10 text-gray-200" />
 
-          <section className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4 [&>div]:flex [&>div]:flex-col [&>div]:gap-2 [&>div]:bg-gray-300/30 [&>div]:p-4 [&>div]:rounded-md [&>div>label]:block [&>div>label]:text-lg [&>div>label]:font-semibold [&>div>label]:text-center capitalize">
+          <section className="mt-4 grid grid-cols-1 md:grid-cols-4 gap-4 [&>div]:flex [&>div]:flex-col [&>div]:gap-2 [&>div]:bg-gray-300/30 [&>div]:p-4 [&>div]:rounded-md [&>div>label]:block [&>div>label]:text-lg [&>div>label]:font-semibold [&>div>label]:text-center capitalize">
             <div>
               <label>{t("RULES")}</label>
               {packageById?.data?.rules?.length ? (
@@ -299,8 +299,10 @@ const ViewPackage = () => {
               <label>{t("TOOLS")}</label>
               {packageById?.data?.tools?.length ? (
                 <ul className="list-disc ps-5 space-y-1 text-[#555]">
-                  {packageById?.data?.tools?.map((tool, index) => (
-                    <li key={index}>{tool}</li>
+                  {packageById?.data?.tools?.map((tool) => (
+                    <li key={tool.id}>
+                      {lang === "ar" ? tool.arName : tool.name}
+                    </li>
                   ))}
                 </ul>
               ) : (
@@ -312,8 +314,25 @@ const ViewPackage = () => {
               <label>{t("SUPPLIES")}</label>
               {packageById?.data?.supplies?.length ? (
                 <ul className="list-disc ps-5 space-y-1 text-[#555]">
-                  {packageById?.data?.supplies?.map((supply, index) => (
-                    <li key={index}>{supply}</li>
+                  {packageById?.data?.supplies?.map((supply) => (
+                    <li key={supply.id}>
+                      {lang === "ar" ? supply.arName : supply.name}
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-center">{t("NA")}</p>
+              )}
+            </div>
+
+            <div>
+              <label>{t("MACHINES")}</label>
+              {packageById?.data?.machines?.length ? (
+                <ul className="list-disc ps-5 space-y-1 text-[#555]">
+                  {packageById?.data?.machines?.map((machine) => (
+                    <li key={machine.id}>
+                      {lang === "ar" ? machine.arName : machine.name}
+                    </li>
                   ))}
                 </ul>
               ) : (

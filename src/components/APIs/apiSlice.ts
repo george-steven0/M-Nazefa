@@ -123,6 +123,7 @@ export const API = createApi({
     "complaints",
     "reservationFeedback",
     "workerManagement",
+    "tools",
   ],
   endpoints: () => ({}),
 });

@@ -27,10 +27,11 @@ import {
 import { toast } from "react-toastify";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { skipToken } from "@reduxjs/toolkit/query";
-import { useGetPackageTypesQuery } from "../../../components/APIs/Seeders/SEEDERS_RTK_QUERY";
+import { useGetAllServicesQuery } from "../../../components/APIs/Services/SERVICES_QUERY";
 import { useAppSelector } from "../../../components/APIs/store";
 import { useGetCleaningAreasQuery } from "../../../components/APIs/CleaningArea/CLEANING_AREA_QUERY";
 import { useGetAllCleaningAreaServicesQuery } from "../../../components/APIs/CleaningAreaService/CLEANING_AREA_SERVICE_QUERY";
+import { useGetToolsDDLQuery } from "../../../components/APIs/Tools/TOOLS_QUERY";
 import Astrisk from "../../../components/Common/Astrisk/astrisk";
 
 export default function PackageForm() {
@@ -39,10 +40,10 @@ export default function PackageForm() {
   const { lang } = useAppSelector((state) => state?.lang);
 
   const {
-    data: packageTypes,
-    isLoading: isPackageTypesLoading,
-    isFetching: isPackageTypesFetching,
-  } = useGetPackageTypesQuery();
+    data: services,
+    isLoading: isServicesLoading,
+    isFetching: isServicesFetching,
+  } = useGetAllServicesQuery();
 
   const {
     data: cleaningAreas,
@@ -55,6 +56,24 @@ export default function PackageForm() {
     isLoading: isCleaningAreaServicesLoading,
     isFetching: isCleaningAreaServicesFetching,
   } = useGetAllCleaningAreaServicesQuery({ page: 1, size: 1000 });
+
+  const {
+    data: toolsDDL,
+    isLoading: isToolsDDLLoading,
+    isFetching: isToolsDDLFetching,
+  } = useGetToolsDDLQuery({ type: "Tools" });
+
+  const {
+    data: suppliesDDL,
+    isLoading: isSuppliesDDLLoading,
+    isFetching: isSuppliesDDLFetching,
+  } = useGetToolsDDLQuery({ type: "Supplies" });
+
+  const {
+    data: machinesDDL,
+    isLoading: isMachinesDDLLoading,
+    isFetching: isMachinesDDLFetching,
+  } = useGetToolsDDLQuery({ type: "Machines" });
 
   // const {
   //   data: extraServices,
@@ -90,8 +109,9 @@ export default function PackageForm() {
     Discount: packageById?.data?.discount,
     Logo: packageById?.data?.logo,
     Rules: packageById?.data?.rules?.map((rule) => ({ value: rule })),
-    Supplies: packageById?.data?.supplies?.map((supply) => ({ value: supply })),
-    Tools: packageById?.data?.tools?.map((tool) => ({ value: tool })),
+    ToolIds: packageById?.data?.tools?.map((tool) => tool.id) ?? [],
+    SupplyIds: packageById?.data?.supplies?.map((supply) => supply.id) ?? [],
+    MachineIds: packageById?.data?.machines?.map((machine) => machine.id) ?? [],
     NumberofRooms: packageById?.data?.numberOfRooms,
     NumberofWorkers: packageById?.data?.numberOfWorkers,
     Price: packageById?.data?.price,
@@ -133,28 +153,15 @@ export default function PackageForm() {
           SubTitle: "",
           Description: "",
           Logo: "",
-          Rules: [{ value: "" }],
-          Supplies: [{ value: "" }],
-          Tools: [{ value: "" }],
+          Rules: [],
+          ToolIds: [],
+          SupplyIds: [],
+          MachineIds: [],
           NumberofRooms: "",
           NumberofWorkers: "",
           Price: "",
-          CleaningAreaDetails: [
-            {
-              CleaningAreaId: "",
-              ArName: "",
-              Name: "",
-              Description: "",
-              CleaningAreaServiceIds: [],
-            },
-          ],
-          ExtraServices: [
-            {
-              ArName: "",
-              Name: "",
-              Price: "",
-            },
-          ],
+          CleaningAreaDetails: [],
+          ExtraServices: [],
           // TransportationFees: [
           //   {
           //     Fee: "",
@@ -229,12 +236,6 @@ export default function PackageForm() {
   } = useFieldArray({
     name: "CleaningAreaDetails",
     control,
-    rules: {
-      required: {
-        value: true,
-        message: t("REQUIRED"),
-      },
-    },
   });
 
   const addMoreCleaningArea = () => {
@@ -260,12 +261,6 @@ export default function PackageForm() {
   } = useFieldArray({
     name: "ExtraServices",
     control,
-    rules: {
-      required: {
-        value: true,
-        message: t("REQUIRED"),
-      },
-    },
   });
 
   const addMoreExtraServices = () => {
@@ -278,42 +273,6 @@ export default function PackageForm() {
 
   const removeExtraServices = (index: number) => {
     extraServicesRemove(index);
-  };
-
-  // Tools
-  const {
-    fields: toolsFields,
-    append: toolsAppend,
-    remove: toolsRemove,
-  } = useFieldArray({
-    name: "Tools",
-    control,
-  });
-
-  const addMoreTools = () => {
-    toolsAppend({ value: "" });
-  };
-
-  const removeTools = (index: number) => {
-    toolsRemove(index);
-  };
-
-  // Supplies
-  const {
-    fields: suppliesFields,
-    append: suppliesAppend,
-    remove: suppliesRemove,
-  } = useFieldArray({
-    name: "Supplies",
-    control,
-  });
-
-  const addMoreSupplies = () => {
-    suppliesAppend({ value: "" });
-  };
-
-  const removeSupplies = (index: number) => {
-    suppliesRemove(index);
   };
 
   // Rules
@@ -341,11 +300,9 @@ export default function PackageForm() {
       formattedData.append("id", id as string);
     }
 
-    // Convert Tools/Supplies/Rules from [{ value }] to flat array of strings
+    // Convert Rules from [{ value }] to flat array of strings
     const payload = {
       ...data,
-      Tools: data.Tools?.map((item) => item.value),
-      Supplies: data.Supplies?.map((item) => item.value),
       Rules: data.Rules?.map((item) => item.value),
     };
 
@@ -377,7 +334,10 @@ export default function PackageForm() {
             });
           } else {
             // Handle arrays of primitives or files
-            formattedData.append(`${key}[${index}]`, item);
+            formattedData.append(
+              `${key}[${index}]`,
+              item instanceof File ? item : String(item),
+            );
           }
         });
       } else if (value instanceof File) {
@@ -495,7 +455,7 @@ export default function PackageForm() {
 
               <div className="col-span-full">
                 <label>
-                  {t("PACKAGE_TYPE")} <Astrisk />
+                  {t("UNIT_TYPE_SERVICE")} <Astrisk />
                 </label>
                 <Controller
                   control={control}
@@ -510,12 +470,12 @@ export default function PackageForm() {
                     <Select
                       {...field}
                       variant="filled"
-                      placeholder={t("SELECT_PACKAGE_TYPE")}
+                      placeholder={t("SELECT_UNIT_TYPE_SERVICE")}
                       className="w-full border border-[#C4C4C4] rounded-md h-10"
                       status={errors?.packageTypeId ? "error" : ""}
-                      loading={isPackageTypesLoading || isPackageTypesFetching}
-                      options={packageTypes?.data?.map((item) => ({
-                        label: lang === "ar" ? item.arName : item.name,
+                      loading={isServicesLoading || isServicesFetching}
+                      options={services?.data?.map((item) => ({
+                        label: lang === "ar" ? item.arTitle : item.title,
                         value: item.id,
                       }))}
                       showSearch
@@ -1068,126 +1028,89 @@ export default function PackageForm() {
                 ) : null}
               </div> */}
 
-              <div className="[&>div>input]:border-[#C4C4C4] [&>div>input]:py-2">
-                <div className="flex items-center gap-2 mb-1">
-                  <label className="capitalize font-medium">
-                    {t("TOOLS")} <Astrisk />
-                  </label>
-                  <Button
-                    className="bg-green-600/60 hover:bg-green-600 border-green-600 text-white"
-                    shape="circle"
-                    size="small"
-                    onClick={addMoreTools}
-                    icon={<BiPlus />}
-                  />
-                </div>
-
-                {toolsFields?.map((field, index) => (
-                  <div key={field.id} className="flex items-center gap-2 mb-2">
-                    <Controller
-                      control={control}
-                      name={`Tools.${index}.value`}
-                      rules={{
-                        required: {
-                          value: true,
-                          message: t("REQUIRED"),
-                        },
-                      }}
-                      render={({ field }) => (
-                        <Input
-                          {...field}
-                          variant="filled"
-                          placeholder={t("ENTER_TOOL")}
-                          className="placeholder:capitalize"
-                          status={
-                            errors?.Tools?.[index]?.value ? "error" : ""
-                          }
-                        />
-                      )}
+              <div>
+                <label className="capitalize font-medium">{t("TOOLS")}</label>
+                <Controller
+                  control={control}
+                  name="ToolIds"
+                  render={({ field }) => (
+                    <Select
+                      {...field}
+                      mode="multiple"
+                      variant="filled"
+                      allowClear
+                      placeholder={t("SELECT_TOOLS")}
+                      className="w-full border border-[#C4C4C4] rounded-md h-10 [&_.ant-select-selection-wrap]:h-full"
+                      loading={isToolsDDLLoading || isToolsDDLFetching}
+                      options={toolsDDL?.data?.map((tool) => ({
+                        value: tool.id,
+                        label: lang === "ar" ? tool.arName : tool.name,
+                      }))}
+                      showSearch
+                      optionFilterProp="label"
                     />
-                    <Button
-                      variant="text"
-                      color="danger"
-                      onClick={() => removeTools(index)}
-                      icon={<BiTrash size={25} />}
-                      disabled={toolsFields.length === 1}
-                    />
-                  </div>
-                ))}
-                {toolsFields?.map((_, index) =>
-                  errors?.Tools?.[index]?.value ? (
-                    <p
-                      key={index}
-                      className="mt-1 text-xs capitalize text-mainRed"
-                    >
-                      {errors?.Tools?.[index]?.value?.message}
-                    </p>
-                  ) : null,
-                )}
+                  )}
+                />
               </div>
 
-              <div className="[&>div>input]:border-[#C4C4C4] [&>div>input]:py-2">
-                <div className="flex items-center gap-2 mb-1">
-                  <label className="capitalize font-medium">
-                    {t("SUPPLIES")} <Astrisk />
-                  </label>
-                  <Button
-                    className="bg-green-600/60 hover:bg-green-600 border-green-600 text-white"
-                    shape="circle"
-                    size="small"
-                    onClick={addMoreSupplies}
-                    icon={<BiPlus />}
-                  />
-                </div>
+              <div>
+                <label className="capitalize font-medium">
+                  {t("SUPPLIES")}
+                </label>
+                <Controller
+                  control={control}
+                  name="SupplyIds"
+                  render={({ field }) => (
+                    <Select
+                      {...field}
+                      mode="multiple"
+                      variant="filled"
+                      allowClear
+                      placeholder={t("SELECT_SUPPLIES")}
+                      className="w-full border border-[#C4C4C4] rounded-md h-10 [&_.ant-select-selection-wrap]:h-full"
+                      loading={isSuppliesDDLLoading || isSuppliesDDLFetching}
+                      options={suppliesDDL?.data?.map((supply) => ({
+                        value: supply.id,
+                        label: lang === "ar" ? supply.arName : supply.name,
+                      }))}
+                      showSearch
+                      optionFilterProp="label"
+                    />
+                  )}
+                />
+              </div>
 
-                {suppliesFields?.map((field, index) => (
-                  <div key={field.id} className="flex items-center gap-2 mb-2">
-                    <Controller
-                      control={control}
-                      name={`Supplies.${index}.value`}
-                      rules={{
-                        required: {
-                          value: true,
-                          message: t("REQUIRED"),
-                        },
-                      }}
-                      render={({ field }) => (
-                        <Input
-                          {...field}
-                          variant="filled"
-                          placeholder={t("ENTER_SUPPLY")}
-                          className="placeholder:capitalize"
-                          status={
-                            errors?.Supplies?.[index]?.value ? "error" : ""
-                          }
-                        />
-                      )}
+              <div>
+                <label className="capitalize font-medium">
+                  {t("MACHINES")}
+                </label>
+                <Controller
+                  control={control}
+                  name="MachineIds"
+                  render={({ field }) => (
+                    <Select
+                      {...field}
+                      mode="multiple"
+                      variant="filled"
+                      allowClear
+                      placeholder={t("SELECT_MACHINES")}
+                      className="w-full border border-[#C4C4C4] rounded-md h-10 [&_.ant-select-selection-wrap]:h-full"
+                      loading={isMachinesDDLLoading || isMachinesDDLFetching}
+                      options={machinesDDL?.data?.map((machine) => ({
+                        value: machine.id,
+                        label: lang === "ar" ? machine.arName : machine.name,
+                      }))}
+                      showSearch
+                      optionFilterProp="label"
                     />
-                    <Button
-                      variant="text"
-                      color="danger"
-                      onClick={() => removeSupplies(index)}
-                      icon={<BiTrash size={25} />}
-                      disabled={suppliesFields.length === 1}
-                    />
-                  </div>
-                ))}
-                {suppliesFields?.map((_, index) =>
-                  errors?.Supplies?.[index]?.value ? (
-                    <p
-                      key={index}
-                      className="mt-1 text-xs capitalize text-mainRed"
-                    >
-                      {errors?.Supplies?.[index]?.value?.message}
-                    </p>
-                  ) : null,
-                )}
+                  )}
+                />
               </div>
 
               <div className="col-span-full [&>div>input]:border-[#C4C4C4] [&>div>input]:py-2">
                 <div className="flex items-center gap-2 mb-1">
                   <label className="capitalize font-medium">
-                    {t("RULES")} <Astrisk />
+                    {t("RULES")}
                   </label>
                   <Button
                     className="bg-green-600/60 hover:bg-green-600 border-green-600 text-white"
@@ -1226,7 +1149,6 @@ export default function PackageForm() {
                       color="danger"
                       onClick={() => removeRules(index)}
                       icon={<BiTrash size={25} />}
-                      disabled={rulesFields.length === 1}
                     />
                   </div>
                 ))}
@@ -1249,7 +1171,7 @@ export default function PackageForm() {
               <section className="cleaning-area-wrapper col-span-full">
                 <div className="flex items-center gap-2">
                   <h2 className="text-lg font-semibold">
-                    {t("CLEANING_AREA")} <Astrisk />
+                    {t("CLEANING_AREA")}
                   </h2>
                   <Button
                     className="bg-green-600/60 hover:bg-green-600 border-green-600 text-white"
@@ -1408,7 +1330,6 @@ export default function PackageForm() {
                             color="danger"
                             onClick={() => removeCleaningArea(index)}
                             icon={<BiTrash size={35} />}
-                            disabled={cleaningAreaFields.length === 1}
                           />
                         </div>
                       </div>
@@ -1502,7 +1423,7 @@ export default function PackageForm() {
               <section className="extra-services-wrapper col-span-full">
                 <div className="flex items-center gap-2">
                   <h2 className="text-lg font-semibold">
-                    {t("EXTRA_SERVICES")} <Astrisk />
+                    {t("EXTRA_SERVICES")}
                   </h2>
                   <Button
                     className="bg-green-600/60 hover:bg-green-600 border-green-600 text-white"
@@ -1638,7 +1559,6 @@ export default function PackageForm() {
                           color="danger"
                           onClick={() => removeExtraServices(index)}
                           icon={<BiTrash size={35} />}
-                          disabled={extraServicesFields.length === 1}
                         />
                       </div>
                     </div>

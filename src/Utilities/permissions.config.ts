@@ -36,6 +36,12 @@ export const PERMISSIONS = {
   EDIT_PACKAGE_TYPE: "edit_package_type",
   VIEW_PACKAGE_TYPE: "view_package_type",
 
+  // Tools
+  ADD_TOOL: "add_tool",
+  EDIT_TOOL: "edit_tool",
+  VIEW_TOOL: "view_tool",
+  DELETE_TOOL: "delete_tool",
+
   // Cleaning Area
   ADD_CLEANING_AREA: "add_cleaning_area",
   EDIT_CLEANING_AREA: "edit_cleaning_area",
@@ -134,6 +140,12 @@ export const ROLE_PERMISSIONS: Record<AppRole, Permission[]> = {
     PERMISSIONS.EDIT_PACKAGE,
     PERMISSIONS.VIEW_PACKAGE,
     PERMISSIONS.VIEW_PACKAGE_TYPE,
+
+    // Tools
+    PERMISSIONS.ADD_TOOL,
+    PERMISSIONS.EDIT_TOOL,
+    PERMISSIONS.VIEW_TOOL,
+    PERMISSIONS.DELETE_TOOL,
 
     //Cleaning area
     // PERMISSIONS.VIEW_CLEANING_AREA,
