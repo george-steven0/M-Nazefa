@@ -8,7 +8,7 @@ import {
 import { toast } from "react-toastify";
 
 const baseQuery = fetchBaseQuery({
-  baseUrl: "https://api.madamenazifa.com",
+  baseUrl: import.meta.env.VITE_API_BASE_URL ?? "https://api.madamenazifa.com",
   // baseUrl: "https://apitest.madamenazifa.com",
   prepareHeaders: (headers) => {
     const token = localStorage.getItem("mNazTk");
