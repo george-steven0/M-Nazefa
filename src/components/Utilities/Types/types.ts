@@ -530,6 +530,7 @@ export type serviceFormProps = {
   description?: string;
   package?: string;
   isActive?:boolean
+  isConfirmed?: boolean;
   extraServices?:
     | {
         extraServiceId: string | number;

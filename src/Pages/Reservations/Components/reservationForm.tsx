@@ -444,7 +444,11 @@ const ReservationForm = () => {
                       <Select
                         {...field}
                         disabled={
-                          !customerId || customerLoading || customerIsFetching
+                          !customerId ||
+                          customerLoading ||
+                          customerIsFetching ||
+                          addressesLoading ||
+                          addressesIsFetching
                         }
                         loading={addressesLoading || addressesIsFetching}
                         className="min-h-10 border-[#C4C4C4] border rounded-md capitalize [&>.ant-select-selector]:capitalize"
@@ -1306,6 +1310,10 @@ const ReservationForm = () => {
                           apartmentClosingPeriodLoading ||
                           apartmentClosingPeriodIsFetching
                         }
+                        disabled={
+                          apartmentClosingPeriodLoading ||
+                          apartmentClosingPeriodIsFetching
+                        }
                         className="min-h-10 border-[#C4C4C4] border rounded-md capitalize [&>.ant-select-selector]:capitalize"
                         variant="filled"
                         status={errors?.apartmentClosingPeriodId ? "error" : ""}
@@ -1360,6 +1368,7 @@ const ReservationForm = () => {
                       <Select
                         {...field}
                         loading={isCitiesLoading || isCitiesFetching}
+                        disabled={isCitiesLoading || isCitiesFetching}
                         className="min-h-10 border-[#C4C4C4] border rounded-md capitalize [&>.ant-select-selector]:capitalize"
                         variant="filled"
                         status={errors?.cityId ? "error" : ""}
@@ -1457,12 +1466,20 @@ const ReservationForm = () => {
                         className="min-h-10 border-[#C4C4C4] border rounded-md capitalize [&>.ant-select-selector]:capitalize"
                         variant="filled"
                         status={errors?.transportationFeesId ? "error" : ""}
-                        disabled={!cityId || !areaId}
+                        disabled={
+                          !cityId ||
+                          !areaId ||
+                          transportationFeesLoading ||
+                          transportationFeesIsFetching
+                        }
                         placeholder="Select transportation fees"
                         style={{ width: "100%" }}
                         onChange={(e) => {
                           field.onChange(e);
-                          //   handleChange(e);
+                          const selectedFee = transportationFees?.data?.find(
+                            (fee) => String(fee.id) === String(e),
+                          );
+                          setValue("fee", selectedFee?.fee ?? "");
                         }}
                         options={transportationFees?.data
                           ?.filter(
@@ -1499,10 +1516,11 @@ const ReservationForm = () => {
 
                 <div className="service-filter-wrapper col-span-full">
                   <label className="block mb-1 capitalize font-medium">
-                    {t("SERVICE")}
+                    {t("UNIT_TYPE_SERVICE")}
                   </label>
                   <Select
                     loading={servicesLoading || servicesIsFetching}
+                    disabled={servicesLoading || servicesIsFetching}
                     className="min-h-10 border-[#C4C4C4] border rounded-md capitalize [&>.ant-select-selector]:capitalize w-full"
                     variant="filled"
                     allowClear
@@ -1557,6 +1575,9 @@ const ReservationForm = () => {
                                       <Select
                                         {...field}
                                         loading={
+                                          packagesLoading || packagesIsFetching
+                                        }
+                                        disabled={
                                           packagesLoading || packagesIsFetching
                                         }
                                         value={field?.value || null}

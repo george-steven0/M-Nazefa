@@ -196,6 +196,13 @@ export default function ReservationSummary({
     name: "addReservationPackagesDtos",
   });
 
+  const fee = useWatch({
+    control,
+    name: "fee",
+  });
+
+  const transportationFee = Number(fee) || 0;
+
   const handleUpdateSubtotal = useCallback((index: number, total: number) => {
     setSubtotals((prev) => {
       if (prev[index] === total) return prev;
@@ -207,11 +214,13 @@ export default function ReservationSummary({
 
   if (!hasAnyPackage) return null;
 
-  const grandTotal =
+  const packagesTotal =
     packages?.reduce((sum, pkg, index) => {
       if (!pkg?.packageId) return sum;
       return sum + (subtotals[index] || 0);
     }, 0) || 0;
+
+  const grandTotal = packagesTotal + transportationFee;
 
   return (
     <div className="col-span-full mt-2">
@@ -234,6 +243,18 @@ export default function ReservationSummary({
                 onUpdateTotal={handleUpdateSubtotal}
               />
             ) : null,
+          )}
+
+          {/* Transportation fee */}
+          {transportationFee > 0 && (
+            <div className="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
+              <span className="font-medium capitalize text-[#1D1B1B]">
+                {t("TRANSPORTATION_FEES")}
+              </span>
+              <span className="text-gray-700">
+                + {transportationFee.toLocaleString()} {t("EGP")}
+              </span>
+            </div>
           )}
 
           {/* Grand total */}

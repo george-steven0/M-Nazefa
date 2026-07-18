@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 import packageIcon from "../../../assets/imgs/packageIconDark.svg";
-import { ConfigProvider, Popconfirm, Switch } from "antd";
+import { ConfigProvider, Dropdown, Popconfirm, Switch } from "antd";
 import type {
   APIErrorProps,
   packageCard,
@@ -9,12 +10,14 @@ import { useAppSelector } from "../../../components/APIs/store";
 import defImg from "../../../assets/imgs/logo.svg";
 import { t } from "i18next";
 import {
+  useCopyPackageMutation,
   useDeletePackageMutation,
   useTogglePackageMutation,
 } from "../../../components/APIs/Packages/PACKAGES_QUERY";
 import { toast } from "react-toastify";
 import { isAdmin, isSuperAdmin } from "../../../Utilities/utilities";
-import { AiOutlineDelete } from "react-icons/ai";
+import { AiOutlineCopy, AiOutlineDelete } from "react-icons/ai";
+import { BsThreeDotsVertical } from "react-icons/bs";
 type packageCardProps = {
   id: number | string;
   data: packageCard;
@@ -25,6 +28,8 @@ const PackageCard = ({ id, data }: packageCardProps) => {
   const [togglePackage, { isLoading }] = useTogglePackageMutation();
   const [deletePackage, { isLoading: isDeleteLoading }] =
     useDeletePackageMutation();
+  const [copyPackage, { isLoading: isCopyLoading }] = useCopyPackageMutation();
+  const [menuOpen, setMenuOpen] = useState(false);
   // console.log(data);
 
   const canManage = isAdmin() || isSuperAdmin();
@@ -39,6 +44,20 @@ const PackageCard = ({ id, data }: packageCardProps) => {
         err.data.errorMessages.forEach((message) => toast.error(message));
       } else {
         toast.error(t("PACKAGE_DELETE_FAILED"));
+      }
+    }
+  };
+
+  const handleCopyPackage = async () => {
+    try {
+      await copyPackage({ id }).unwrap();
+      toast.success(t("PACKAGE_COPIED_SUCCESS"));
+    } catch (error) {
+      const err = error as APIErrorProps;
+      if (err?.data?.errorMessages?.length) {
+        err.data.errorMessages.forEach((message) => toast.error(message));
+      } else {
+        toast.error(t("PACKAGE_COPY_FAILED"));
       }
     }
   };
@@ -67,6 +86,8 @@ const PackageCard = ({ id, data }: packageCardProps) => {
 
   const { title, arTitle, logo, isActive, description } = data;
 
+  const packageName = (lang === "ar" ? arTitle : title) || t("NA");
+
   const navigate = useNavigate();
   const handleNavigateView = () => {
     navigate(`view-package?id=${id}`);
@@ -75,23 +96,81 @@ const PackageCard = ({ id, data }: packageCardProps) => {
     <div className="border bg-[#F5F4F4] border-[#c4c4c4] p-4 rounded-lg shadow-sm">
       <div className="w-full flex flex-col gap-4 relative max-h-[350px] overflow-hidden">
         {canManage && (
-          <Popconfirm
-            title={t("DELETE_PACKAGE")}
-            description={t("DELETE_PACKAGE_CONFIRM")}
-            okText={t("DELETE")}
-            cancelText={t("CANCEL")}
-            okButtonProps={{ danger: true, loading: isDeleteLoading }}
-            onConfirm={handleDeletePackage}
+          <Dropdown
+            open={menuOpen}
+            trigger={["click"]}
+            placement="bottomRight"
+            className="cursor-pointer"
+            // Keep the menu open while interacting with its items so the
+            // nested Popconfirm can appear; only trigger clicks toggle it.
+            onOpenChange={(open, info) => {
+              if (info.source === "menu") return;
+              setMenuOpen(open);
+            }}
+            menu={{
+              items: [
+                {
+                  key: "copy",
+                  label: (
+                    <Popconfirm
+                      title={t("COPY_PACKAGE")}
+                      description={t("COPY_PACKAGE_CONFIRM", {
+                        name: packageName,
+                      })}
+                      okText={t("COPY")}
+                      cancelText={t("CANCEL")}
+                      okButtonProps={{ loading: isCopyLoading }}
+                      onConfirm={() => {
+                        handleCopyPackage();
+                        setMenuOpen(false);
+                      }}
+                    >
+                      <div
+                        className="flex items-center gap-2 text-mainColor"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <AiOutlineCopy size={16} />
+                        {t("COPY_PACKAGE")}
+                      </div>
+                    </Popconfirm>
+                  ),
+                },
+                {
+                  key: "delete",
+                  label: (
+                    <Popconfirm
+                      title={t("DELETE_PACKAGE")}
+                      description={t("DELETE_PACKAGE_CONFIRM")}
+                      okText={t("DELETE")}
+                      cancelText={t("CANCEL")}
+                      okButtonProps={{ danger: true, loading: isDeleteLoading }}
+                      onConfirm={() => {
+                        handleDeletePackage();
+                        setMenuOpen(false);
+                      }}
+                    >
+                      <div
+                        className="flex items-center gap-2 text-mainRed"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <AiOutlineDelete size={16} />
+                        {t("DELETE_PACKAGE")}
+                      </div>
+                    </Popconfirm>
+                  ),
+                },
+              ],
+            }}
           >
             <button
               type="button"
               onClick={(e) => e.stopPropagation()}
-              aria-label={t("DELETE_PACKAGE")}
-              className="absolute top-2 end-2 z-10 flex size-9 items-center justify-center rounded-full bg-white/90 text-mainRed shadow-md backdrop-blur-sm transition-all duration-300 hover:bg-mainRed hover:text-white hover:scale-110"
+              aria-label={t("ACTIONS")}
+              className="absolute top-2 end-2 z-10 flex size-9 items-center justify-center rounded-full bg-white/90 text-[#646363] shadow-md backdrop-blur-sm transition-all duration-300 hover:bg-mainColor hover:text-white hover:scale-110"
             >
-              <AiOutlineDelete size={18} />
+              <BsThreeDotsVertical size={18} />
             </button>
-          </Popconfirm>
+          </Dropdown>
         )}
         <div
           className="card-img h-[150px] cursor-pointer overflow-hidden rounded-sm"

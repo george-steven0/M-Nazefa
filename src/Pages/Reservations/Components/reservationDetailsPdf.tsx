@@ -192,6 +192,7 @@ export const ReservationDetailsPdf = ({
   // const phoneNumbersObj = data.phoneNumbers || [{ id: 1, phone: "N/A" }];
 
   let grandTotal = 0;
+  const transportationFee = Number(data.getTransportationFeesDetails?.fee) || 0;
 
   return (
     <Document>
@@ -572,10 +573,20 @@ export const ReservationDetailsPdf = ({
         {/* Summary Footer */}
         <View style={styles.summaryContainer}>
           <View style={styles.summaryBox}>
+            {transportationFee > 0 && (
+              <View style={styles.summaryRow}>
+                <Text style={styles.summaryText}>
+                  {t("TRANSPORTATION_FEES")}
+                </Text>
+                <Text style={styles.summaryText}>
+                  {transportationFee.toLocaleString()} L.E
+                </Text>
+              </View>
+            )}
             <View style={styles.summaryTotal}>
               <Text style={styles.summaryTotalText}>{t("TOTAL_AMOUNT")}</Text>
               <Text style={styles.summaryTotalText}>
-                {grandTotal.toLocaleString()} L.E
+                {(grandTotal + transportationFee).toLocaleString()} L.E
               </Text>
             </View>
           </View>

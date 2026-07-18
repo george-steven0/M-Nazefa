@@ -844,9 +844,24 @@ const ReservationDetails = () => {
                       },
                     );
 
+                    const transportationFee =
+                      Number(reservation?.getTransportationFeesDetails?.fee) ||
+                      0;
+                    grandTotal += transportationFee;
+
                     return (
                       <>
                         {packageRows}
+                        {transportationFee > 0 && (
+                          <div className="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
+                            <span className="font-medium capitalize text-[#1D1B1B]">
+                              {t("TRANSPORTATION_FEES")}
+                            </span>
+                            <span className="text-gray-700">
+                              + {transportationFee.toLocaleString()} {t("EGP")}
+                            </span>
+                          </div>
+                        )}
                         <div className="flex items-center justify-between bg-mainColor/10 rounded-lg px-4 py-3 mt-1">
                           <span className="font-bold text-mainColor text-lg capitalize">
                             {t("TOTAL_AMOUNT")}

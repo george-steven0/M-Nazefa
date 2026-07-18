@@ -16,7 +16,8 @@ import {
 } from "../../components/APIs/Reservations/RESERVATION_QUERY";
 import dayjs from "dayjs";
 import { AiOutlineEye } from "react-icons/ai";
-import { useEffect, useState } from "react";
+import { FaCheckCircle, FaTimesCircle } from "react-icons/fa";
+import { useEffect, useMemo, useState } from "react";
 import HoldReservationModal from "./Components/holdReservationModal";
 import ComplaintForm from "../Complaints/Components/complaintForm";
 import FeedbackForm from "../ReservationFeedback/Components/feedbackForm";
@@ -125,7 +126,7 @@ export const Reservations = () => {
     setIsFeedbackModalOpen(true);
   };
 
-  const { SearchBox } = useSearchBox({
+  const { SearchBox, debounceValue } = useSearchBox({
     placeholder: t("SEARCH_RESERVATIONS"),
   });
 
@@ -194,7 +195,25 @@ export const Reservations = () => {
         </span>
       ),
     },
-    
+
+    {
+      title: t("IS_CONFIRMED"),
+      dataIndex: "isConfirmed",
+      key: "isConfirmed",
+      render: (isConfirmed) =>
+        isConfirmed ? (
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-green-500/60 bg-green-50 px-2.5 py-1 text-sm font-medium text-green-600">
+            <FaCheckCircle size={14} />
+            {t("CONFIRMED")}
+          </span>
+        ) : (
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-gray-300 bg-gray-100 px-2.5 py-1 text-sm font-medium text-gray-500">
+            <FaTimesCircle size={14} />
+            {t("NOT_CONFIRMED")}
+          </span>
+        ),
+    },
+
     {
       title: t("COMPLAIN"),
       key: "complain",
@@ -241,7 +260,33 @@ export const Reservations = () => {
     },
   ];
 
-  const data: serviceFormProps[] = reservations?.data || [];
+  const reservationsList: serviceFormProps[] = useMemo(
+    () => reservations?.data || [],
+    [reservations?.data],
+  );
+
+  // Local search: filter by customer name, id, and reservation date.
+  const filteredData = useMemo(() => {
+    const term = debounceValue.trim().toLowerCase();
+    if (!term) return reservationsList;
+
+    return reservationsList.filter((row) => {
+      const record = row as Record<string, unknown>;
+
+      const haystack = [
+        record.id,
+        record.customerName,
+        record.reservationDate
+          ? dayjs(record.reservationDate as string).format("DD-MM-YYYY hh:mm A")
+          : "",
+      ]
+        .filter((part) => part !== null && part !== undefined)
+        .join(" ")
+        .toLowerCase();
+
+      return haystack.includes(term);
+    });
+  }, [reservationsList, debounceValue]);
 
   const handleNavigateAdd = () => {
     navigate(`/reservations/add-reservation`);
@@ -351,7 +396,7 @@ export const Reservations = () => {
           <Table<serviceFormProps>
             rowKey="id"
             columns={columns}
-            dataSource={data}
+            dataSource={filteredData}
             loading={isLoading || isFetching}
             scroll={{ x: "max-content" }}
             className="w-full"

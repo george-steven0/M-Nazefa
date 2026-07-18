@@ -9,7 +9,6 @@ import { toast } from "react-toastify";
 
 const baseQuery = fetchBaseQuery({
   baseUrl: import.meta.env.VITE_API_BASE_URL ?? "https://api.madamenazifa.com",
-  // baseUrl: "https://apitest.madamenazifa.com",
   prepareHeaders: (headers) => {
     const token = localStorage.getItem("mNazTk");
     if (token) {
@@ -29,9 +28,9 @@ const extractErrorMessage = (error: FetchBaseQueryError): string => {
 
   if (typeof data === "string" && data) return data;
   if (data && typeof data === "object") {
-    if (data.errorMessages?.length) return data.errorMessages.join("\n");
-    if (data.message) return data.message;
-    if (data.title) return data.title;
+    if (data?.errorMessages?.length) return data?.errorMessages?.join("\n");
+    if (data?.message) return data?.message;
+    if (data?.title) return data?.title;
   }
 
   if (error.status === "FETCH_ERROR") return "Network error. Please try again.";
@@ -39,7 +38,7 @@ const extractErrorMessage = (error: FetchBaseQueryError): string => {
 };
 
 const baseQueryWithReauth: BaseQueryFn<
-  string | FetchArgs, // Arguments can be a simple string URL or an object
+  string | FetchArgs,
   unknown, // The result type is unknown because it varies per endpoint
   FetchBaseQueryError // The error shape RTK Query expects
 > = async (args, api, extraOptions) => {

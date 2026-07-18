@@ -78,6 +78,20 @@ const packagesQuery = API.injectEndpoints({
       invalidatesTags: ["packages"],
     }),
 
+    copyPackage: builder.mutation<
+      SingleAPIResponse<packageFormProps>,
+      { id: string | number }
+    >({
+      query: ({ id }) => ({
+        url: `/Package/AddNewPackageCopy`,
+        method: "POST",
+        body:{
+            packageId: String(id),
+        }
+      }),
+      invalidatesTags: ["packages"],
+    }),
+
     addPackageType: builder.mutation<
       SingleAPIResponse<packageFormProps>,
       seedersProps
@@ -124,6 +138,7 @@ export const {
   useEditPackageMutation,
   useTogglePackageMutation,
   useDeletePackageMutation,
+  useCopyPackageMutation,
   useGetPackageByIdQuery,
   useAddPackageTypeMutation,
   useEditPackageTypeMutation,
