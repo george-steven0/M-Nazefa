@@ -121,7 +121,9 @@ export default function PackageForm() {
         ArName: cleaningArea?.arName,
         Name: cleaningArea?.name,
         Description: cleaningArea?.description,
-        CleaningAreaServiceIds: cleaningArea?.cleaningAreaServices?.map((service) => service.id) ?? [],
+        CleaningAreaServiceIds:
+          cleaningArea?.cleaningAreaServices?.map((service) => service.id) ??
+          [],
       }),
     ),
     ExtraServices: packageById?.data?.extraServices?.map((extraService) => ({
@@ -1109,9 +1111,9 @@ export default function PackageForm() {
 
               <div className="col-span-full [&>div>input]:border-[#C4C4C4] [&>div>input]:py-2">
                 <div className="flex items-center gap-2 mb-1">
-                  <label className="capitalize font-medium">
+                  <h2 className="text-lg font-semibold text-[#1D1B1B] capitalize">
                     {t("RULES")}
-                  </label>
+                  </h2>
                   <Button
                     className="bg-green-600/60 hover:bg-green-600 border-green-600 text-white"
                     shape="circle"
@@ -1123,6 +1125,9 @@ export default function PackageForm() {
 
                 {rulesFields?.map((field, index) => (
                   <div key={field.id} className="flex items-center gap-2 mb-2">
+                    <span className="inline-flex items-center rounded-full bg-mainColor/10 px-2.5 py-0.5 text-xs font-semibold text-mainColor">
+                      #{index + 1}
+                    </span>
                     <Controller
                       control={control}
                       name={`Rules.${index}.value`}
@@ -1138,9 +1143,7 @@ export default function PackageForm() {
                           variant="filled"
                           placeholder={t("ENTER_RULE")}
                           className="placeholder:capitalize"
-                          status={
-                            errors?.Rules?.[index]?.value ? "error" : ""
-                          }
+                          status={errors?.Rules?.[index]?.value ? "error" : ""}
                         />
                       )}
                     />
@@ -1170,7 +1173,7 @@ export default function PackageForm() {
 
               <section className="cleaning-area-wrapper col-span-full">
                 <div className="flex items-center gap-2">
-                  <h2 className="text-lg font-semibold">
+                  <h2 className="text-lg font-semibold text-[#1D1B1B] capitalize">
                     {t("CLEANING_AREA")}
                   </h2>
                   <Button
@@ -1184,10 +1187,15 @@ export default function PackageForm() {
                 <div className="cleaing-area-fields-wrapper mt-4">
                   {cleaningAreaFields?.map((field, index) => (
                     <div key={field.id} className="mb-5">
+                      <div className="mb-2 flex items-center">
+                        <span className="inline-flex items-center rounded-full bg-mainColor/10 px-2.5 py-0.5 text-xs font-semibold text-mainColor">
+                          #{index + 1}
+                        </span>
+                      </div>
                       <div className="flex items-center gap-5 [&>div>label]:block [&>div>label]:mb-1 [&>div>label]:capitalize [&>div>label]:font-medium [&>div>input]:border-[#C4C4C4] [&>div>input]:py-2 [&>div>p]:mt-1 [&>div>p]:text-xs [&>div>p]:capitalize [&>div>p]:text-mainRed">
                         <div className="grow">
                           <label>
-                            #{index + 1} {t("SELECT_CLEANING_AREA")} <Astrisk />
+                            {t("SELECT_CLEANING_AREA")} <Astrisk />
                           </label>
                           <Controller
                             control={control}
@@ -1387,7 +1395,8 @@ export default function PackageForm() {
                               placeholder={t("ENTER_DESCRIPTION")}
                               className="placeholder:capitalize w-full"
                               status={
-                                errors?.CleaningAreaDetails?.[index]?.Description
+                                errors?.CleaningAreaDetails?.[index]
+                                  ?.Description
                                   ? "error"
                                   : ""
                               }
@@ -1404,8 +1413,6 @@ export default function PackageForm() {
                           </p>
                         ) : null}
                       </div>
-
-                      
                     </div>
                   ))}
                 </div>
@@ -1422,7 +1429,7 @@ export default function PackageForm() {
 
               <section className="extra-services-wrapper col-span-full">
                 <div className="flex items-center gap-2">
-                  <h2 className="text-lg font-semibold">
+                  <h2 className="text-lg font-semibold text-[#1D1B1B] capitalize">
                     {t("EXTRA_SERVICES")}
                   </h2>
                   <Button
@@ -1435,131 +1442,137 @@ export default function PackageForm() {
 
                 <div className="extra-services-fields-wrapper mt-4">
                   {extraServicesFields?.map((field, index) => (
-                    <div
-                      key={field.id}
-                      className="mb-5 flex items-center gap-5 [&>div>label]:block [&>div>label]:mb-1 [&>div>label]:capitalize [&>div>label]:font-medium [&>div>input]:border-[#C4C4C4] [&>div>input]:py-2 [&>div>p]:mt-1 [&>div>p]:text-xs [&>div>p]:capitalize [&>div>p]:text-mainRed"
-                    >
-                      <div className="grow">
-                        <label>
-                          {t("NAME_EN")} <Astrisk />
-                        </label>
-                        <Controller
-                          control={control}
-                          name={`ExtraServices.${index}.Name`}
-                          rules={{
-                            required: {
-                              value: true,
-                              message: t("REQUIRED"),
-                            },
-                            pattern: {
-                              value: /^[a-zA-Z0-9\s]+$/,
-                              message: t("ENGLISH_LETTER"),
-                            },
-                          }}
-                          render={({ field }) => (
-                            <Input
-                              {...field}
-                              variant="filled"
-                              placeholder={t("ENTER_NAME_EN")}
-                              className="placeholder:capitalize"
-                              status={
-                                errors?.ExtraServices?.[index]?.Name
-                                  ? "error"
-                                  : ""
-                              }
-                            />
-                          )}
-                        />
-
-                        {errors?.ExtraServices?.[index]?.Name ? (
-                          <p>{errors?.ExtraServices?.[index]?.Name?.message}</p>
-                        ) : null}
+                    <div key={field.id} className="mb-5">
+                      <div className="mb-2 flex items-center">
+                        <span className="inline-flex items-center rounded-full bg-mainColor/10 px-2.5 py-0.5 text-xs font-semibold text-mainColor">
+                          #{index + 1}
+                        </span>
                       </div>
+                      <div className="flex items-center gap-5 [&>div>label]:block [&>div>label]:mb-1 [&>div>label]:capitalize [&>div>label]:font-medium [&>div>input]:border-[#C4C4C4] [&>div>input]:py-2 [&>div>p]:mt-1 [&>div>p]:text-xs [&>div>p]:capitalize [&>div>p]:text-mainRed">
+                        <div className="grow">
+                          <label>
+                            {t("NAME_EN")} <Astrisk />
+                          </label>
+                          <Controller
+                            control={control}
+                            name={`ExtraServices.${index}.Name`}
+                            rules={{
+                              required: {
+                                value: true,
+                                message: t("REQUIRED"),
+                              },
+                              pattern: {
+                                value: /^[a-zA-Z0-9\s]+$/,
+                                message: t("ENGLISH_LETTER"),
+                              },
+                            }}
+                            render={({ field }) => (
+                              <Input
+                                {...field}
+                                variant="filled"
+                                placeholder={t("ENTER_NAME_EN")}
+                                className="placeholder:capitalize"
+                                status={
+                                  errors?.ExtraServices?.[index]?.Name
+                                    ? "error"
+                                    : ""
+                                }
+                              />
+                            )}
+                          />
 
-                      <div className="grow">
-                        <label>
-                          {t("NAME_AR")} <Astrisk />
-                        </label>
-                        <Controller
-                          control={control}
-                          name={`ExtraServices.${index}.ArName`}
-                          rules={{
-                            required: {
-                              value: true,
-                              message: t("REQUIRED"),
-                            },
-                            pattern: {
-                              value: /^[\u0600-\u06FF0-9\s]+$/,
-                              message: t("ARABIC_LETTER"),
-                            },
-                          }}
-                          render={({ field }) => (
-                            <Input
-                              {...field}
-                              variant="filled"
-                              placeholder={t("ENTER_NAME_AR")}
-                              className="placeholder:capitalize"
-                              status={
-                                errors?.ExtraServices?.[index]?.ArName
-                                  ? "error"
-                                  : ""
-                              }
-                            />
-                          )}
-                        />
+                          {errors?.ExtraServices?.[index]?.Name ? (
+                            <p>
+                              {errors?.ExtraServices?.[index]?.Name?.message}
+                            </p>
+                          ) : null}
+                        </div>
 
-                        {errors?.ExtraServices?.[index]?.ArName ? (
-                          <p>
-                            {errors?.ExtraServices?.[index]?.ArName?.message}
-                          </p>
-                        ) : null}
-                      </div>
+                        <div className="grow">
+                          <label>
+                            {t("NAME_AR")} <Astrisk />
+                          </label>
+                          <Controller
+                            control={control}
+                            name={`ExtraServices.${index}.ArName`}
+                            rules={{
+                              required: {
+                                value: true,
+                                message: t("REQUIRED"),
+                              },
+                              pattern: {
+                                value: /^[\u0600-\u06FF0-9\s]+$/,
+                                message: t("ARABIC_LETTER"),
+                              },
+                            }}
+                            render={({ field }) => (
+                              <Input
+                                {...field}
+                                variant="filled"
+                                placeholder={t("ENTER_NAME_AR")}
+                                className="placeholder:capitalize"
+                                status={
+                                  errors?.ExtraServices?.[index]?.ArName
+                                    ? "error"
+                                    : ""
+                                }
+                              />
+                            )}
+                          />
 
-                      <div className="grow">
-                        <label>
-                          {t("PRICE")} <Astrisk />
-                        </label>
-                        <Controller
-                          control={control}
-                          name={`ExtraServices.${index}.Price`}
-                          rules={{
-                            required: {
-                              value: true,
-                              message: t("REQUIRED"),
-                            },
-                            pattern: {
-                              value: /^\d+$/,
-                              message: t("ONLY_NUMBER"),
-                            },
-                          }}
-                          render={({ field }) => (
-                            <Input
-                              {...field}
-                              variant="filled"
-                              placeholder={t("ENTER_PRICE")}
-                              status={
-                                errors?.ExtraServices?.[index]?.Price
-                                  ? "error"
-                                  : ""
-                              }
-                            />
-                          )}
-                        />
+                          {errors?.ExtraServices?.[index]?.ArName ? (
+                            <p>
+                              {errors?.ExtraServices?.[index]?.ArName?.message}
+                            </p>
+                          ) : null}
+                        </div>
 
-                        {errors?.ExtraServices?.[index]?.Price ? (
-                          <p>
-                            {errors?.ExtraServices?.[index]?.Price?.message}
-                          </p>
-                        ) : null}
-                      </div>
+                        <div className="grow">
+                          <label>
+                            {t("PRICE")} <Astrisk />
+                          </label>
+                          <Controller
+                            control={control}
+                            name={`ExtraServices.${index}.Price`}
+                            rules={{
+                              required: {
+                                value: true,
+                                message: t("REQUIRED"),
+                              },
+                              pattern: {
+                                value: /^\d+$/,
+                                message: t("ONLY_NUMBER"),
+                              },
+                            }}
+                            render={({ field }) => (
+                              <Input
+                                {...field}
+                                variant="filled"
+                                placeholder={t("ENTER_PRICE")}
+                                status={
+                                  errors?.ExtraServices?.[index]?.Price
+                                    ? "error"
+                                    : ""
+                                }
+                              />
+                            )}
+                          />
 
-                      <div className="text-center mt-6">
-                        <Button
-                          variant="text"
-                          color="danger"
-                          onClick={() => removeExtraServices(index)}
-                          icon={<BiTrash size={35} />}
-                        />
+                          {errors?.ExtraServices?.[index]?.Price ? (
+                            <p>
+                              {errors?.ExtraServices?.[index]?.Price?.message}
+                            </p>
+                          ) : null}
+                        </div>
+
+                        <div className="text-center mt-6">
+                          <Button
+                            variant="text"
+                            color="danger"
+                            onClick={() => removeExtraServices(index)}
+                            icon={<BiTrash size={35} />}
+                          />
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -1570,7 +1583,6 @@ export default function PackageForm() {
                   </p>
                 ) : null}
               </section>
-
             </section>
 
             <section className="w-full mt-6 flex items-center justify-center">
