@@ -772,6 +772,13 @@ export type workerManagementEditProps = {
   notes?: string;
 };
 
+export type workerManagementGroupEditProps = {
+  ids: (string | number)[];
+  availableNoWorkers: number;
+  remainNoOfWorkers: number;
+  notes?: string;
+};
+
 export type workerManagementFilterParams = {
   from: string;
   to: string;
