@@ -520,28 +520,35 @@ const ReservationDetails = () => {
               </span>
             }
           >
-            <div className="flex items-center justify-start gap-5">
-              {reservation?.reservationWorkers &&
-              reservation?.reservationWorkers?.length > 0 ? (
-                reservation?.reservationWorkers?.map((worker) => (
-                  <div key={worker.workerId} className="flex gap-2">
-                    <span className="w-[3px] h-6 bg-mainOrange rounded-full" />
-                    <div className="flex items-center gap-2">
-                      <span className="font-bold">{t("WORKER")} : </span>
-                      <span>
+            {reservation?.reservationWorkers &&
+            reservation?.reservationWorkers?.length > 0 ? (
+              // Grid: up to 5 per row on large screens, max 3 rows then scroll.
+              // Row height 3rem (h-12) + gap 1rem → 3 rows = 11rem.
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 max-h-[11rem] overflow-y-auto pr-1">
+                {reservation?.reservationWorkers?.map((worker) => (
+                  <div
+                    key={worker.workerId}
+                    className="flex items-center gap-2 h-12 rounded-lg border border-gray-200 bg-gray-50 px-3"
+                  >
+                    <span className="w-[3px] h-6 bg-mainOrange rounded-full shrink-0" />
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-[10px] uppercase tracking-wide text-gray-400 leading-none">
+                        {t("WORKER")}
+                      </span>
+                      <span className="font-semibold truncate leading-tight">
                         {lang === "ar"
                           ? worker.workerArName
                           : worker.workerName}
                       </span>
                     </div>
                   </div>
-                ))
-              ) : (
-                <p className="flex items-center justify-center w-full">
-                  {t("NA")}
-                </p>
-              )}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <p className="flex items-center justify-center w-full">
+                {t("NA")}
+              </p>
+            )}
           </Card>
 
           {/* Packages */}

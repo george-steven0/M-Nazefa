@@ -63,6 +63,8 @@ const ReservationForm = () => {
   const [searchParams] = useSearchParams();
   const reservatinId = searchParams.get("id") || null;
   const isEditMode = !!reservatinId;
+  // Date passed from the calendar's "add new reservation" prompt
+  const dateParam = searchParams.get("date");
 
   const [customerSearch,setCustomerSearch] = useState<string | null>(null)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -315,6 +317,16 @@ const ReservationForm = () => {
       } as unknown as reservationFormProps);
     }
   }, [isEditMode, reservationDetails, reset]);
+
+  // Prefill the reservation date when arriving from the calendar (add mode)
+  useEffect(() => {
+    if (!isEditMode && dateParam) {
+      setValue(
+        "reservationDate",
+        dayjs(dateParam) as unknown as reservationFormProps["reservationDate"],
+      );
+    }
+  }, [isEditMode, dateParam, setValue]);
 
   const handleSubmitForm = async (data: reservationFormProps) => {
     const formattedData = {

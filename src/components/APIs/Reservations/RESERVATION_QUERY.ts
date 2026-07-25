@@ -1,5 +1,6 @@
 import type {
   APIResponse,
+  calendarReservationProps,
   holdReservationProps,
   reservationDetailsData,
   reservationFormProps,
@@ -13,6 +14,17 @@ const reservationQuery = API.injectEndpoints({
     getAllReservations: builder.query<APIResponse<reservationFormProps>, void>({
       query: () => ({
         url: "/Reservation/GetReservationList",
+        method: "GET",
+      }),
+      providesTags: ["reservations"],
+    }),
+
+    getReservationsCalendar: builder.query<
+      APIResponse<calendarReservationProps>,
+      void
+    >({
+      query: () => ({
+        url: "/Reservation/GetReservationsCalendar",
         method: "GET",
       }),
       providesTags: ["reservations"],
@@ -121,6 +133,7 @@ const reservationQuery = API.injectEndpoints({
 
 export const {
   useGetAllReservationsQuery,
+  useGetReservationsCalendarQuery,
   useAddReservationMutation,
   useGetReservationByIdQuery,
   useGetHoldReservationQuery,

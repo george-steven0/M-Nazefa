@@ -558,5 +558,21 @@
     "FLOORS": "الأدوار",
     "WINDOWS": "النوافذ",
     "RESERVATION_DETAILS": "تفاصيل الحجز",
-    "FIXED": "ثابت"
+    "FIXED": "ثابت",
+    "CALENDAR": "التقويم",
+    "TODAY": "اليوم",
+    "MONTH": "شهر",
+    "WEEK": "أسبوع",
+    "DAY": "يوم",
+    "AGENDA": "جدول الأعمال",
+    "MORE": "المزيد",
+    "RESERVATION": "حجز",
+    "NO_RESERVATIONS_IN_RANGE": "لا توجد حجوزات في هذه الفترة",
+    "SERVICE_TYPE": "نوع الخدمة",
+    "CUSTOMER_PHONE": "هاتف العميل",
+    "CUSTOMER_ADDRESS": "عنوان العميل",
+    "VIEW_FULL_DETAILS": "عرض التفاصيل الكاملة",
+    "CANCEL_RESERVATION": "إلغاء الحجز",
+    "ADD_NEW_RESERVATION": "إضافة حجز جديد",
+    "CANNOT_ADD_PAST_RESERVATION": "لا يمكنك إضافة حجز في تاريخ سابق"
 }

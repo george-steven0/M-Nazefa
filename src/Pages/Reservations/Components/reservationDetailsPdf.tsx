@@ -1,4 +1,13 @@
-import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
+import {
+  Document,
+  Page,
+  Text,
+  View,
+  StyleSheet,
+  Font,
+} from "@react-pdf/renderer";
+import TajawalRegular from "../../../assets/fonts/Tajawal-Regular.ttf";
+import TajawalBold from "../../../assets/fonts/Tajawal-Bold.ttf";
 import dayjs from "dayjs";
 import { useTranslation } from "react-i18next";
 import type {
@@ -8,15 +17,27 @@ import type {
 
 type pdfAddress = NonNullable<clientFormPropsType["address"]>[number];
 
-// Register standard fonts if needed, but Helvetica is default
+// Tajawal covers both Arabic and Latin, so mixed / RTL text renders and is
+// shaped correctly. Helvetica has no Arabic glyphs, which was causing the
+// overlapping / garbled text in fields like landmark & description.
+Font.register({
+  family: "Tajawal",
+  fonts: [
+    { src: TajawalRegular, fontWeight: "normal" },
+    { src: TajawalBold, fontWeight: "bold" },
+  ],
+});
+
+// Keep each word intact (prevents mis-positioned glyphs on wrap).
+Font.registerHyphenationCallback((word) => [word]);
+
 const styles = StyleSheet.create({
   page: {
     padding: 40,
-    fontFamily: "Helvetica",
+    fontFamily: "Tajawal",
     fontSize: 11,
     color: "#374151",
     backgroundColor: "#ffffff",
-    textTransform: "capitalize",
   },
   header: {
     flexDirection: "row",
@@ -32,7 +53,8 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 24,
     color: "#1a365d",
-    fontFamily: "Helvetica-Bold",
+    fontFamily: "Tajawal",
+    fontWeight: "bold",
     textTransform: "uppercase",
   },
   headerSubtitle: {
@@ -45,7 +67,8 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 14,
-    fontFamily: "Helvetica-Bold",
+    fontFamily: "Tajawal",
+    fontWeight: "bold",
     color: "#1a365d",
     borderBottomWidth: 1,
     borderBottomColor: "#e5e7eb",
@@ -68,7 +91,8 @@ const styles = StyleSheet.create({
   value: {
     fontSize: 11,
     color: "#111827",
-    fontFamily: "Helvetica-Bold",
+    fontFamily: "Tajawal",
+    fontWeight: "bold",
   },
   card: {
     padding: 12,
@@ -105,12 +129,14 @@ const styles = StyleSheet.create({
   },
   packageTitle: {
     fontSize: 13,
-    fontFamily: "Helvetica-Bold",
+    fontFamily: "Tajawal",
+    fontWeight: "bold",
     color: "#1a365d",
   },
   packageAmount: {
     fontSize: 13,
-    fontFamily: "Helvetica-Bold",
+    fontFamily: "Tajawal",
+    fontWeight: "bold",
     color: "#f97316",
   },
   extraServiceItem: {
@@ -149,12 +175,14 @@ const styles = StyleSheet.create({
   },
   summaryTotalText: {
     color: "#ffffff",
-    fontFamily: "Helvetica-Bold",
+    fontFamily: "Tajawal",
+    fontWeight: "bold",
     fontSize: 14,
   },
   summaryText: {
     color: "#374151",
-    fontFamily: "Helvetica-Bold",
+    fontFamily: "Tajawal",
+    fontWeight: "bold",
   },
   footer: {
     position: "absolute",
@@ -167,6 +195,34 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: "#e5e7eb",
     paddingTop: 10,
+  },
+  workersWrap: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+  },
+  workerChip: {
+    flexDirection: "column",
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+    borderRadius: 6,
+    backgroundColor: "#f9fafb",
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    marginRight: 8,
+    marginBottom: 8,
+    minWidth: 120,
+  },
+  workerLabel: {
+    fontSize: 8,
+    color: "#6b7280",
+    textTransform: "uppercase",
+    marginBottom: 2,
+  },
+  workerName: {
+    fontSize: 11,
+    color: "#111827",
+    fontFamily: "Tajawal",
+    fontWeight: "bold",
   },
 });
 
@@ -293,7 +349,9 @@ export const ReservationDetailsPdf = ({
             </View>
             <View style={styles.col}>
               <Text style={styles.label}>{t("OLD_CUSTOMER")}</Text>
-              <Text style={styles.value}>{customer?.isOld ? t("YES") : t("NO")}</Text>
+              <Text style={styles.value}>
+                {customer?.isOld ? t("YES") : t("NO")}
+              </Text>
             </View>
             <View style={styles.col}>
               <Text style={styles.label}>{t("NO_OF_RESERVATIONS")}</Text>
@@ -328,7 +386,9 @@ export const ReservationDetailsPdf = ({
 
         {/* Selected Address Details */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{t("SELECTED_ADDRESS_DETAILS")}</Text>
+          <Text style={styles.sectionTitle}>
+            {t("SELECTED_ADDRESS_DETAILS")}
+          </Text>
           <View style={styles.row}>
             <View style={styles.col}>
               <Text style={styles.label}>{t("ADDRESS")}</Text>
@@ -451,11 +511,15 @@ export const ReservationDetailsPdf = ({
             </View>
             <View style={styles.col}>
               <Text style={styles.label}>{t("INSECTS")}</Text>
-              <Text style={styles.value}>{data.insects ? t("YES") : t("NO")}</Text>
+              <Text style={styles.value}>
+                {data.insects ? t("YES") : t("NO")}
+              </Text>
             </View>
             <View style={styles.col}>
               <Text style={styles.label}>{t("RODENTS")}</Text>
-              <Text style={styles.value}>{data.rodents ? t("YES") : t("NO")}</Text>
+              <Text style={styles.value}>
+                {data.rodents ? t("YES") : t("NO")}
+              </Text>
             </View>
             <View style={styles.col}>
               <Text style={styles.label}>{t("APARTMENT_CLOSING_PERIOD")}</Text>
@@ -472,8 +536,27 @@ export const ReservationDetailsPdf = ({
           </View>
         </View>
 
+        {/* Workers */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>{t("WORKERS")}</Text>
+          {data.reservationWorkers && data.reservationWorkers.length > 0 ? (
+            <View style={styles.workersWrap}>
+              {data.reservationWorkers.map((worker, index: number) => (
+                <View key={index} style={styles.workerChip}>
+                  <Text style={styles.workerLabel}>{t("WORKER")}</Text>
+                  <Text style={styles.workerName}>
+                    {worker.workerName || "N/A"}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          ) : (
+            <Text style={styles.value}>{t("NA")}</Text>
+          )}
+        </View>
+
         {/* Packages Section */}
-        <View style={styles.packagesSection} break wrap>
+        <View style={styles.packagesSection} wrap>
           <Text style={styles.sectionTitle}>{t("SELECTED_PACKAGES")}</Text>
 
           {(data.getPackageDtoList || []).map((pkg, index: number) => {
@@ -594,8 +677,8 @@ export const ReservationDetailsPdf = ({
 
         {/* Footer */}
         <Text style={styles.footer}>
-          {t("GENERATED_ON")} {dayjs().format("DD/MM/YYYY hh:mm A")} • Madame Nazifa
-          Services
+          {t("GENERATED_ON")} {dayjs().format("DD/MM/YYYY hh:mm A")} • Madame
+          Nazifa Services
         </Text>
       </Page>
     </Document>

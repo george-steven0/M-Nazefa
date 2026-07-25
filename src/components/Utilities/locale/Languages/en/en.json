@@ -558,5 +558,21 @@
     "FLOORS": "Floors",
     "WINDOWS": "Windows",
     "RESERVATION_DETAILS": "Reservation details",
-    "FIXED": "Fixed"
+    "FIXED": "Fixed",
+    "CALENDAR": "Calendar",
+    "TODAY": "Today",
+    "MONTH": "Month",
+    "WEEK": "Week",
+    "DAY": "Day",
+    "AGENDA": "Agenda",
+    "MORE": "more",
+    "RESERVATION": "Reservation",
+    "NO_RESERVATIONS_IN_RANGE": "No reservations in this range",
+    "SERVICE_TYPE": "Service type",
+    "CUSTOMER_PHONE": "Customer phone",
+    "CUSTOMER_ADDRESS": "Customer address",
+    "VIEW_FULL_DETAILS": "View full details",
+    "CANCEL_RESERVATION": "Cancel reservation",
+    "ADD_NEW_RESERVATION": "Add new reservation",
+    "CANNOT_ADD_PAST_RESERVATION": "You can't add a reservation on a past date"
 }

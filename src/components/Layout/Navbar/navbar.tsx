@@ -21,7 +21,7 @@ import {
   MdOutlinePermContactCalendar,
 } from "react-icons/md";
 import { FaMapLocation, FaVanShuttle } from "react-icons/fa6";
-import { LuPackagePlus } from "react-icons/lu";
+import { LuPackagePlus, LuCalendarDays } from "react-icons/lu";
 import { GiToolbox } from "react-icons/gi";
 import {
   AiOutlineDashboard,
@@ -213,6 +213,14 @@ const Navbar = ({
               PERMISSIONS.DELETE_RESERVATION,
               PERMISSIONS.VIEW_RESERVATION,
             ],
+          },
+          {
+            id: "calendar",
+            name: t("CALENDAR"),
+            path: "/calendar",
+            icon: <LuCalendarDays />,
+            iconType: "fontIcon",
+            permissions: [PERMISSIONS.VIEW_RESERVATION],
           },
           {
             id: "complaints",

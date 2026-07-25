@@ -377,6 +377,19 @@ export type reservationFormProps = {
   buildingProps &
   extraServiceProps;
 
+// Shape consumed by the Calendar page (react-big-calendar events).
+export type calendarReservationProps = {
+  id: string | number;
+  customerName?: string;
+  customerPhone?: string;
+  customerAddress?: string;
+  serviceType?: string;
+  reservationDate: string; // ISO start date-time
+  endDate?: string; // ISO end date-time (optional; defaults to +1h client-side)
+  isConfirmed?: boolean;
+  isActive?: boolean;
+};
+
 export type reservationDetailsData = {
   id: number;
   reservationDate: string;

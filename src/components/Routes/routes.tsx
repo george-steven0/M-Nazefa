@@ -45,6 +45,7 @@ import Complaints from "../../Pages/Complaints/complaints";
 import ReservationFeedback from "../../Pages/ReservationFeedback/reservationFeedback";
 import WorkerManagement from "../../Pages/WorkerManagement/workerManagement";
 import PayemntsDetails from "../../Pages/Reservations/Components/payemntsDeatils";
+import CalendarPage from "../../Pages/Calendar/calendar";
 
 export const routes = createBrowserRouter([
   // Guest Routes
@@ -294,6 +295,15 @@ export const routes = createBrowserRouter([
             element: <PayemntsDetails />,
             handle: {
               permission: PERMISSIONS.VIEW_RESERVATION_PAYMENTS,
+            },
+          },
+
+          // Calendar
+          {
+            path: "calendar",
+            element: <CalendarPage />,
+            handle: {
+              permission: PERMISSIONS.VIEW_RESERVATION,
             },
           },
 
