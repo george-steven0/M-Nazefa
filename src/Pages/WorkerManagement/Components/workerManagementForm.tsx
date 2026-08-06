@@ -63,9 +63,7 @@ export default function WorkerManagementForm({
                     showTime={false}
                     value={field.value ? dayjs(field.value) : null}
                     onChange={(date) =>
-                      field.onChange(
-                        date ? date.startOf("day").toISOString() : "",
-                      )
+                      field.onChange(date ? date.startOf("day") : "")
                     }
                   />
                 )}
@@ -95,9 +93,7 @@ export default function WorkerManagementForm({
                     showTime={false}
                     value={field.value ? dayjs(field.value) : null}
                     onChange={(date) =>
-                      field.onChange(
-                        date ? date.endOf("day").toISOString() : "",
-                      )
+                      field.onChange(date ? date.endOf("day") : "")
                     }
                   />
                 )}

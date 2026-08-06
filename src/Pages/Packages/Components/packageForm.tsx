@@ -105,8 +105,17 @@ export default function PackageForm() {
     ArSubTitle: packageById?.data?.arSubTitle,
     SubTitle: packageById?.data?.subTitle,
     Description: packageById?.data?.description,
-    IsPercentage: String(packageById?.data?.isPercentage),
-    Discount: packageById?.data?.discount,
+    // Only pre-select a discount type & value when the package actually has a
+    // discount. Otherwise leave them empty so edit mode doesn't show "null" and
+    // force the user to pick a type / value where none exists.
+    IsPercentage:
+      Number(packageById?.data?.discount) > 0
+        ? String(packageById?.data?.isPercentage)
+        : undefined,
+    Discount:
+      Number(packageById?.data?.discount) > 0
+        ? packageById?.data?.discount
+        : undefined,
     Logo: packageById?.data?.logo,
     Rules: packageById?.data?.rules?.map((rule) => ({ value: rule })),
     ToolIds: packageById?.data?.tools?.map((tool) => tool.id) ?? [],
@@ -1354,7 +1363,7 @@ export default function PackageForm() {
                               variant="filled"
                               allowClear
                               placeholder={t("SELECT_CLEANING_AREA_SERVICES")}
-                              className="w-full border border-[#C4C4C4] rounded-md h-10 [&_.ant-select-selection-wrap]:h-full"
+                              className="w-full border border-[#C4C4C4] rounded-md min-h-10"
                               loading={
                                 isCleaningAreaServicesLoading ||
                                 isCleaningAreaServicesFetching

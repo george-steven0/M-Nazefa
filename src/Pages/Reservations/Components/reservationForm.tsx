@@ -69,6 +69,9 @@ const ReservationForm = () => {
   const [customerSearch,setCustomerSearch] = useState<string | null>(null)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Grand total computed by the summary (packages + workers × transport fee)
+  const [reservationTotal, setReservationTotal] = useState(0);
+
   const handleCustomerSearch = (value: string) => {
     if (debounceRef.current) {
       clearTimeout(debounceRef.current);
@@ -215,7 +218,7 @@ const ReservationForm = () => {
     serviceTypeId != null ? { serviceTypeId } : undefined,
   );
 
-  console.log(serviceTypeId);
+  // console.log(serviceTypeId);
   
 
   // Get availiable Reservation appointemtns
@@ -284,7 +287,11 @@ const ReservationForm = () => {
       reset({
         customerId: d.customerId,
         customerAddressId: d.customerAddressId,
-        reservationDate: d.reservationDate ? dayjs.utc(d.reservationDate).local() : "",
+        // Read the stored value as local wall-clock (ignore the trailing "Z")
+        // so the picked date/time round-trips without a UTC shift.
+        reservationDate: d.reservationDate
+          ? dayjs(d.reservationDate.replace("Z", ""))
+          : "",
         insects: d.insects ? "true" : "false",
         rodents: d.rodents ? "true" : "false",
         apartmentClosingPeriodId: d.apartmentClosingPeriodId,
@@ -315,8 +322,16 @@ const ReservationForm = () => {
         fee: d?.getTransportationFeesDetails?.fee || "",
         transportationFeesId: d?.getTransportationFeesDetails?.id || "",
       } as unknown as reservationFormProps);
+
+      // Pre-select the service unit type so it displays (and filters the
+      // packages correctly) in edit mode.
+      setServiceTypeId(
+        d.serviceTypeId ??
+          d.getPackageDtoList?.[0]?.getPackageDto?.packageTypeId ??
+          null,
+      );
     }
-  }, [isEditMode, reservationDetails, reset]);
+  }, [isEditMode, reservationDetails, reset, setServiceTypeId]);
 
   // Prefill the reservation date when arriving from the calendar (add mode)
   useEffect(() => {
@@ -331,7 +346,9 @@ const ReservationForm = () => {
   const handleSubmitForm = async (data: reservationFormProps) => {
     const formattedData = {
       ...data,
-      reservationDate: dayjs(data?.reservationDate)?.utc()?.toISOString(),
+      reservationDate: dayjs(data?.reservationDate).format(
+        "YYYY-MM-DDTHH:mm:ss[Z]",
+      ),
       addReservationPackagesDtos: data?.addReservationPackagesDtos?.map(
         (item) => ({
           ...item,
@@ -344,6 +361,8 @@ const ReservationForm = () => {
       ),
       insects: data?.insects === "true",
       rodents: data?.rodents === "true",
+      totalReservationAmount: reservationTotal,
+      serviceTypeId: serviceTypeId,
     };
 
     // console.log(formattedData);
@@ -408,6 +427,7 @@ const ReservationForm = () => {
                       <Select
                         {...field}
                         loading={customersLoading || customersIsFetching}
+                        disabled={customersLoading || customersIsFetching}
                         className="min-h-10 border-[#C4C4C4] border rounded-md capitalize [&>.ant-select-selector]:capitalize"
                         variant="filled"
                         status={errors?.customerId ? "error" : ""}
@@ -1303,18 +1323,18 @@ const ReservationForm = () => {
                 <div>
                   <label className="font-semibold">
                     {t("APARTMENT_CLOSING_PERIOD")}
-                    <Astrisk />
+                    {/* <Astrisk /> */}
                   </label>
 
                   <Controller
                     control={control}
                     name="apartmentClosingPeriodId"
-                    rules={{
-                      required: {
-                        value: true,
-                        message: t("REQUIRED"),
-                      },
-                    }}
+                    // rules={{
+                    //   required: {
+                    //     value: true,
+                    //     message: t("REQUIRED"),
+                    //   },
+                    // }}
                     render={({ field }) => (
                       <Select
                         {...field}
@@ -1656,7 +1676,10 @@ const ReservationForm = () => {
               </section>
 
               {/* ── Reservation Amount Summary ─────────────────────────────── */}
-              <ReservationSummary control={control} />
+              <ReservationSummary
+                control={control}
+                onTotalChange={setReservationTotal}
+              />
 
               <div className="md:col-span-full">
                 <label className="font-semibold mb-1 block">

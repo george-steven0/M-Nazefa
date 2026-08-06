@@ -62,6 +62,9 @@ export default function HoldReservationModal({
                   <DatePicker
                     {...field}
                     value={field.value ? dayjs(field.value) : null}
+                    onChange={(date) =>
+                      field.onChange(date ? date.startOf("day") : date)
+                    }
                     format="DD-MM-YYYY"
                     //   showTime
                     showNow
@@ -88,6 +91,9 @@ export default function HoldReservationModal({
                     <DatePicker
                       {...field}
                       value={field.value ? dayjs(field.value) : null}
+                      onChange={(date) =>
+                        field.onChange(date ? date.endOf("day") : date)
+                      }
                       format="DD-MM-YYYY"
                       //   showTime
                       showNow

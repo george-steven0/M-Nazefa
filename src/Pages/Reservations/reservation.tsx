@@ -358,8 +358,8 @@ export const Reservations = () => {
     // console.log(data);
 
     const formData = {
-      dateFrom: dayjs(data.dateFrom).format("YYYY-MM-DDThh:mm:ss[Z]"),
-      dateTo: dayjs(data.dateTo).format("YYYY-MM-DDThh:mm:ss[Z]"),
+      dateFrom: dayjs(data.dateFrom).format("YYYY-MM-DDTHH:mm:ss[Z]"),
+      dateTo: dayjs(data.dateTo).format("YYYY-MM-DDTHH:mm:ss[Z]"),
     };
 
     // console.log(formData);
@@ -406,11 +406,11 @@ export const Reservations = () => {
                   {/* <p className="capitalize text-lg font-semibold text-gray-800">
                     {t("WORKERS_DETAILS")}:
                   </p> */}
-                  <div className="flex justify-between flex-wrap gap-4">
+                  <div className="flex justify-start flex-wrap gap-5">
                     {row?.reservationWorkers &&
                     row?.reservationWorkers?.length !== 0 ? (
                       row?.reservationWorkers?.map((worker) => (
-                        <div key={worker.workerId} className="flex gap-2">
+                        <div key={worker.workerId} className="flex gap-2 bg-[#f3f3f3] py-1 pe-2 rounded-r-md">
                           <span className="w-[3px] h-6 bg-mainOrange rounded-full" />
                           <div className="flex items-center gap-2">
                             <span className="font-semibold text-gray-600">

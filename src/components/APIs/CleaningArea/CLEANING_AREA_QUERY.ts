@@ -25,6 +25,20 @@ const cleaningArea = API.injectEndpoints({
       }),
       invalidatesTags: ["CleaningArea"],
     }),
+
+    deleteCleaningArea: build.mutation<
+      APIResponse<seedersProps>,
+      { id: string | number }
+    >({
+      query: ({ id }) => ({
+        url: `/CleaningArea/DeleteCleaningArea`,
+        method: "POST",
+        headers: {
+          id: String(id),
+        },
+      }),
+      invalidatesTags: ["CleaningArea"],
+    }),
   }),
 });
 
@@ -32,4 +46,5 @@ export const {
   useGetCleaningAreasQuery,
   useAddCleaningAreaMutation,
   useEditCleaningAreaMutation,
+  useDeleteCleaningAreaMutation,
 } = cleaningArea;

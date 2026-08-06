@@ -214,8 +214,19 @@ const WorkerManagement = () => {
   // ── Handlers ───────────────────────────────────────────────────────────────
 
   const handleAddDuration = async (data: workerManagementFormProps) => {
+    // Format as local wall-clock (keeps the picked day; no UTC shift),
+    // same pattern as the hold reservation dates.
+    const payload = {
+      ...data,
+      startDate: data.startDate
+        ? dayjs(data.startDate).format("YYYY-MM-DDTHH:mm:ss[Z]")
+        : "",
+      endDate: data.endDate
+        ? dayjs(data.endDate).format("YYYY-MM-DDTHH:mm:ss[Z]")
+        : "",
+    };
     try {
-      await addDuration(data).unwrap();
+      await addDuration(payload).unwrap();
       toast.success(t("DURATION_ADDED_SUCCESS"));
       closeAddModal();
     } catch (error) {

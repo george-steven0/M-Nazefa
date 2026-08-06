@@ -679,6 +679,34 @@ const ReservationDetails = () => {
                           </div>
                         </div>
                       </div>
+
+                      {pkg.getPackageDto?.rules &&
+                        pkg.getPackageDto.rules.length > 0 && (
+                          <>
+                            <Divider className="my-4" />
+                            <div>
+                              <Text
+                                type="secondary"
+                                className="text-xs block mb-3 font-bold uppercase tracking-wider"
+                              >
+                                {t("RULES")}
+                              </Text>
+                              <ul className="flex flex-col gap-2.5 max-h-64 overflow-y-auto pr-1">
+                                {pkg.getPackageDto.rules.map((rule, ruleIdx) => (
+                                  <li
+                                    key={ruleIdx}
+                                    className="flex items-start gap-2.5"
+                                  >
+                                    <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-mainOrange" />
+                                    <span className="text-sm leading-relaxed text-mainTextLight normal-case">
+                                      {rule}
+                                    </span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          </>
+                        )}
                     </div>
                   </div>
                 </Card>
@@ -704,6 +732,7 @@ const ReservationDetails = () => {
                 <div className="p-4 flex flex-col gap-3">
                   {(() => {
                     let grandTotal = 0;
+                    let totalWorkers = 0;
 
                     const packageRows = reservation?.getPackageDtoList?.map(
                       (pkg: Record<string, unknown>, index: number) => {
@@ -755,6 +784,8 @@ const ReservationDetails = () => {
                           (priceAfterDiscount + extraServicesTotal) * count;
 
                         grandTotal += calculatedTotal;
+                        totalWorkers +=
+                          Number(packageDto.numberOfWorkers) || 0;
 
                         return (
                           <div
@@ -854,18 +885,25 @@ const ReservationDetails = () => {
                     const transportationFee =
                       Number(reservation?.getTransportationFeesDetails?.fee) ||
                       0;
-                    grandTotal += transportationFee;
+                    // Transportation is charged per worker across all packages
+                    const transportationTotal =
+                      totalWorkers * transportationFee;
+                    grandTotal += transportationTotal;
 
                     return (
                       <>
                         {packageRows}
-                        {transportationFee > 0 && (
+                        {transportationFee > 0 && totalWorkers > 0 && (
                           <div className="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
                             <span className="font-medium capitalize text-[#1D1B1B]">
                               {t("TRANSPORTATION_FEES")}
+                              <span className="ms-2 text-xs font-normal normal-case text-gray-500">
+                                ({totalWorkers} {t("WORKERS")} ×{" "}
+                                {transportationFee.toLocaleString()} {t("EGP")})
+                              </span>
                             </span>
                             <span className="text-gray-700">
-                              + {transportationFee.toLocaleString()} {t("EGP")}
+                              + {transportationTotal.toLocaleString()} {t("EGP")}
                             </span>
                           </div>
                         )}

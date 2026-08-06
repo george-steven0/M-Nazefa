@@ -353,6 +353,8 @@ export type reservationFormProps = {
   reservationDate: string;
   transportationFeesId: string | number | null;
   fee?: string | number | null;
+  totalReservationAmount?: number;
+  serviceTypeId?: string | number | null;
   onSpot: boolean;
   apartmentClosingPeriodId: string | number;
   generalComments: string;
@@ -394,6 +396,7 @@ export type reservationDetailsData = {
   id: number;
   reservationDate: string;
   reservationAmount: number;
+  serviceTypeId?: string | number | null;
   customerId: number;
   customerName: string;
   customerAddressId: number;
@@ -482,7 +485,7 @@ export type reservationDetailsData = {
       description: string;
       tools: string;
       supplies: string;
-      rules: string;
+      rules: string[] | null;
       discount: number;
       isPercentage: boolean;
       numberOfWorkers: number;

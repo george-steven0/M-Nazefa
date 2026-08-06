@@ -224,6 +224,22 @@ const styles = StyleSheet.create({
     fontFamily: "Tajawal",
     fontWeight: "bold",
   },
+  ruleItem: {
+    flexDirection: "row",
+    marginBottom: 3,
+  },
+  ruleBullet: {
+    fontSize: 10,
+    color: "#f97316",
+    marginRight: 6,
+    lineHeight: 1.4,
+  },
+  ruleText: {
+    fontSize: 9,
+    color: "#4b5563",
+    flex: 1,
+    lineHeight: 1.4,
+  },
 });
 
 export const ReservationDetailsPdf = ({
@@ -248,6 +264,7 @@ export const ReservationDetailsPdf = ({
   // const phoneNumbersObj = data.phoneNumbers || [{ id: 1, phone: "N/A" }];
 
   let grandTotal = 0;
+  let totalWorkers = 0;
   const transportationFee = Number(data.getTransportationFeesDetails?.fee) || 0;
 
   return (
@@ -536,13 +553,14 @@ export const ReservationDetailsPdf = ({
           </View>
         </View>
 
-        {/* Workers */}
-        <View style={styles.section}>
+        {/* Workers — keep the whole section together so it never splits
+            across a page (short enough to fit one page). */}
+        <View style={styles.section} wrap={false}>
           <Text style={styles.sectionTitle}>{t("WORKERS")}</Text>
           {data.reservationWorkers && data.reservationWorkers.length > 0 ? (
             <View style={styles.workersWrap}>
               {data.reservationWorkers.map((worker, index: number) => (
-                <View key={index} style={styles.workerChip}>
+                <View key={index} style={styles.workerChip} wrap={false}>
                   <Text style={styles.workerLabel}>{t("WORKER")}</Text>
                   <Text style={styles.workerName}>
                     {worker.workerName || "N/A"}
@@ -587,6 +605,7 @@ export const ReservationDetailsPdf = ({
             const calculatedTotal =
               (priceAfterDiscount + extraServicesTotal) * count;
             grandTotal += calculatedTotal;
+            totalWorkers += Number(packageDto.numberOfWorkers) || 0;
 
             return (
               <View key={index} style={styles.packageCard}>
@@ -648,6 +667,19 @@ export const ReservationDetailsPdf = ({
                     ))}
                   </View>
                 )}
+
+                {Array.isArray(packageDto.rules) &&
+                  packageDto.rules.length > 0 && (
+                    <View style={{ marginTop: 8 }}>
+                      <Text style={styles.label}>{t("RULES")}</Text>
+                      {packageDto.rules.map((rule: string, rIdx: number) => (
+                        <View key={rIdx} style={styles.ruleItem}>
+                          <Text style={styles.ruleBullet}>•</Text>
+                          <Text style={styles.ruleText}>{rule}</Text>
+                        </View>
+                      ))}
+                    </View>
+                  )}
               </View>
             );
           })}
@@ -656,20 +688,22 @@ export const ReservationDetailsPdf = ({
         {/* Summary Footer */}
         <View style={styles.summaryContainer}>
           <View style={styles.summaryBox}>
-            {transportationFee > 0 && (
+            {transportationFee > 0 && totalWorkers > 0 && (
               <View style={styles.summaryRow}>
                 <Text style={styles.summaryText}>
-                  {t("TRANSPORTATION_FEES")}
+                  {t("TRANSPORTATION_FEES")} ({totalWorkers} ×{" "}
+                  {transportationFee.toLocaleString()})
                 </Text>
                 <Text style={styles.summaryText}>
-                  {transportationFee.toLocaleString()} L.E
+                  {(totalWorkers * transportationFee).toLocaleString()} L.E
                 </Text>
               </View>
             )}
             <View style={styles.summaryTotal}>
               <Text style={styles.summaryTotalText}>{t("TOTAL_AMOUNT")}</Text>
               <Text style={styles.summaryTotalText}>
-                {(grandTotal + transportationFee).toLocaleString()} L.E
+                {(grandTotal + totalWorkers * transportationFee).toLocaleString()}{" "}
+                L.E
               </Text>
             </View>
           </View>
