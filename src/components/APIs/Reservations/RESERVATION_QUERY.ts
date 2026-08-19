@@ -1,4 +1,5 @@
 import type {
+  APIParams,
   APIResponse,
   calendarReservationProps,
   holdReservationProps,
@@ -11,10 +12,16 @@ import { API } from "../apiSlice";
 
 const reservationQuery = API.injectEndpoints({
   endpoints: (builder) => ({
-    getAllReservations: builder.query<APIResponse<reservationFormProps>, void>({
-      query: () => ({
+    getAllReservations: builder.query<
+      APIResponse<reservationFormProps>,
+      APIParams | void
+    >({
+      query: (params) => ({
         url: "/Reservation/GetReservationList",
         method: "GET",
+        headers: {
+          SearchKey: params?.search ?? "",
+        },
       }),
       providesTags: ["reservations"],
     }),

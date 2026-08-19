@@ -99,11 +99,17 @@ export const Reservations = () => {
 
   // console.log(isDirty);
 
+  const { SearchBox, debounceValue } = useSearchBox({
+    placeholder: t("SEARCH_RESERVATIONS"),
+  });
+
   const {
     data: reservations,
     isLoading,
     isFetching,
-  } = useGetAllReservationsQuery();
+  } = useGetAllReservationsQuery({
+    search: encodeURIComponent(debounceValue),
+  });
 
   // console.log(reservations?.data);
 
@@ -125,10 +131,6 @@ export const Reservations = () => {
     setActiveReservationId(reservationId);
     setIsFeedbackModalOpen(true);
   };
-
-  const { SearchBox, debounceValue } = useSearchBox({
-    placeholder: t("SEARCH_RESERVATIONS"),
-  });
 
   const columns: TableProps<serviceFormProps>["columns"] = [
     {
@@ -265,29 +267,6 @@ export const Reservations = () => {
     [reservations?.data],
   );
 
-  // Local search: filter by customer name, id, and reservation date.
-  const filteredData = useMemo(() => {
-    const term = debounceValue.trim().toLowerCase();
-    if (!term) return reservationsList;
-
-    return reservationsList.filter((row) => {
-      const record = row as Record<string, unknown>;
-
-      const haystack = [
-        record.id,
-        record.customerName,
-        record.reservationDate
-          ? dayjs(record.reservationDate as string).format("DD-MM-YYYY hh:mm A")
-          : "",
-      ]
-        .filter((part) => part !== null && part !== undefined)
-        .join(" ")
-        .toLowerCase();
-
-      return haystack.includes(term);
-    });
-  }, [reservationsList, debounceValue]);
-
   const handleNavigateAdd = () => {
     navigate(`/reservations/add-reservation`);
   };
@@ -396,7 +375,7 @@ export const Reservations = () => {
           <Table<serviceFormProps>
             rowKey="id"
             columns={columns}
-            dataSource={filteredData}
+            dataSource={reservationsList}
             loading={isLoading || isFetching}
             scroll={{ x: "max-content" }}
             className="w-full"
