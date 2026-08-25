@@ -93,8 +93,18 @@ function PackageSummaryRow({
   );
 
   const rowTotal = pkg ? priceAfterDiscount + extraServicesTotal : 0;
-  // Number of workers this package needs (drives the transportation cost).
-  const workers = pkg ? Number(pkg.numberOfWorkers) || 0 : 0;
+
+  // Extra workers required by the checked extra services.
+  const extraServicesWorkers = checkedExtras.reduce(
+    (sum, es) => sum + (Number(es.numberOfWorkers) || 0),
+    0,
+  );
+
+  // Number of workers this package needs (drives the transportation cost):
+  // the package's base workers + workers required by its checked extra services.
+  const workers = pkg
+    ? (Number(pkg.numberOfWorkers) || 0) + extraServicesWorkers
+    : 0;
 
   useEffect(() => {
     onUpdateRow(index, { total: rowTotal, workers });
@@ -164,8 +174,15 @@ function PackageSummaryRow({
               <span className="text-gray-600 capitalize">
                 {lang === "ar" ? es.arName : es.name}
               </span>
-              <span className="text-gray-700">
-                + {Number(es.price).toLocaleString()} {t("EGP")}
+              <span className="text-gray-700 flex items-center gap-2">
+                <span>
+                  + {Number(es.price).toLocaleString()} {t("EGP")}
+                </span>
+                {Number(es.numberOfWorkers) > 0 && (
+                  <span className="text-xs text-gray-500">
+                    (+{Number(es.numberOfWorkers)} {t("WORKERS")})
+                  </span>
+                )}
               </span>
             </div>
           ))}

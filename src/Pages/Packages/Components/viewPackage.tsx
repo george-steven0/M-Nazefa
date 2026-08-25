@@ -272,6 +272,9 @@ const ViewPackage = () => {
                       <span className="flex items-center">
                         {item?.price} <FaPoundSign />
                       </span>
+                      <span className="flex items-center gap-1">
+                        <HiOutlineUserGroup /> {item?.numberOfWorkers}
+                      </span>
                     </Tag>
                   ))}
                 </div>

@@ -139,6 +139,7 @@ export default function PackageForm() {
       ArName: extraService.arName,
       Name: extraService.name,
       Price: extraService.price,
+      numberOfWorkers: extraService.numberOfWorkers,
     })),
     // TransportationFees: packageById?.data?.transportationFees?.map((trans) => ({
     //   Fee: trans.fee,
@@ -279,6 +280,7 @@ export default function PackageForm() {
       ArName: "",
       Name: "",
       Price: 0,
+      numberOfWorkers: "",
     });
   };
 
@@ -1570,6 +1572,49 @@ export default function PackageForm() {
                           {errors?.ExtraServices?.[index]?.Price ? (
                             <p>
                               {errors?.ExtraServices?.[index]?.Price?.message}
+                            </p>
+                          ) : null}
+                        </div>
+
+                        <div className="grow">
+                          <label>
+                            {t("EXTRA_WORKERS")} <Astrisk />
+                          </label>
+                          <Controller
+                            control={control}
+                            name={`ExtraServices.${index}.numberOfWorkers`}
+                            rules={{
+                              required: {
+                                value: true,
+                                message: t("REQUIRED"),
+                              },
+                              pattern: {
+                                value: /^\d+$/,
+                                message: t("ONLY_NUMBER"),
+                              },
+                            }}
+                            render={({ field }) => (
+                              <Input
+                                {...field}
+                                type="number"
+                                variant="filled"
+                                placeholder={t("ENTER_NUMBER_OF_WORKERS")}
+                                status={
+                                  errors?.ExtraServices?.[index]
+                                    ?.numberOfWorkers
+                                    ? "error"
+                                    : ""
+                                }
+                              />
+                            )}
+                          />
+
+                          {errors?.ExtraServices?.[index]?.numberOfWorkers ? (
+                            <p>
+                              {
+                                errors?.ExtraServices?.[index]?.numberOfWorkers
+                                  ?.message
+                              }
                             </p>
                           ) : null}
                         </div>

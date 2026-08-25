@@ -279,6 +279,7 @@ export type packageFormProps = {
     ArName: string;
     Name: string;
     Price: string | number;
+    numberOfWorkers: string | number;
   }[];
   // TransportationFees: { Fee: string; CityId: string }[];
 };
@@ -332,6 +333,7 @@ export type packageCard = {
     arName: string;
     name: string;
     price: string | number;
+    numberOfWorkers?: string | number;
     id?: string | number;
   }[];
   // transportationFees: { id?: string; fee: string; cityId: string }[];
@@ -652,6 +654,7 @@ export type extraServiceProps = {
   name: string;
   arName: string;
   price: string | number;
+  numberOfWorkers?: string | number;
 };
 
 export type customerAddressDDLProps = {
