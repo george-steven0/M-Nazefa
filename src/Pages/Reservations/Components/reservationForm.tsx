@@ -115,11 +115,7 @@ const ReservationForm = () => {
           packageId: "",
           count: 1,
           packageAmount: "",
-          reservationPackageExtraServices: [
-            {
-              packageExtraServiceId: undefined,
-            },
-          ],
+          reservationPackageExtraServices: [],
         },
       ],
     },
@@ -302,19 +298,15 @@ const ReservationForm = () => {
           count: pkg.count || 1,
           packageAmount: pkg.packageAmount || pkg.getPackageDto?.price || "",
           reservationPackageExtraServices:
-            pkg.reservationPackageExtraServices?.length > 0
-              ? pkg.reservationPackageExtraServices.map((es) => ({
-                  packageExtraServiceId: es.id,
-                }))
-              : [{ packageExtraServiceId: undefined }],
+            pkg.reservationPackageExtraServices?.map((es) => ({
+              packageExtraServiceId: es.id,
+            })) || [],
         })) || [
           {
             packageId: "",
             count: 1,
             packageAmount: "",
-            reservationPackageExtraServices: [
-              { packageExtraServiceId: undefined },
-            ],
+            reservationPackageExtraServices: [],
           },
         ],
         areaId: d?.getTransportationFeesDetails?.areaId || "",

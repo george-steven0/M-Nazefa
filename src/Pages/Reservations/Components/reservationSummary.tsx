@@ -77,18 +77,25 @@ function PackageSummaryRow({
   }
 
   // ── Selected extra services ────────────────────────────────────────────────
-  const selectedIds = new Set(
-    (selectedExtraServices ?? [])
-      .map((s) => s?.packageExtraServiceId)
-      .filter(Boolean),
-  );
+  // Each selection is pushed as its own array entry, so the same extra
+  // service can appear more than once — quantity is how many times its id
+  // occurs.
+  const quantityByExtraServiceId = new Map<string | number, number>();
+  (selectedExtraServices ?? []).forEach((s) => {
+    if (!s?.packageExtraServiceId) return;
+    const id = s.packageExtraServiceId;
+    quantityByExtraServiceId.set(id, (quantityByExtraServiceId.get(id) || 0) + 1);
+  });
 
-  const checkedExtras = (extraServices?.data ?? []).filter((es) =>
-    selectedIds.has(es.id as string | number),
-  );
+  const checkedExtras = (extraServices?.data ?? [])
+    .filter((es) => quantityByExtraServiceId.has(es.id as string | number))
+    .map((es) => ({
+      ...es,
+      quantity: quantityByExtraServiceId.get(es.id as string | number) || 0,
+    }));
 
   const extraServicesTotal = checkedExtras.reduce(
-    (sum, es) => sum + (Number(es.price) || 0),
+    (sum, es) => sum + (Number(es.price) || 0) * es.quantity,
     0,
   );
 
@@ -96,7 +103,7 @@ function PackageSummaryRow({
 
   // Extra workers required by the checked extra services.
   const extraServicesWorkers = checkedExtras.reduce(
-    (sum, es) => sum + (Number(es.numberOfWorkers) || 0),
+    (sum, es) => sum + (Number(es.numberOfWorkers) || 0) * es.quantity,
     0,
   );
 
@@ -173,14 +180,20 @@ function PackageSummaryRow({
             >
               <span className="text-gray-600 capitalize">
                 {lang === "ar" ? es.arName : es.name}
+                {es.quantity > 1 && (
+                  <span className="ms-1 text-xs text-gray-400">
+                    x{es.quantity}
+                  </span>
+                )}
               </span>
               <span className="text-gray-700 flex items-center gap-2">
                 <span>
-                  + {Number(es.price).toLocaleString()} {t("EGP")}
+                  + {(Number(es.price) * es.quantity).toLocaleString()}{" "}
+                  {t("EGP")}
                 </span>
                 {Number(es.numberOfWorkers) > 0 && (
                   <span className="text-xs text-gray-500">
-                    (+{Number(es.numberOfWorkers)} {t("WORKERS")})
+                    (+{Number(es.numberOfWorkers) * es.quantity} {t("WORKERS")})
                   </span>
                 )}
               </span>

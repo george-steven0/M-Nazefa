@@ -1,5 +1,5 @@
 import {
-  Controller,
+  useFieldArray,
   useWatch,
   type Control,
   type FieldErrors,
@@ -7,7 +7,7 @@ import {
   type UseFormWatch,
 } from "react-hook-form";
 import type { reservationFormProps } from "../../../components/Utilities/Types/types";
-import { Checkbox, Skeleton, Tag } from "antd";
+import { Button, Skeleton, Tag } from "antd";
 import { skipToken } from "@reduxjs/toolkit/query";
 import { Link } from "react-router-dom";
 import {
@@ -17,6 +17,7 @@ import {
 import { useEffect } from "react";
 import { useAppSelector } from "../../../components/APIs/store";
 import { useTranslation } from "react-i18next";
+import { FaMinus, FaPlus } from "react-icons/fa";
 
 type extraPackageProps = {
   index: number;
@@ -69,6 +70,46 @@ export default function ExtraPackage({
 
   // console.log(extraServices?.data);
 
+  // Each selected extra service is pushed as its own entry, so selecting the
+  // same extra service more than once means pushing several entries with the
+  // same packageExtraServiceId — quantity is simply how many entries match.
+  const {
+    fields: extraServiceFields,
+    append: appendExtraService,
+    remove: removeExtraService,
+  } = useFieldArray({
+    control,
+    name: `addReservationPackagesDtos.${index}.reservationPackageExtraServices` as const,
+  });
+
+  const selectedExtraServices = useWatch({
+    control,
+    name: `addReservationPackagesDtos.${index}.reservationPackageExtraServices` as const,
+  });
+
+  const getQuantity = (extraServiceId: string | number) =>
+    (selectedExtraServices ?? []).filter(
+      (item) => String(item?.packageExtraServiceId) === String(extraServiceId),
+    ).length;
+
+  const handleIncrement = (extraServiceId: string | number) => {
+    appendExtraService({ packageExtraServiceId: extraServiceId });
+  };
+
+  const handleDecrement = (extraServiceId: string | number) => {
+    const lastIndex = extraServiceFields
+      .map(
+        (_, fieldIndex) =>
+          String(selectedExtraServices?.[fieldIndex]?.packageExtraServiceId) ===
+          String(extraServiceId),
+      )
+      .lastIndexOf(true);
+
+    if (lastIndex > -1) {
+      removeExtraService(lastIndex);
+    }
+  };
+
   if (loading) return <Skeleton active paragraph={{ rows: 3 }} />;
 
   return (
@@ -92,37 +133,49 @@ export default function ExtraPackage({
       ) : extraServicesLoading || extraServicesIsFetching ? (
         <Skeleton active paragraph={{ rows: 3 }} />
       ) : (
-        extraServices?.data?.map((item, extraServiceIndex) => (
-          <div key={item.id}>
-            <Controller
-              name={`addReservationPackagesDtos.${index}.reservationPackageExtraServices.${extraServiceIndex}.packageExtraServiceId`}
-              control={control}
-              render={({ field }) => (
-                <Checkbox
-                  {...field}
-                  checked={field.value === item.id}
-                  onChange={(e) => {
-                    if (e.target.checked) {
-                      field.onChange(item.id);
-                    } else {
-                      field.onChange(null);
-                    }
-                  }}
+        extraServices?.data?.map((item) => {
+          const quantity = getQuantity(item.id);
+
+          return (
+            <div key={item.id} className="flex items-center gap-3">
+              <span className="capitalize">
+                <Tag
+                  color="blue"
+                  className="rounded-lg px-2 flex items-center gap-2 "
                 >
-                  <span className="capitalize">
-                    <Tag
-                      color="blue"
-                      className="rounded-lg px-2 flex items-center gap-2 "
-                    >
-                      <span>{lang === "ar" ? item?.arName : item?.name}</span>
-                      <span>{item?.price} L.E</span>
-                    </Tag>
-                  </span>
-                </Checkbox>
-              )}
-            />
-          </div>
-        ))
+                  <span>{lang === "ar" ? item?.arName : item?.name}</span>
+                  <span>{item?.price} L.E</span>
+                  {Number(item?.numberOfWorkers) > 0 && (
+                    <span>
+                      {item?.numberOfWorkers} {t("WORKERS")}
+                    </span>
+                  )}
+                </Tag>
+              </span>
+
+              <div className="flex items-center gap-2">
+                <Button
+                  onClick={() => handleDecrement(item.id)}
+                  className="bg-red-600 text-white disabled:bg-gray-300 disabled:cursor-not-allowed"
+                  icon={<FaMinus size={12} />}
+                  shape="circle"
+                  size="small"
+                  disabled={quantity === 0}
+                />
+                <span className="min-w-4 text-center font-medium">
+                  {quantity}
+                </span>
+                <Button
+                  onClick={() => handleIncrement(item.id)}
+                  className="bg-green-600 text-white"
+                  icon={<FaPlus size={12} />}
+                  shape="circle"
+                  size="small"
+                />
+              </div>
+            </div>
+          );
+        })
       )}
     </div>
   );
