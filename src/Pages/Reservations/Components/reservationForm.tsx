@@ -419,7 +419,6 @@ const ReservationForm = () => {
                       <Select
                         {...field}
                         loading={customersLoading || customersIsFetching}
-                        disabled={customersLoading || customersIsFetching}
                         className="min-h-10 border-[#C4C4C4] border rounded-md capitalize [&>.ant-select-selector]:capitalize"
                         variant="filled"
                         status={errors?.customerId ? "error" : ""}
