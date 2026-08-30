@@ -673,18 +673,14 @@ export default function PackageForm() {
                       },
                     }}
                     render={({ field }) => (
-                      <Select
+                      <Input
                         {...field}
-                        className="min-h-10 border-[#C4C4C4] border rounded-md w-full"
-                        placeholder={t("ENTER_NUMBER_OF_ROOMS")}
+                        type="number"
+                        min={0}
                         variant="filled"
+                        placeholder={t("ENTER_NUMBER_OF_ROOMS")}
+                        className="placeholder:capitalize"
                         status={errors?.NumberofRooms ? "error" : ""}
-                        options={Array.from({ length: 21 })?.map(
-                          (_, index) => ({
-                            label: index,
-                            value: index,
-                          }),
-                        )}
                       />
                     )}
                   />

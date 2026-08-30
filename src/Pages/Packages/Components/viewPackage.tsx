@@ -88,44 +88,44 @@ const ViewPackage = () => {
         <Skeleton active paragraph={{ rows: 15 }} />
       ) : (
         <>
-          <header className="view-package-title flex justify-between items-start gap-4 relative">
-            <section className="flex items-start gap-2">
-              <div>
-              <Image
-                className="w-[200px] h-[200px] object-cover rounded-lg"
-                src={packageById?.data?.logo || def}
-                alt="package logo"
-              />
-            </div>
+          <header className="view-package-title flex flex-col md:flex-row justify-between items-center md:items-start gap-4 relative">
+            <section className="flex flex-col sm:flex-row items-center sm:items-start gap-4 w-full md:w-auto">
+              <div className="shrink-0">
+                <Image
+                  className="w-[140px] h-[140px] sm:w-40 sm:h-40 md:w-[200px] md:h-[200px] object-cover rounded-lg"
+                  src={packageById?.data?.logo || def}
+                  alt="package logo"
+                />
+              </div>
 
-            <div className="flex flex-col justify-between items-start">
-              <h1 className="flex items-start gap-3 font-semibold text-center text-mainColor capitalize">
-                <div className="flex flex-col gap-1 items-start">
-                  <span className="text-2xl lg:text-4xl">
-                    {lang === "ar"
-                      ? packageById?.data?.arTitle
-                      : packageById?.data?.title}
+              <div className="flex flex-col justify-between items-center sm:items-start w-full">
+                <h1 className="flex flex-wrap items-start justify-center sm:justify-start gap-3 font-semibold text-center sm:text-start text-mainColor capitalize">
+                  <div className="flex flex-col gap-1 items-center sm:items-start">
+                    <span className="text-xl sm:text-2xl lg:text-4xl wrap-break-word">
+                      {lang === "ar"
+                        ? packageById?.data?.arTitle
+                        : packageById?.data?.title}
+                    </span>
+
+                    <span className="text-sm text-gray-400">
+                      {lang === "ar"
+                        ? packageById?.data?.subTitlearSubTitle
+                        : packageById?.data?.subTitle}
+                    </span>
+                  </div>
+
+                  <span>
+                    <Tag
+                      className={`mt-2 capitalize rounded-full flex items-center px-3 ${packageById?.data?.isActive ? "bg-green-500/20 text-green-700 border-green-500" : "bg-red-500/20 text-red-700 border-red-500"}`}
+                    >
+                      {packageById?.data?.isActive ? t("ACTIVE") : t("INACTIVE")}
+                    </Tag>
                   </span>
-
-                  <span className="text-sm text-gray-400">
-                    {lang === "ar"
-                      ? packageById?.data?.subTitlearSubTitle
-                      : packageById?.data?.subTitle}
-                  </span>
-                </div>
-
-                <span>
-                  <Tag
-                    className={`mt-2 capitalize rounded-full flex items-center px-3 ${packageById?.data?.isActive ? "bg-green-500/20 text-green-700 border-green-500" : "bg-red-500/20 text-red-700 border-red-500"}`}
-                  >
-                    {packageById?.data?.isActive ? t("ACTIVE") : t("INACTIVE")}
-                  </Tag>
-                </span>
-              </h1>
-            </div>
+                </h1>
+              </div>
             </section>
 
-            <div className="">
+            <div className="w-full md:w-auto [&_button]:w-full md:[&_button]:w-auto">
               {handleNavigateButton()}
             </div>
           </header>
@@ -137,7 +137,7 @@ const ViewPackage = () => {
           <hr className="my-10 text-gray-200" />
 
           <section className="package-details-wrapper md:max-w-[90%] mx-auto">
-            <div className="flex items-center justify-between gap-5 [&>div]:grow [&>div]:text-center [&>div]:flex [&>div]:flex-col [&>div]:gap-2 [&>div]:items-center [&>div>p]:font-semibold [&>div>p]:text-xl capitalize">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-5 [&>div]:text-center [&>div]:flex [&>div]:flex-col [&>div]:gap-2 [&>div]:items-center [&>div>p]:font-semibold [&>div>p]:text-xl capitalize">
               <div className="package-type-wrapper w-full bg-[#EDF2F5] text-mainColor py-3 rounded-md p-2">
                 <label>{t("PACKAGE_TYPE")}:</label>
                 <p className="flex items-center gap-2">
@@ -200,7 +200,7 @@ const ViewPackage = () => {
           <hr className="my-10 text-gray-200" />
 
           <section className="cleaning-extra-wrapper">
-            <div className="flex items-start justify-between gap-8 [&>article]:basis-full [&>article]:md:basis-1/2">
+            <div className="flex flex-col lg:flex-row items-start justify-between gap-8 [&>article]:basis-full [&>article]:lg:basis-1/2">
               <article className="overflow-x-auto">
                 <label className="text-lg font-semibold capitalize mb-3 block">
                   {t("CLEANING_AREA")}:
@@ -262,29 +262,35 @@ const ViewPackage = () => {
                   {t("EXTRA_SERVICES")}:
                 </label>
 
-                <div className="flex items-center gap-2">
-                  {packageById?.data?.extraServices?.map((item) => (
-                    <Tag
-                      key={item?.id}
-                      className="capitalize rounded-full flex items-center gap-1 px-3 bg-blue-500/20 text-blue-700 border-blue-500"
-                    >
-                      <span>{lang === "ar" ? item?.arName : item?.name}:</span>
-                      <span className="flex items-center">
-                        {item?.price} <FaPoundSign />
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <HiOutlineUserGroup /> {item?.numberOfWorkers}
-                      </span>
-                    </Tag>
-                  ))}
-                </div>
+                {packageById?.data?.extraServices?.length ? (
+                  <div className="flex flex-wrap items-center gap-2">
+                    {packageById?.data?.extraServices?.map((item) => (
+                      <Tag
+                        key={item?.id}
+                        className="capitalize rounded-full flex flex-wrap items-center gap-1 px-3 bg-blue-500/20 text-blue-700 border-blue-500"
+                      >
+                        <span>
+                          {lang === "ar" ? item?.arName : item?.name}:
+                        </span>
+                        <span className="flex items-center">
+                          {item?.price} <FaPoundSign />
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <HiOutlineUserGroup /> {item?.numberOfWorkers}
+                        </span>
+                      </Tag>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-400">{t("NA")}</p>
+                )}
               </article>
             </div>
           </section>
 
           <hr className="my-10 text-gray-200" />
 
-          <section className="mt-4 grid grid-cols-1 md:grid-cols-4 gap-4 [&>div]:flex [&>div]:flex-col [&>div]:gap-2 [&>div]:bg-gray-300/30 [&>div]:p-4 [&>div]:rounded-md [&>div>label]:block [&>div>label]:text-lg [&>div>label]:font-semibold [&>div>label]:text-center capitalize">
+          <section className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 [&>div]:flex [&>div]:flex-col [&>div]:gap-2 [&>div]:bg-gray-300/30 [&>div]:p-4 [&>div]:rounded-md [&>div>label]:block [&>div>label]:text-lg [&>div>label]:font-semibold [&>div>label]:text-center capitalize">
             <div>
               <label>{t("RULES")}</label>
               {packageById?.data?.rules?.length ? (
