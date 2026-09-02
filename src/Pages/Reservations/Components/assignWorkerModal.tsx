@@ -140,6 +140,14 @@ export default function AssignWorkerModal({
                   {...field}
                   mode="multiple"
                   allowClear
+                  showSearch
+                  optionFilterProp="label"
+                  filterOption={(input, option) =>
+                    (option?.label ?? "")
+                      .toString()
+                      .toLowerCase()
+                      .includes(input.toLowerCase())
+                  }
                   className="w-full h-auto [&_.ant-select-selector]:py-2"
                   placeholder={t("SELECT_WORKER") || "Please select worker"}
                   loading={isLoading || isFetching}

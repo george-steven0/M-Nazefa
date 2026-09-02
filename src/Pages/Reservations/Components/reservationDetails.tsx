@@ -163,71 +163,69 @@ const ReservationDetails = () => {
 
   return (
     <>
-      <main className="pb-10 bg-lightGray min-h-screen capitalize  rounded-lg">
-        <header className="bg-white p-6 shadow-sm mb-6 rounded-b-2xl">
-          <div className="flex justify-between items-center flex-wrap gap-4">
+      <main className="p-4 sm:p-6 lg:p-8 bg-lightGray min-h-screen capitalize rounded-lg">
+        <header className="bg-white p-4 sm:p-6 shadow-sm mb-6 rounded-2xl">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <Title
               title={t("CUSTOMER_RESERVATION_DETAILS")}
               subTitle
               component={null}
-              className="m-0 [&>span]:text-xl"
+              className="m-0 [&>span]:text-lg sm:[&>span]:text-xl"
             />
-            <div className="flex gap-3">
-              {reservation && (
-                <div className="flex items-stretch gap-3 [&>button]:h-full [&>button]:py-2 [&>button]:px-3">
-                  <Button
-                    onClick={handleNavigateToPayments}
-                    className="bg-mainOrange text-white font-semibold capitalize"
-                  >
-                    {t("VIEW_PAYEMNTS")}
-                  </Button>
+            {reservation && (
+              <div className="flex flex-wrap lg:flex-nowrap items-center gap-2 sm:gap-3 [&>button]:text-xs [&>button]:px-2.5 sm:[&>button]:text-sm sm:[&>button]:px-4">
+                <Button
+                  onClick={handleNavigateToPayments}
+                  className="bg-mainOrange text-white font-semibold capitalize"
+                >
+                  {t("VIEW_PAYEMNTS")}
+                </Button>
 
-                  <PDFDownloadLink
-                    document={
-                      <ReservationDetailsPdf
-                        data={reservation}
-                        customer={customerData}
-                        address={selectedAddress}
-                      />
-                    }
-                    fileName={`reservation-${reservation.id}.pdf`}
-                  >
-                    {({ loading }: { loading: boolean }) => (
-                      <Button
-                        type="primary"
-                        icon={<FaDownload />}
-                        loading={loading}
-                        className="bg-mainColor hover:bg-mainColor/90! border-none px-4 py-3 h-full rounded-md flex items-center justify-center font-semibold"
-                      >
-                        {loading ? t("LOADING") : t("DOWNLOAD_PDF")}
-                      </Button>
-                    )}
-                  </PDFDownloadLink>
-
-                  <Button
-                    type="primary"
-                    className="bg-white text-mainColor hover:bg-mainColor/90! hover:text-white border-mainColor border-2 px-4 py-3 h-auto rounded-md flex items-center justify-center font-semibold"
-                    onClick={toggleModal}
-                  >
-                    {t("ASSIGN_WORKERS")}
-                  </Button>
-
-                  {(reservation?.onSpot && !reservation?.isConfirmed) && (
+                <PDFDownloadLink
+                  document={
+                    <ReservationDetailsPdf
+                      data={reservation}
+                      customer={customerData}
+                      address={selectedAddress}
+                    />
+                  }
+                  fileName={`reservation-${reservation.id}.pdf`}
+                >
+                  {({ loading }: { loading: boolean }) => (
                     <Button
-                      loading={isConfirmLoading}
-                      onClick={handleConfirmReservation}
-                      className="h-full capitalize font-semibold border border-green-600 text-green-600 bg-green-600/20 hover:bg-green-600/40"
+                      type="primary"
+                      icon={<FaDownload />}
+                      loading={loading}
+                      className="bg-mainColor hover:bg-mainColor/90! border-none rounded-md font-semibold"
                     >
-                      {t("CONFIRM_RESERVATION")}
+                      {loading ? t("LOADING") : t("DOWNLOAD_PDF")}
                     </Button>
                   )}
-                </div>
-              )}
-            </div>
+                </PDFDownloadLink>
+
+                <Button
+                  type="primary"
+                  className="bg-white text-mainColor hover:bg-mainColor/90! hover:text-white border-mainColor border-2 rounded-md font-semibold"
+                  onClick={toggleModal}
+                >
+                  {t("ASSIGN_WORKERS")}
+                </Button>
+
+                {reservation?.onSpot && !reservation?.isConfirmed && (
+                  <Button
+                    loading={isConfirmLoading}
+                    onClick={handleConfirmReservation}
+                    className="capitalize font-semibold border border-green-600 text-green-600 bg-green-600/20 hover:bg-green-600/40"
+                  >
+                    {t("CONFIRM_RESERVATION")}
+                  </Button>
+                )}
+              </div>
+            )}
           </div>
         </header>
 
-        <div className="px-4 lg:px-8 flex flex-col gap-6">
+        <div className="flex flex-col gap-6">
           {/* Top Info Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card
@@ -239,7 +237,11 @@ const ReservationDetails = () => {
                 </span>
               }
             >
-              <Descriptions column={2} size="small" colon={false}>
+              <Descriptions
+                column={{ xs: 1, sm: 2, md: 2, lg: 2, xl: 2, xxl: 2 }}
+                size="small"
+                colon={false}
+              >
                 <Descriptions.Item label={t("DATE")}>
                   {renderValue(
                     reservation?.reservationDate
@@ -266,7 +268,11 @@ const ReservationDetails = () => {
                 </span>
               }
             >
-              <Descriptions column={2} size="small" colon={false}>
+              <Descriptions
+                column={{ xs: 1, sm: 2, md: 2, lg: 2, xl: 2, xxl: 2 }}
+                size="small"
+                colon={false}
+              >
                 <Descriptions.Item label={t("INSECTS")}>
                   {renderValue(reservation?.insects)}
                 </Descriptions.Item>
@@ -358,7 +364,13 @@ const ReservationDetails = () => {
                   `${customerData?.customerFavourites?.favoriteList?.length || 0} Fav / ${customerData?.customerFavourites?.notRecommendedWorkerList?.length || 0} Not Rec`,
                 )}
               </Descriptions.Item> */}
-              <Descriptions.Item label={t("GENERAL_NOTES")} span={3}>
+            </Descriptions>
+
+            {/* Rendered in its own full-width Descriptions so it always
+                takes the whole row, regardless of how the grid above
+                divides at the current breakpoint. */}
+            <Descriptions column={1} size="small" colon={false}>
+              <Descriptions.Item label={t("GENERAL_NOTES")}>
                 {renderValue(customerData?.generalNotes)}
               </Descriptions.Item>
             </Descriptions>
@@ -412,10 +424,16 @@ const ReservationDetails = () => {
                   selectedAddress?.landMark || selectedAddress?.landmark,
                 )}
               </Descriptions.Item>
-              <Descriptions.Item label={t("DESCRIPTION")} span={2}>
+            </Descriptions>
+
+            {/* Own full-width Descriptions so these long-text fields always
+                take the whole row, regardless of how the grid above
+                divides at the current breakpoint. */}
+            <Descriptions column={1} size="small" colon={false}>
+              <Descriptions.Item label={t("DESCRIPTION")}>
                 {renderValue(selectedAddress?.fullDescription)}
               </Descriptions.Item>
-              <Descriptions.Item label={t("NOTES")} span={3}>
+              <Descriptions.Item label={t("NOTES")}>
                 {renderValue(selectedAddress?.notes)}
               </Descriptions.Item>
             </Descriptions>
@@ -524,7 +542,7 @@ const ReservationDetails = () => {
             reservation?.reservationWorkers?.length > 0 ? (
               // Grid: up to 5 per row on large screens, max 3 rows then scroll.
               // Row height 3rem (h-12) + gap 1rem → 3 rows = 11rem.
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 max-h-[11rem] overflow-y-auto pr-1">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 max-h-44 overflow-y-auto pr-1">
                 {reservation?.reservationWorkers?.map((worker) => (
                   <div
                     key={worker.workerId}
@@ -646,15 +664,17 @@ const ReservationDetails = () => {
                             <List
                               size="small"
                               dataSource={pkg?.reservationPackageExtraServices}
-                              className="[&_.ant-list-items]:grid [&_.ant-list-items]:grid-cols-2 [&_.ant-list-items]:gap-5"
+                              className="[&_.ant-list-items]:grid [&_.ant-list-items]:grid-cols-1 sm:[&_.ant-list-items]:grid-cols-2 lg:[&_.ant-list-items]:grid-cols-3 [&_.ant-list-items]:gap-2"
                               renderItem={(item) => (
-                                <List.Item className="py-1! px-0! border-none">
-                                  <Tag className="flex items-center gap-2 bg-mainOrange/20 text-mainOrange border-mainOrange">
-                                    <div className="flex items-center gap-2">
-                                      <div className="w-1.5 h-1.5 rounded-full bg-mainOrange" />
-                                      {item.service}
+                                <List.Item className="py-0! px-0! border-none">
+                                  <Tag className="w-full flex flex-wrap items-center gap-x-1.5 gap-y-0.5 rounded-full px-2.5 py-1 text-xs bg-mainOrange/20 text-mainOrange border-mainOrange">
+                                    <div className="flex items-start gap-1.5">
+                                      <div className="w-1 h-1 mt-1 rounded-full bg-mainOrange shrink-0" />
+                                      <span className="wrap-break-word">
+                                        {item.service}
+                                      </span>
                                     </div>
-                                    <Text className="font-semibold text-mainOrange">
+                                    <Text className="text-xs! font-semibold text-mainOrange! shrink-0">
                                       {item.price} L.E
                                     </Text>
                                   </Tag>
@@ -792,13 +812,13 @@ const ReservationDetails = () => {
                             key={index}
                             className="flex flex-col gap-2 p-4 bg-gray-50 rounded-lg border border-gray-200"
                           >
-                            <div className="flex items-center justify-between">
-                              <span className="font-semibold text-[#1D1B1B] capitalize">
+                            <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+                              <span className="font-semibold text-[#1D1B1B] capitalize wrap-break-word">
                                 {lang
                                   ? (packageDto.arTitle as string)
                                   : (packageDto.title as string)}
                               </span>
-                              <span className="text-gray-700 font-medium">
+                              <span className="text-gray-700 font-medium shrink-0">
                                 {basePrice > 0
                                   ? `${basePrice.toLocaleString()} ${t("EGP")}`
                                   : renderValue(null)}
@@ -845,12 +865,12 @@ const ReservationDetails = () => {
                                   ) => (
                                     <div
                                       key={esIdx}
-                                      className="flex items-center justify-between text-sm ps-2"
+                                      className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 text-sm ps-2"
                                     >
-                                      <span className="text-gray-600 capitalize">
+                                      <span className="text-gray-600 capitalize wrap-break-word">
                                         {es.service as string}
                                       </span>
-                                      <span className="text-gray-700">
+                                      <span className="text-gray-700 shrink-0">
                                         + {Number(es.price).toLocaleString()}{" "}
                                         {t("EGP")}
                                       </span>
@@ -894,7 +914,7 @@ const ReservationDetails = () => {
                       <>
                         {packageRows}
                         {transportationFee > 0 && totalWorkers > 0 && (
-                          <div className="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
+                          <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
                             <span className="font-medium capitalize text-[#1D1B1B]">
                               {t("TRANSPORTATION_FEES")}
                               <span className="ms-2 text-xs font-normal normal-case text-gray-500">
@@ -902,7 +922,7 @@ const ReservationDetails = () => {
                                 {transportationFee.toLocaleString()} {t("EGP")})
                               </span>
                             </span>
-                            <span className="text-gray-700">
+                            <span className="text-gray-700 shrink-0">
                               + {transportationTotal.toLocaleString()} {t("EGP")}
                             </span>
                           </div>
