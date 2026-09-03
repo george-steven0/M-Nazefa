@@ -83,6 +83,9 @@ export const PERMISSIONS = {
   //Worker Management
   VIEW_WORKER_MANAGEMENT: "view_worker_management",
   VIEW_RESERVATION_PAYMENTS: "view_reservation_payments",
+
+  //Reports
+  VIEW_REPORTS: "view_reports",
 } as const;
 
 // 2) Permission type
@@ -174,6 +177,9 @@ export const ROLE_PERMISSIONS: Record<AppRole, Permission[]> = {
 
     //Messages
     // PERMISSIONS.VIEW_MESSAGES,
+
+    //Reports
+    PERMISSIONS.VIEW_REPORTS,
   ],
 
   super_admin: Object.values(PERMISSIONS),

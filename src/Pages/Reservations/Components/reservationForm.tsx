@@ -1405,6 +1405,13 @@ const ReservationForm = () => {
                           setValue("fee", "");
                           //   handleChange(e);
                         }}
+                        showSearch
+                        optionFilterProp="label"
+                        filterOption={(input, option) =>
+                          (option?.label ?? "")
+                            .toLowerCase()
+                            .includes(input.toLowerCase())
+                        }
                         options={cities?.data?.map((city) => ({
                           value: city?.id,
                           label: lang === "en" ? city?.name : city?.arName,
@@ -1450,6 +1457,13 @@ const ReservationForm = () => {
                           setValue("fee", "");
                           //   handleChange(e);
                         }}
+                        showSearch
+                        optionFilterProp="label"
+                        filterOption={(input, option) =>
+                          (option?.label ?? "")
+                            .toLowerCase()
+                            .includes(input.toLowerCase())
+                        }
                         options={newAreas?.data?.map((area) => ({
                           value: area?.id,
                           label: lang === "en" ? area?.name : area?.arName,
@@ -1616,9 +1630,16 @@ const ReservationForm = () => {
                                         placeholder="Select package"
                                         style={{ width: "100%" }}
                                         onChange={(e) => {
-                                          field.onChange(e);                                          
+                                          field.onChange(e);
                                           //   handleChange(e);
                                         }}
+                                        showSearch
+                                        optionFilterProp="label"
+                                        filterOption={(input, option) =>
+                                          (option?.label ?? "")
+                                            .toLowerCase()
+                                            .includes(input.toLowerCase())
+                                        }
                                         options={
                                           packages?.data?.map((pkg) => ({
                                             value: pkg.id,

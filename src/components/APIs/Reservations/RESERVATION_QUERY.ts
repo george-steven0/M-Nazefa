@@ -2,6 +2,8 @@ import type {
   APIParams,
   APIResponse,
   calendarReservationProps,
+  dailyReportFilterParams,
+  dailyReservationReportProps,
   holdReservationProps,
   reservationDetailsData,
   reservationFormProps,
@@ -10,17 +12,36 @@ import type {
 } from "../../Utilities/Types/types";
 import { API } from "../apiSlice";
 
+type getReservationsParams = APIParams & {
+  status?: string;
+  date?: string;
+};
+
+// Shared by GetDailyReservationReport and its PDF sibling — both take the
+// same three filter headers. "dateFilter" rather than "date": browsers
+// forbid scripts from setting a header called "Date" and silently drop it.
+const buildReportHeaders = (params?: dailyReportFilterParams) => ({
+  ...(params?.searchKey ? { searchKey: params.searchKey } : {}),
+  ...(params?.status ? { status: params.status } : {}),
+  ...(params?.area ? { area: params.area } : {}),
+  ...(params?.dateFilter ? { dateFilter: params.dateFilter } : {}),
+});
+
 const reservationQuery = API.injectEndpoints({
   endpoints: (builder) => ({
     getAllReservations: builder.query<
       APIResponse<reservationFormProps>,
-      APIParams | void
+      getReservationsParams | void
     >({
       query: (params) => ({
         url: "/Reservation/GetReservationList",
         method: "GET",
+        // Named "dateFilter" rather than "date": browsers forbid scripts from
+        // setting a header called "Date" and silently drop it.
         headers: {
-          SearchKey: params?.search ?? "",
+          searchKey: params?.search ?? "",
+          ...(params?.status ? { status: params.status } : {}),
+          ...(params?.date ? { dateFilter: params.date } : {}),
         },
       }),
       providesTags: ["reservations"],
@@ -135,6 +156,31 @@ const reservationQuery = API.injectEndpoints({
         { type: "reservations", id: reservationId },
       ],
     }),
+
+    getDailyReservationReport: builder.query<
+      SingleAPIResponse<dailyReservationReportProps>,
+      dailyReportFilterParams | void
+    >({
+      query: (params) => ({
+        url: "/Reservation/GetDailyReservationReport",
+        method: "GET",
+        headers: buildReportHeaders(params ?? undefined),
+      }),
+      providesTags: ["reservations"],
+    }),
+
+    getDailyReservationReportPdf: builder.query<
+      Blob,
+      dailyReportFilterParams | void
+    >({
+      query: (params) => ({
+        url: "/Reservation/GetDailyReservationReportPdf",
+        method: "GET",
+        headers: buildReportHeaders(params ?? undefined),
+        responseHandler: (response: Response) => response.blob(),
+        cache: "no-cache",
+      }),
+    }),
   }), //builder braces
 });
 
@@ -149,4 +195,6 @@ export const {
   useToggleReservationStatusMutation,
   useConfirmReservationMutation,
   useUpdateReservationMutation,
+  useGetDailyReservationReportQuery,
+  useLazyGetDailyReservationReportPdfQuery,
 } = reservationQuery;

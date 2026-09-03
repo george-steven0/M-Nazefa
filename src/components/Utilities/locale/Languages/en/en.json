@@ -390,7 +390,10 @@
     "ACTIONS": "Actions",
     "IS_CONFIRMED": "Is confirmed?",
     "CONFIRMED": "Confirmed",
+    "PENDING": "Pending",
     "NOT_CONFIRMED": "Not confirmed",
+    "FILTER_BY_STATUS": "Filter by status",
+    "ALL_STATUSES": "All statuses",
     "COPY_PACKAGE": "Copy package",
     "COPY": "Copy",
     "COPY_PACKAGE_CONFIRM": "Are you sure you want to copy \"{{name}}\"?",
@@ -577,5 +580,21 @@
     "VIEW_FULL_DETAILS": "View full details",
     "CANCEL_RESERVATION": "Cancel reservation",
     "ADD_NEW_RESERVATION": "Add new reservation",
-    "CANNOT_ADD_PAST_RESERVATION": "You can't add a reservation on a past date"
+    "CANNOT_ADD_PAST_RESERVATION": "You can't add a reservation on a past date",
+
+    "REPORTS": "Reports",
+    "DAILY_RESERVATION_REPORT": "Daily reservation report",
+    "DAILY_RESERVATION_REPORT_DESC": "A daily snapshot of reservation activity, revenue, and collections",
+    "TOTAL_RESERVATIONS": "Total reservations",
+    "CONTRACTS": "Contracts",
+    "TOTAL_WORKERS": "Total workers",
+    "TOTAL_PAID": "Total paid",
+    "TOTAL_REMAINING": "Total remaining",
+    "COLLECTED": "Collected",
+    "FILTER_BY_AREA": "Filter by area",
+    "ALL_AREAS": "All areas",
+    "ALL_RESERVATIONS": "All reservations",
+    "GENERATING": "Generating",
+    "NO_RESERVATIONS_FOR_THIS_DAY": "No reservations for this day",
+    "REPORT_PDF_FAILED": "Failed to generate the PDF report"
 }

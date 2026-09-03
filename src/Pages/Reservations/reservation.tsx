@@ -2,7 +2,8 @@ import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import Title from "../../components/Common/Title/title";
 import { useTranslation } from "react-i18next";
 import { useSearchBox } from "../../components/Common/Search/searchInput";
-import { Button, Table, type TableProps } from "antd";
+import { Button, DatePicker, Select, Table, type TableProps } from "antd";
+import dayjs, { type Dayjs } from "dayjs";
 import type {
   APIErrorProps,
   holdReservationProps,
@@ -14,7 +15,6 @@ import {
   useGetHoldReservationQuery,
   useToggleReservationStatusMutation,
 } from "../../components/APIs/Reservations/RESERVATION_QUERY";
-import dayjs from "dayjs";
 import { AiOutlineEye } from "react-icons/ai";
 import { FaCheckCircle, FaTimesCircle } from "react-icons/fa";
 import { useEffect, useMemo, useState } from "react";
@@ -103,12 +103,19 @@ export const Reservations = () => {
     placeholder: t("SEARCH_RESERVATIONS"),
   });
 
+  const [statusFilter, setStatusFilter] = useState<string | undefined>(
+    undefined,
+  );
+  const [dateFilter, setDateFilter] = useState<Dayjs | null>(null);
+
   const {
     data: reservations,
     isLoading,
     isFetching,
   } = useGetAllReservationsQuery({
     search: encodeURIComponent(debounceValue),
+    status: statusFilter,
+    date: dateFilter ? dateFilter.format("YYYY-MM-DD") : undefined,
   });
 
   // console.log(reservations?.data);
@@ -367,8 +374,32 @@ export const Reservations = () => {
       </header>
 
       <div>
-        <section className="my-8 max-w-[80%] lg:max-w-[40%]">
-          {SearchBox()}
+        <section className="my-8 flex flex-wrap items-center gap-4">
+          <div className="w-full sm:max-w-[80%] lg:max-w-[40%]">
+            {SearchBox()}
+          </div>
+
+          <Select
+            allowClear
+            placeholder={t("FILTER_BY_STATUS")}
+            className="min-h-10 w-full sm:w-[220px] [&_.ant-select-selector]:min-h-10"
+            value={statusFilter}
+            onChange={(value) => setStatusFilter(value)}
+            options={[
+              { value: "Confirmed", label: t("CONFIRMED") },
+              { value: "Pending", label: t("PENDING") },
+              { value: "OnSpot", label: t("ON_SPOT") },
+            ]}
+          />
+
+          <DatePicker
+            allowClear
+            placeholder={t("FILTER_BY_DATE")}
+            className="min-h-10 w-full sm:w-[220px]"
+            format="DD-MM-YYYY"
+            value={dateFilter}
+            onChange={(date) => setDateFilter(date)}
+          />
         </section>
 
         <section className="mt-8 overflow-x-auto">

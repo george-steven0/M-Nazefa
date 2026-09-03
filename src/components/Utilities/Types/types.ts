@@ -811,3 +811,62 @@ export type reservationPaymentsProps = {
   paymentMethod: string;
   note: string;
 };
+
+/* ── Daily reservation report ─────────────────────────────────────────────
+   The API returns section `items` and `reservations` as free-form rows, so
+   every field is optional and unknown keys are tolerated: the report UI
+   renders whichever fields are actually present. */
+export type dailyReportItemProps = {
+  id?: string | number;
+  reservationId?: string | number;
+  customerName?: string;
+  customerPhoneNumber?: string;
+  phoneNumber?: string;
+  reservationDate?: string;
+  time?: string;
+  cityName?: string;
+  areaName?: string;
+  address?: string;
+  packageName?: string;
+  numberOfWorkers?: number;
+  workers?: string;
+  amount?: number;
+  totalAmount?: number;
+  paidAmount?: number;
+  remainingAmount?: number;
+  status?: string;
+  isConfirmed?: boolean;
+  onSpot?: boolean;
+  notes?: string;
+  [key: string]: unknown;
+};
+
+export type dailyReportSectionProps = {
+  key: string;
+  title: string;
+  items: dailyReportItemProps[];
+};
+
+export type dailyReservationReportProps = {
+  reportDate: string;
+  dayName: string;
+  generatedAt: string;
+  totalReservations: number;
+  contractCount: number;
+  confirmedCount: number;
+  onSpotCount: number;
+  cancelledCount: number;
+  totalWorkers: number;
+  totalAmount: number;
+  totalPaid: number;
+  totalRemaining: number;
+  sections: dailyReportSectionProps[];
+  reservations: dailyReportItemProps[];
+};
+
+export type dailyReportFilterParams = {
+  dateFilter?: string;
+  searchKey?: string;
+  status?: string;
+  area?: string;
+};

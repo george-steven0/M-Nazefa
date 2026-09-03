@@ -31,6 +31,7 @@ import {
   AiOutlineTool,
   AiOutlineMenuFold,
   AiOutlineMenuUnfold,
+  AiOutlineBarChart,
 } from "react-icons/ai";
 import { getUserRoles } from "../../../Utilities/utilities";
 import {
@@ -221,6 +222,14 @@ const Navbar = ({
             icon: <LuCalendarDays />,
             iconType: "fontIcon",
             permissions: [PERMISSIONS.VIEW_RESERVATION],
+          },
+          {
+            id: "reports",
+            name: t("REPORTS"),
+            path: "/reports",
+            icon: <AiOutlineBarChart />,
+            iconType: "fontIcon",
+            permissions: [PERMISSIONS.VIEW_REPORTS],
           },
           {
             id: "complaints",

@@ -390,7 +390,10 @@
     "ACTIONS": "الإجراءات",
     "IS_CONFIRMED": "مؤكد؟",
     "CONFIRMED": "مؤكد",
+    "PENDING": "قيد الانتظار",
     "NOT_CONFIRMED": "غير مؤكد",
+    "FILTER_BY_STATUS": "تصفية حسب الحالة",
+    "ALL_STATUSES": "كل الحالات",
     "COPY_PACKAGE": "نسخ الباقة",
     "COPY": "نسخ",
     "COPY_PACKAGE_CONFIRM": "هل أنت متأكد أنك تريد نسخ \"{{name}}\"؟",
@@ -577,5 +580,21 @@
     "VIEW_FULL_DETAILS": "عرض التفاصيل الكاملة",
     "CANCEL_RESERVATION": "إلغاء الحجز",
     "ADD_NEW_RESERVATION": "إضافة حجز جديد",
-    "CANNOT_ADD_PAST_RESERVATION": "لا يمكنك إضافة حجز في تاريخ سابق"
+    "CANNOT_ADD_PAST_RESERVATION": "لا يمكنك إضافة حجز في تاريخ سابق",
+
+    "REPORTS": "التقارير",
+    "DAILY_RESERVATION_REPORT": "تقرير الحجوزات اليومي",
+    "DAILY_RESERVATION_REPORT_DESC": "ملخص يومي لنشاط الحجوزات والإيرادات والتحصيلات",
+    "TOTAL_RESERVATIONS": "إجمالي الحجوزات",
+    "CONTRACTS": "التعاقدات",
+    "TOTAL_WORKERS": "إجمالي العمال",
+    "TOTAL_PAID": "إجمالي المدفوع",
+    "TOTAL_REMAINING": "إجمالي المتبقي",
+    "COLLECTED": "تم تحصيله",
+    "FILTER_BY_AREA": "تصفية حسب المنطقة",
+    "ALL_AREAS": "كل المناطق",
+    "ALL_RESERVATIONS": "كل الحجوزات",
+    "GENERATING": "جاري الإنشاء",
+    "NO_RESERVATIONS_FOR_THIS_DAY": "لا توجد حجوزات لهذا اليوم",
+    "REPORT_PDF_FAILED": "فشل إنشاء تقرير PDF"
 }
