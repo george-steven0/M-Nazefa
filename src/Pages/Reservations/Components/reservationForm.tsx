@@ -1339,12 +1339,13 @@ const ReservationForm = () => {
                         }
                         className="min-h-10 border-[#C4C4C4] border rounded-md capitalize [&>.ant-select-selector]:capitalize"
                         variant="filled"
+                        allowClear
                         status={errors?.apartmentClosingPeriodId ? "error" : ""}
                         // defaultValue="male"
                         placeholder="Select apartment closing period"
                         style={{ width: "100%" }}
                         onChange={(e) => {
-                          field.onChange(e);
+                          field.onChange(e ?? null);
                           //   handleChange(e);
                         }}
                         options={apartmentClosingPeriod?.data?.map(
