@@ -11,7 +11,6 @@ import type {
 } from "../../../components/Utilities/Types/types";
 import { useAddComplaintMutation } from "../../../components/APIs/Complaints/COMPLAINT_QUERY";
 import { useGetAllWorkersListQuery, useGetReservationListDDLQuery } from "../../../components/APIs/Seeders/SEEDERS_RTK_QUERY";
-import { useGetAllWorkersQuery } from "../../../components/APIs/Workers/WORKERS_QUERY";
 
 type ComplaintFormProps = {
   open: boolean;
