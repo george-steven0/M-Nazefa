@@ -10,7 +10,7 @@ import type {
   complaintFormProps,
 } from "../../../components/Utilities/Types/types";
 import { useAddComplaintMutation } from "../../../components/APIs/Complaints/COMPLAINT_QUERY";
-import { useGetReservationListDDLQuery } from "../../../components/APIs/Seeders/SEEDERS_RTK_QUERY";
+import { useGetAllWorkersListQuery, useGetReservationListDDLQuery } from "../../../components/APIs/Seeders/SEEDERS_RTK_QUERY";
 import { useGetAllWorkersQuery } from "../../../components/APIs/Workers/WORKERS_QUERY";
 
 type ComplaintFormProps = {
@@ -37,7 +37,7 @@ const ComplaintForm = ({ open, onClose, reservationId }: ComplaintFormProps) => 
     data: workers,
     isLoading: workersLoading,
     isFetching: workersIsFetching,
-  } = useGetAllWorkersQuery(open ? { page: 1, size: 50 } : skipToken);
+  } = useGetAllWorkersListQuery(open ? undefined : skipToken);
 
   // ── Mutations ──────────────────────────────────────────────────────────────
   const [addComplaint, { isLoading: isAddComplaintLoading }] =

@@ -186,6 +186,7 @@ const seeders = API.injectEndpoints({
         url: `/Worker/GetAllWorkersDDL`,
         method: "GET",
       }),
+      providesTags: [{ type: "workers", id: "LIST" }],
     }),
 
     getReservationListDDL: build.query<APIResponse<seedersProps>, void>({
