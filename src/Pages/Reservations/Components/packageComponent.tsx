@@ -53,18 +53,23 @@ export default function ExtraPackage({
     packageId ? { id: packageId?.toString() } : skipToken,
   );
 
-  const { data: packageById } = useGetPackageByIdQuery(
+  // currentData, not data: data keeps the previously selected package's result
+  // while the new one loads, so its price would be written for the new package.
+  const { currentData: packageById } = useGetPackageByIdQuery(
     packageId ? { id: packageId?.toString() } : skipToken,
   );
 
+  const packageData = packageById?.data;
+
+  // Re-runs on every package change (even when two packages cost the same),
+  // because the form clears packageAmount when the package changes.
   useEffect(() => {
-    if (packageById?.data?.price) {
-      setValue(
-        `addReservationPackagesDtos.${index}.packageAmount`,
-        packageById?.data?.price ? Number(packageById?.data?.price) : 0,
-      );
-    }
-  }, [index, packageById?.data?.price, setValue]);
+    if (!packageId || !packageData) return;
+    setValue(
+      `addReservationPackagesDtos.${index}.packageAmount`,
+      Number(packageData.price) || 0,
+    );
+  }, [index, packageId, packageData, setValue]);
 
   //   console.log(packageById?.data?.price);
 

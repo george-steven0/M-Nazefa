@@ -254,6 +254,28 @@ const ReservationForm = () => {
   const handlePackageRemove = (index: number) => {
     packagesRemove(index);
   };
+
+  // A row's extra services and amount belong to the package that was selected
+  // when they were filled in. Wipe them when the package changes, otherwise the
+  // old package's extras stay in the form state and are submitted next to the
+  // new package's own.
+  const handlePackageChange = (index: number) => {
+    setValue(
+      `addReservationPackagesDtos.${index}.reservationPackageExtraServices`,
+      [],
+    );
+    setValue(`addReservationPackagesDtos.${index}.packageAmount`, "");
+  };
+
+  // The package list is filtered by the unit type, so once it changes the
+  // selected packages (and everything attached to them) no longer apply.
+  const handleServiceTypeChange = (value?: string | number | null) => {
+    setServiceTypeId(value ?? null);
+    packagesFields.forEach((_, index) => {
+      setValue(`addReservationPackagesDtos.${index}.packageId`, "");
+      handlePackageChange(index);
+    });
+  };
   // console.log(packages);
 
   // const [selectedRadio, setSelectedRadio] = useState(0);
@@ -1564,7 +1586,7 @@ const ReservationForm = () => {
                     allowClear
                     placeholder={t("SELECT_SERVICE")}
                     value={serviceTypeId}
-                    onChange={(value) => setServiceTypeId(value ?? null)}
+                    onChange={handleServiceTypeChange}
                     showSearch
                     optionFilterProp="label"
                     filterOption={(input, option) =>
@@ -1632,6 +1654,7 @@ const ReservationForm = () => {
                                         style={{ width: "100%" }}
                                         onChange={(e) => {
                                           field.onChange(e);
+                                          handlePackageChange(index);
                                           //   handleChange(e);
                                         }}
                                         showSearch
