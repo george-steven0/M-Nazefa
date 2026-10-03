@@ -1,5 +1,6 @@
-import { createBrowserRouter, Navigate } from "react-router-dom";
+import { createBrowserRouter } from "react-router-dom";
 import App from "../../App";
+import HomeRedirect from "./Roles/homeRedirect";
 import Notfound from "../../Pages/Notfound/notfound";
 import Employees from "../../Pages/Employees/employees";
 import AddEmployee from "../../Pages/Employees/Components/addEmployee";
@@ -66,10 +67,7 @@ export const routes = createBrowserRouter([
         children: [
           {
             index: true,
-            element: <Navigate to="dashboard" replace />,
-            handle: {
-              permission: PERMISSIONS.VIEW_DASHBOARD,
-            },
+            element: <HomeRedirect />,
           },
 
           // Dashboard
