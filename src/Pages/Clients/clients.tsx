@@ -1,5 +1,5 @@
 import { AiOutlineDelete, AiOutlineEye } from "react-icons/ai";
-import { BiEdit } from "react-icons/bi";
+import { BiEdit, BiWallet } from "react-icons/bi";
 import {
   Button,
   Dropdown,
@@ -25,7 +25,12 @@ import { useState } from "react";
 import { MdFilterAlt } from "react-icons/md";
 import { fullDateFormat } from "../../components/Utilities/helper";
 import { toast } from "react-toastify";
-import { isAdmin, isSuperAdmin } from "../../Utilities/utilities";
+import {
+  hasPermission,
+  isAdmin,
+  isSuperAdmin,
+} from "../../Utilities/utilities";
+import { PERMISSIONS } from "../../Utilities/permissions.config";
 
 const Actions = ({ data }: { data: clientFormPropsType }) => {
   const { t } = useTranslation();
@@ -68,6 +73,15 @@ const Actions = ({ data }: { data: clientFormPropsType }) => {
         onClick={() => handleNavigate("view")}
         icon={<AiOutlineEye size={20} />}
       />
+      {hasPermission(PERMISSIONS.VIEW_CUSTOMER_WALLET) && (
+        <Button
+          shape="circle"
+          title={t("CUSTOMER_WALLET")}
+          className="hover:bg-mainOrange/60 hover:text-white hover:border-transparent size-10 [&>span]:flex [&>span]:items-center"
+          onClick={() => navigate(`wallet?id=${data?.id}`)}
+          icon={<BiWallet size={20} />}
+        />
+      )}
       {canManage && (
         <Popconfirm
           title={t("DELETE_CUSTOMER")}
@@ -249,7 +263,8 @@ const Clients = () => {
   const isChildClientPage =
     pathname.includes("add-client") ||
     pathname.includes("view-client") ||
-    pathname.includes("edit-client");
+    pathname.includes("edit-client") ||
+    pathname.includes("/clients/wallet");
 
   // 🔹 If yes → render only AddClient content
   if (isChildClientPage) {

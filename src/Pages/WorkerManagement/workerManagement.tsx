@@ -50,7 +50,7 @@ const WorkerManagement = () => {
       setIsAddModalOpen(true);
       return;
     } else {
-      reset({ startDate: "", endDate: "", workersNo: 0, notes: "" });
+      reset({ startDate: "", endDate: "", workersNo: 0, reserveWorkersNo: null, notes: "" });
       setIsAddModalOpen(true);
     }
   };
@@ -126,6 +126,18 @@ const WorkerManagement = () => {
       title: t("REMAIN_WORKERS"),
       dataIndex: "remainNoOfWorkers",
       key: "remainNoOfWorkers",
+      render: (text) => <p>{text || 0}</p>,
+    },
+    {
+      title: t("RESERVE_WORKERS"),
+      dataIndex: "reserveNoOfWorkers",
+      key: "reserveNoOfWorkers",
+      render: (text) => <p>{text || 0}</p>,
+    },
+    {
+      title: t("REMAIN_RESERVE_WORKERS"),
+      dataIndex: "remainReserveNoOfWorkers",
+      key: "remainReserveNoOfWorkers",
       render: (text) => <p>{text || 0}</p>,
     },
     {
@@ -207,6 +219,7 @@ const WorkerManagement = () => {
       startDate: "",
       endDate: "",
       workersNo: 0,
+      reserveWorkersNo: null,
       notes: "",
     },
   });
@@ -218,6 +231,8 @@ const WorkerManagement = () => {
     // same pattern as the hold reservation dates.
     const payload = {
       ...data,
+      // Workers no is optional when reserve workers are set; an empty input means 0
+      workersNo: Number(data.workersNo) || 0,
       startDate: data.startDate
         ? dayjs(data.startDate).format("YYYY-MM-DDTHH:mm:ss[Z]")
         : "",

@@ -48,6 +48,7 @@ import WorkerManagement from "../../Pages/WorkerManagement/workerManagement";
 import PayemntsDetails from "../../Pages/Reservations/Components/payemntsDeatils";
 import CalendarPage from "../../Pages/Calendar/calendar";
 import Reports from "../../Pages/Reports/reports";
+import CustomerWallet from "../../Pages/CustomerWallet/customerWallet";
 
 export const routes = createBrowserRouter([
   // Guest Routes
@@ -199,6 +200,13 @@ export const routes = createBrowserRouter([
                 },
               },
               { path: "view-client", element: <ViewClient /> },
+              {
+                path: "wallet",
+                element: <CustomerWallet />,
+                handle: {
+                  permission: PERMISSIONS.VIEW_CUSTOMER_WALLET,
+                },
+              },
             ],
           },
 

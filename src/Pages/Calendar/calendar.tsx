@@ -12,7 +12,7 @@ import "./calendar.css";
 
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-import { Button, DatePicker, Modal, Popconfirm, Segmented, Skeleton, Tag } from "antd";
+import { Button, DatePicker, Modal, Segmented, Skeleton, Tag } from "antd";
 import { toast } from "react-toastify";
 import { FaUser, FaPhoneAlt, FaMapMarkerAlt, FaConciergeBell } from "react-icons/fa";
 import { AiOutlineEye } from "react-icons/ai";
@@ -22,14 +22,11 @@ import { LuChevronLeft, LuChevronRight, LuCalendarPlus } from "react-icons/lu";
 
 import Title from "../../components/Common/Title/title";
 import { useAppSelector } from "../../components/APIs/store";
-import {
-  useGetReservationsCalendarQuery,
-  useToggleReservationStatusMutation,
-} from "../../components/APIs/Reservations/RESERVATION_QUERY";
-import type {
-  APIErrorProps,
-  calendarReservationProps,
-} from "../../components/Utilities/Types/types";
+import { useGetReservationsCalendarQuery } from "../../components/APIs/Reservations/RESERVATION_QUERY";
+import type { calendarReservationProps } from "../../components/Utilities/Types/types";
+import { isAdmin, isSuperAdmin } from "../../Utilities/utilities";
+import CancelReservationModal from "../Reservations/Components/cancelReservationModal";
+import { cancellationInfo } from "../Reservations/Components/cancellationInfo";
 
 const localizer = dayjsLocalizer(dayjs);
 
@@ -141,8 +138,9 @@ const CalendarPage = () => {
 
   const { data, isLoading, isFetching } = useGetReservationsCalendarQuery();
 
-  const [toggleReservationStatus, { isLoading: isCancelling }] =
-    useToggleReservationStatusMutation();
+  // Only admins can cancel (enforced by the API too)
+  const canCancel = isAdmin() || isSuperAdmin();
+  const [isCancelOpen, setIsCancelOpen] = useState(false);
 
   // Map reservations → calendar events
   const events: ReservationEvent[] = useMemo(() => {
@@ -222,20 +220,6 @@ const CalendarPage = () => {
     navigate(`/reservations/add-reservation?date=${dateParam}`);
   };
 
-  const handleCancel = async () => {
-    if (!selected) return;
-    try {
-      await toggleReservationStatus({
-        reservationId: String(selected.id),
-        isActive: false,
-      }).unwrap();
-      toast.success(t("RESERVATION_CANCELLED_SUCCESS"));
-      closeModal();
-    } catch (error) {
-      const err = error as APIErrorProps;
-      err?.data?.errorMessages?.forEach((message) => toast.error(message));
-    }
-  };
 
   const statusTag = (reservation: calendarReservationProps) => {
     if (reservation.isActive === false)
@@ -318,6 +302,13 @@ const CalendarPage = () => {
                 label={t("SERVICE_TYPE")}
                 value={selected.serviceType}
               />
+              {selected.isActive === false && (
+                <DetailRow
+                  icon={<MdCancel size={15} />}
+                  label={t("CANCELLED")}
+                  value={cancellationInfo(selected, t)}
+                />
+              )}
             </div>
 
             <div className="mt-6 flex flex-col gap-2.5 [&>button]:capitalize [&>button]:font-semibold">
@@ -327,6 +318,7 @@ const CalendarPage = () => {
                 type="primary"
                 icon={<BiEdit size={16} />}
                 onClick={handleEdit}
+                disabled={selected.isActive === false}
                 className="bg-mainColor border-none hover:bg-mainColor/90!"
               >
                 {t("EDIT_RESERVATION")}
@@ -342,34 +334,34 @@ const CalendarPage = () => {
                 {t("VIEW_FULL_DETAILS")}
               </Button>
 
-              {selected.isActive === false ? null : (
+              {selected.isActive === false || !canCancel ? null : (
                 <>
                   <div className="my-0.5 h-px bg-gray-100" />
-                  <Popconfirm
-                    title={t("CANCEL_RESERVATION")}
-                    description={t("DELETE_CONFIRM_MESSAGE")}
-                    okText={t("CANCEL_RESERVATION")}
-                    cancelText={t("CANCEL")}
-                    okButtonProps={{ danger: true, loading: isCancelling }}
-                    onConfirm={handleCancel}
+                  <Button
+                    block
+                    danger
+                    size="large"
+                    type="text"
+                    icon={<MdCancel size={16} />}
+                    className="hover:bg-red-50!"
+                    onClick={() => setIsCancelOpen(true)}
                   >
-                    <Button
-                      block
-                      danger
-                      size="large"
-                      type="text"
-                      icon={<MdCancel size={16} />}
-                      className="hover:bg-red-50!"
-                    >
-                      {t("CANCEL_RESERVATION")}
-                    </Button>
-                  </Popconfirm>
+                    {t("CANCEL_RESERVATION")}
+                  </Button>
                 </>
               )}
             </div>
           </div>
         ) : null}
       </Modal>
+
+      <CancelReservationModal
+        open={isCancelOpen}
+        reservationId={selected?.id ?? null}
+        paidAmount={selected?.paidAmount}
+        onClose={() => setIsCancelOpen(false)}
+        onCancelled={closeModal}
+      />
 
       {/* ── Empty-day → add reservation prompt ───────────────────────────── */}
       <Modal

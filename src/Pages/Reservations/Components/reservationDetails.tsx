@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import Title from "../../../components/Common/Title/title";
 import {
+  Alert,
   Button,
   Skeleton,
   Card,
@@ -16,7 +17,6 @@ import { FaCheckCircle, FaTimesCircle, FaDownload } from "react-icons/fa";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   useAssignWorkerToReservationMutation,
-  useConfirmReservationMutation,
   useGetReservationByIdQuery,
 } from "../../../components/APIs/Reservations/RESERVATION_QUERY";
 import { useGetCustomerByIdQuery } from "../../../components/APIs/ClientQuery/CLIENTS_QUERY";
@@ -33,6 +33,7 @@ import type {
   assignWorkerFormProps,
 } from "../../../components/Utilities/Types/types";
 import { toast } from "react-toastify";
+import { cancellationInfo } from "./cancellationInfo";
 
 const { Text, Title: TypographyTitle } = Typography;
 
@@ -42,9 +43,6 @@ const ReservationDetails = () => {
   const [params] = useSearchParams();
   const id = params.get("id");
   const { lang } = useAppSelector((state) => state?.lang);
-
-  const [confirmReservation, { isLoading: isConfirmLoading }] =
-    useConfirmReservationMutation();
 
   const {
     control,
@@ -142,19 +140,6 @@ const ReservationDetails = () => {
     );
   }
 
-  const handleConfirmReservation = async () => {
-    try {
-      await confirmReservation({ reservationId: Number(id) }).unwrap();
-      toast.success(t("RESERVATION_CONFIRMED_SUCCESSFULLY"));
-      reset();
-    } catch (error) {
-      const err = error as APIErrorProps;
-      err?.data?.errorMessages?.forEach((message) => {
-        toast.error(message);
-      });
-    }
-  };
-
   const handleNavigateToPayments = () => {
     navigate(`/reservations/reservation-payemnts?id=${id}`);
   };
@@ -210,20 +195,20 @@ const ReservationDetails = () => {
                 >
                   {t("ASSIGN_WORKERS")}
                 </Button>
-
-                {reservation?.onSpot && !reservation?.isConfirmed && (
-                  <Button
-                    loading={isConfirmLoading}
-                    onClick={handleConfirmReservation}
-                    className="capitalize font-semibold border border-green-600 text-green-600 bg-green-600/20 hover:bg-green-600/40"
-                  >
-                    {t("CONFIRM_RESERVATION")}
-                  </Button>
-                )}
               </div>
             )}
           </div>
         </header>
+
+        {reservation?.isActive === false && (
+          <Alert
+            type="error"
+            showIcon
+            className="mb-6 rounded-2xl normal-case"
+            message={t("RESERVATION_IS_CANCELLED")}
+            description={cancellationInfo(reservation, t)}
+          />
+        )}
 
         <div className="flex flex-col gap-6">
           {/* Top Info Cards */}
@@ -935,6 +920,40 @@ const ReservationDetails = () => {
                             {Number(grandTotal).toLocaleString()} {t("EGP")}
                           </span>
                         </div>
+                        {Number(reservation?.discountAmount) > 0 && (
+                          <>
+                            <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 rounded-lg border border-green-200 bg-green-50 px-4 py-3">
+                              <span className="font-medium capitalize text-green-700">
+                                {t("DISCOUNT")}{" "}
+                                <span className="text-xs font-normal">
+                                  (
+                                  {reservation?.discountType === "Percentage"
+                                    ? `${reservation?.discountValue}%`
+                                    : `${Number(reservation?.discountValue).toLocaleString()} ${t("EGP")}`}
+                                  )
+                                </span>
+                                {reservation?.discountReason && (
+                                  <span className="ms-2 text-xs font-normal normal-case text-gray-500">
+                                    {reservation.discountReason}
+                                  </span>
+                                )}
+                              </span>
+                              <span className="text-green-700 shrink-0">
+                                - {Number(reservation?.discountAmount).toLocaleString()}{" "}
+                                {t("EGP")}
+                              </span>
+                            </div>
+                            <div className="flex items-center justify-between bg-mainColor rounded-lg px-4 py-3">
+                              <span className="font-bold text-white text-lg capitalize">
+                                {t("FINAL_AMOUNT")}
+                              </span>
+                              <span className="font-bold text-white text-xl">
+                                {Number(reservation?.reservationAmount).toLocaleString()}{" "}
+                                {t("EGP")}
+                              </span>
+                            </div>
+                          </>
+                        )}
                       </>
                     );
                   })()}

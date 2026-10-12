@@ -345,6 +345,8 @@ export type appointmentProps = {
   endTime: string;
 };
 
+export type reservationDiscountType = "None" | "Percentage" | "Fixed";
+
 export type reservationFormProps = {
   customerId: string | number;
   customerAddressId: string | number | null;
@@ -358,6 +360,11 @@ export type reservationFormProps = {
   totalReservationAmount?: number;
   serviceTypeId?: string | number | null;
   onSpot: boolean;
+  /** Discount on the reservation total (admins only). "None" removes it. */
+  discountType?: reservationDiscountType | null;
+  /** 10 = 10% for Percentage, or EGP for Fixed */
+  discountValue?: number | null;
+  discountReason?: string | null;
   apartmentClosingPeriodId: string | number;
   generalComments: string;
   cityId?: string | null;
@@ -392,12 +399,29 @@ export type calendarReservationProps = {
   endDate?: string; // ISO end date-time (optional; defaults to +1h client-side)
   isConfirmed?: boolean;
   isActive?: boolean;
+  /** Net paid (payments - refunds); returned to the wallet when cancelled */
+  paidAmount?: number;
+  /** Cancellation audit (empty for reservations cancelled before it was recorded) */
+  cancelledAt?: string | null;
+  cancelledByName?: string | null;
+  cancelReason?: string | null;
 };
 
 export type reservationDetailsData = {
   id: number;
   reservationDate: string;
+  /** Final price (after membership and reservation discount) */
   reservationAmount: number;
+  discountType?: reservationDiscountType | null;
+  discountValue?: number | null;
+  discountAmount?: number;
+  discountReason?: string | null;
+  amountBeforeDiscount?: number;
+  isActive?: boolean | null;
+  /** Cancellation audit (empty for reservations cancelled before it was recorded) */
+  cancelledAt?: string | null;
+  cancelledByName?: string | null;
+  cancelReason?: string | null;
   serviceTypeId?: string | number | null;
   customerId: number;
   customerName: string;
@@ -549,6 +573,14 @@ export type serviceFormProps = {
   package?: string;
   isActive?:boolean
   isConfirmed?: boolean;
+  onSpot?: boolean;
+  complaintsCount?: number;
+  /** Net paid (payments - refunds); returned to the wallet when cancelled */
+  paidAmount?: number;
+  /** Cancellation audit (empty for reservations cancelled before it was recorded) */
+  cancelledAt?: string | null;
+  cancelledByName?: string | null;
+  cancelReason?: string | null;
   extraServices?:
     | {
         extraServiceId: string | number;
@@ -743,8 +775,11 @@ export type complaintResponseProps = {
   id: string | number;
   reservationId: string | number;
   customerId?: string | number;
+  customerName?: string;
+  customerPhone?: string;
   comment: string;
   createdBy?: string;
+  createdByName?: string;
   createdAt?: string;
   creationDate?: string;
   workers?: complaintWorkerProps[];
@@ -759,9 +794,12 @@ export type feedbackFormProps = {
 export type feedbackResponseProps = {
   id: string | number;
   reservationId: string | number;
+  customerName?: string;
+  customerPhone?: string;
   rate: number;
   comment: string;
   createdBy?: string;
+  createdByName?: string;
   creationDate?: string;
 };
 
@@ -769,6 +807,7 @@ export type workerManagementFormProps = {
   startDate: string;
   endDate: string;
   workersNo: number;
+  reserveWorkersNo?: number | null;
   notes?: string;
 };
 
@@ -779,6 +818,8 @@ export type workerManagementResponseProps = {
   workersNo?: number;
   availableNoWorkers?: number;
   remainNoOfWorkers?: number;
+  reserveNoOfWorkers?: number | null;
+  remainReserveNoOfWorkers?: number | null;
   date?: string;
   notes?: string;
   creationDate?: string;
@@ -788,6 +829,8 @@ export type workerManagementEditProps = {
   id: string | number;
   availableNoWorkers: number;
   remainNoOfWorkers: number;
+  reserveNoOfWorkers?: number | null;
+  remainReserveNoOfWorkers?: number | null;
   notes?: string;
 };
 
@@ -795,6 +838,8 @@ export type workerManagementGroupEditProps = {
   ids: (string | number)[];
   availableNoWorkers: number;
   remainNoOfWorkers: number;
+  reserveNoOfWorkers?: number | null;
+  remainReserveNoOfWorkers?: number | null;
   notes?: string;
 };
 
@@ -804,12 +849,59 @@ export type workerManagementFilterParams = {
 };
 
 export type reservationPaymentsProps = {
+  id?: number;
   reservationId: string | number;
   type: string;
   amount: number;
   operationDate: string;
   paymentMethod: string;
   note: string;
+  /** Created automatically by the system (wallet auto-pay, refund on cancel): locked */
+  isSystem?: boolean;
+  modifiedByName?: string | null;
+  modifiedAt?: string | null;
+};
+
+/* ── Customer wallet ─────────────────────────────────────────────────────── */
+export type walletTransactionType =
+  | "OpeningBalance"
+  | "Deposit"
+  | "ReservationPayment"
+  | "Refund"
+  | "CashBack"
+  | "Adjustment"
+  | "PaymentCorrection";
+
+export type walletTransactionProps = {
+  id: number;
+  customerId: number;
+  reservationId?: number | null;
+  reservationPaymentId?: number | null;
+  type: walletTransactionType;
+  amount: number;
+  balanceAfter: number;
+  transactionDate: string;
+  description?: string | null;
+  createdBy: string;
+  createdByName?: string | null;
+  creationDate: string;
+};
+
+export type customerWalletProps = {
+  customerId: number;
+  customerName?: string | null;
+  balance: number;
+  hasOpeningBalance: boolean;
+  transactions: walletTransactionProps[];
+};
+
+/** Form for both "opening balance" and manual transactions (type is ignored for opening balance) */
+export type walletTransactionFormProps = {
+  customerId: string | number;
+  type?: "Deposit" | "CashBack" | "Adjustment";
+  amount: number | null;
+  transactionDate: string;
+  description?: string;
 };
 
 /* ── Daily reservation report ─────────────────────────────────────────────
@@ -855,11 +947,12 @@ export type dailyReservationReportProps = {
   contractCount: number;
   confirmedCount: number;
   onSpotCount: number;
-  cancelledCount: number;
+  confirmedOnSpotCount?: number;
   totalWorkers: number;
   totalAmount: number;
   totalPaid: number;
   totalRemaining: number;
+  totalDiscount?: number;
   sections: dailyReportSectionProps[];
   reservations: dailyReportItemProps[];
 };

@@ -15,6 +15,9 @@ export const PERMISSIONS = {
   VIEW_CLIENT: "view_client",
   DELETE_CLIENT: "delete_client",
 
+  // Customer wallet (managing it is admin-only, checked by role)
+  VIEW_CUSTOMER_WALLET: "view_customer_wallet",
+
   // Reservations
   ADD_RESERVATION: "add_reservation",
   EDIT_RESERVATION: "edit_reservation",
@@ -111,6 +114,7 @@ export const ROLE_PERMISSIONS: Record<AppRole, Permission[]> = {
     PERMISSIONS.ADD_CLIENT,
     PERMISSIONS.EDIT_CLIENT,
     PERMISSIONS.VIEW_CLIENT,
+    PERMISSIONS.VIEW_CUSTOMER_WALLET,
 
     //Reservations
     PERMISSIONS.ADD_RESERVATION,

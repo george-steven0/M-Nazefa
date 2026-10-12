@@ -227,11 +227,14 @@ function PackageSummaryRow({
 type ReservationSummaryProps = {
   control: Control<reservationFormProps>;
   onTotalChange?: (total: number) => void;
+  /** Customer has a membership: its % is applied by the system, so the final price may be lower */
+  hasMembership?: boolean;
 };
 
 export default function ReservationSummary({
   control,
   onTotalChange,
+  hasMembership,
 }: ReservationSummaryProps) {
   const { t } = useTranslation();
   const [rows, setRows] = useState<
@@ -249,6 +252,9 @@ export default function ReservationSummary({
   });
 
   const transportationFee = Number(fee) || 0;
+
+  const discountType = useWatch({ control, name: "discountType" });
+  const discountValueRaw = useWatch({ control, name: "discountValue" });
 
   const handleUpdateRow = useCallback(
     (index: number, data: { total: number; workers: number }) => {
@@ -286,6 +292,16 @@ export default function ReservationSummary({
   // Transportation is charged per worker: total workers × fee
   const transportationTotal = totalWorkers * transportationFee;
   const grandTotal = packagesTotal + transportationTotal;
+
+  // Preview of the reservation discount (same rule as the backend, which recalculates it)
+  const discountValue = Number(discountValueRaw) || 0;
+  const discountAmount =
+    discountType === "Percentage"
+      ? Math.round(grandTotal * discountValue) / 100
+      : discountType === "Fixed"
+        ? Math.min(discountValue, grandTotal)
+        : 0;
+  const finalTotal = grandTotal - discountAmount;
 
   // Report the computed total up so the form can submit it.
   useEffect(() => {
@@ -342,6 +358,41 @@ export default function ReservationSummary({
               {grandTotal.toLocaleString()} {t("EGP")}
             </span>
           </div>
+
+          {/* Reservation discount -> final price */}
+          {discountAmount > 0 && (
+            <>
+              <div className="flex items-center justify-between rounded-lg border border-green-200 bg-green-50 px-4 py-3">
+                <span className="font-medium capitalize text-green-700">
+                  {t("DISCOUNT")}{" "}
+                  <span className="text-xs font-normal">
+                    (
+                    {discountType === "Percentage"
+                      ? `${discountValue}%`
+                      : `${discountValue.toLocaleString()} ${t("EGP")}`}
+                    )
+                  </span>
+                </span>
+                <span className="text-green-700">
+                  - {discountAmount.toLocaleString()} {t("EGP")}
+                </span>
+              </div>
+              <div className="flex items-center justify-between bg-mainColor rounded-lg px-4 py-3">
+                <span className="font-bold text-white text-lg capitalize">
+                  {t("FINAL_AMOUNT")}
+                </span>
+                <span className="font-bold text-white text-xl">
+                  {finalTotal.toLocaleString()} {t("EGP")}
+                </span>
+              </div>
+            </>
+          )}
+
+          {hasMembership && (
+            <p className="text-xs text-gray-500">
+              {t("MEMBERSHIP_DISCOUNT_BY_SYSTEM")}
+            </p>
+          )}
         </div>
       </div>
     </div>

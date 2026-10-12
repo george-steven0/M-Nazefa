@@ -13,6 +13,8 @@ import { useEditWorkerManagementByListIdMutation } from "../../../components/API
 type GroupEditFormValues = {
   availableNoWorkers?: number;
   remainNoOfWorkers?: number;
+  reserveNoOfWorkers?: number | null;
+  remainReserveNoOfWorkers?: number | null;
   notes?: string;
 };
 
@@ -41,6 +43,8 @@ export default function GroupEditWorkerManagementForm({
     defaultValues: {
       availableNoWorkers: undefined,
       remainNoOfWorkers: undefined,
+      reserveNoOfWorkers: undefined,
+      remainReserveNoOfWorkers: undefined,
       notes: "",
     },
   });
@@ -51,6 +55,8 @@ export default function GroupEditWorkerManagementForm({
       reset({
         availableNoWorkers: undefined,
         remainNoOfWorkers: undefined,
+        reserveNoOfWorkers: undefined,
+        remainReserveNoOfWorkers: undefined,
         notes: "",
       });
     }
@@ -68,6 +74,8 @@ export default function GroupEditWorkerManagementForm({
       ids,
       availableNoWorkers: Number(values.availableNoWorkers) || 0,
       remainNoOfWorkers: Number(values.remainNoOfWorkers) || 0,
+      reserveNoOfWorkers: values.reserveNoOfWorkers ?? null,
+      remainReserveNoOfWorkers: values.remainReserveNoOfWorkers ?? null,
       notes: values.notes,
     };
 
@@ -146,6 +154,56 @@ export default function GroupEditWorkerManagementForm({
             />
             {errors.remainNoOfWorkers?.message && (
               <p>{errors.remainNoOfWorkers?.message}</p>
+            )}
+          </div>
+
+          {/* RESERVE_WORKERS */}
+          <div>
+            <label>{t("RESERVE_WORKERS")}</label>
+            <Controller
+              name="reserveNoOfWorkers"
+              control={control}
+              rules={{
+                min: { value: 0, message: t("REQUIRED") },
+              }}
+              render={({ field }) => (
+                <InputNumber
+                  min={0}
+                  {...field}
+                  variant="filled"
+                  placeholder={t("RESERVE_WORKERS")}
+                  className="min-h-10 border-[#C4C4C4] border rounded-md placeholder:capitalize w-full"
+                  status={errors?.reserveNoOfWorkers ? "error" : ""}
+                />
+              )}
+            />
+            {errors.reserveNoOfWorkers?.message && (
+              <p>{errors.reserveNoOfWorkers?.message}</p>
+            )}
+          </div>
+
+          {/* REMAIN_RESERVE_WORKERS */}
+          <div>
+            <label>{t("REMAIN_RESERVE_WORKERS")}</label>
+            <Controller
+              name="remainReserveNoOfWorkers"
+              control={control}
+              rules={{
+                min: { value: 0, message: t("REQUIRED") },
+              }}
+              render={({ field }) => (
+                <InputNumber
+                  min={0}
+                  {...field}
+                  variant="filled"
+                  placeholder={t("REMAIN_RESERVE_WORKERS")}
+                  className="min-h-10 border-[#C4C4C4] border rounded-md placeholder:capitalize w-full"
+                  status={errors?.remainReserveNoOfWorkers ? "error" : ""}
+                />
+              )}
+            />
+            {errors.remainReserveNoOfWorkers?.message && (
+              <p>{errors.remainReserveNoOfWorkers?.message}</p>
             )}
           </div>
 

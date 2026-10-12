@@ -2,10 +2,17 @@ import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import Title from "../../components/Common/Title/title";
 import { useTranslation } from "react-i18next";
 import { useSearchBox } from "../../components/Common/Search/searchInput";
-import { Button, DatePicker, Select, Table, type TableProps } from "antd";
+import {
+  Badge,
+  Button,
+  DatePicker,
+  Select,
+  Table,
+  Tooltip,
+  type TableProps,
+} from "antd";
 import dayjs, { type Dayjs } from "dayjs";
 import type {
-  APIErrorProps,
   holdReservationProps,
   serviceFormProps,
 } from "../../components/Utilities/Types/types";
@@ -13,13 +20,15 @@ import {
   useAddHoldReservationMutation,
   useGetAllReservationsQuery,
   useGetHoldReservationQuery,
-  useToggleReservationStatusMutation,
 } from "../../components/APIs/Reservations/RESERVATION_QUERY";
-import { AiOutlineEye } from "react-icons/ai";
+import { AiOutlineEye, AiOutlineThunderbolt } from "react-icons/ai";
 import { FaCheckCircle, FaTimesCircle } from "react-icons/fa";
 import { useEffect, useMemo, useState } from "react";
 import HoldReservationModal from "./Components/holdReservationModal";
 import ComplaintForm from "../Complaints/Components/complaintForm";
+import ReservationComplaintsModal from "./Components/reservationComplaintsModal";
+import CancelReservationModal from "./Components/cancelReservationModal";
+import { cancellationInfo } from "./Components/cancellationInfo";
 import FeedbackForm from "../ReservationFeedback/Components/feedbackForm";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
@@ -33,6 +42,8 @@ import { MdOutlineFeedback } from "react-icons/md";
 
 const Actions = ({ data }: { data: serviceFormProps }) => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
+  const isCancelled = data?.isActive === false;
   const handleNavigateEdit = () => {
     navigate(`edit-reservation?id=${data?.id}`);
     // console.log(data);
@@ -43,12 +54,15 @@ const Actions = ({ data }: { data: serviceFormProps }) => {
   };
   return (
     <div className="flex items-center gap-2">
-      <Button
-        shape="circle"
-        className="hover:bg-mainColor/60 hover:text-white hover:border-transparent size-10 [&>span]:flex [&>span]:items-center"
-        onClick={handleNavigateEdit}
-        icon={<BiEdit size={20} />}
-      />
+      <Tooltip title={isCancelled ? t("CANCELLED_CANNOT_EDIT") : undefined}>
+        <Button
+          shape="circle"
+          className="hover:bg-mainColor/60 hover:text-white hover:border-transparent size-10 [&>span]:flex [&>span]:items-center"
+          onClick={handleNavigateEdit}
+          disabled={isCancelled}
+          icon={<BiEdit size={20} />}
+        />
+      </Tooltip>
       <Button
         className="hover:bg-mainGray/60 hover:text-white hover:border-transparent size-10 [&>span]:flex [&>span]:items-center"
         shape="circle"
@@ -64,27 +78,12 @@ export const Reservations = () => {
   const { pathname } = useLocation();
   const { lang } = useAppSelector((state) => state?.lang);
 
-  const [toggleReservationStatus] = useToggleReservationStatusMutation();
-
-  const [loadingSwitchId, setLoadingSwitchId] = useState<string | null>(null);
-
-  const handleToggleReservationStatus = async (reservationId: string) => {
-    try {
-      setLoadingSwitchId(reservationId);
-      await toggleReservationStatus({
-        reservationId,
-        isActive: false,
-      }).unwrap();
-      toast.success(t("RESERVATION_CANCELLED_SUCCESS"));
-    } catch (error) {
-      const err = error as APIErrorProps;
-      err?.data?.errorMessages?.forEach((message) => {
-        toast.error(message);
-      });
-    } finally {
-      setLoadingSwitchId(null);
-    }
-  };
+  // Only admins can cancel (enforced by the API too)
+  const canCancel = isAdmin() || isSuperAdmin();
+  const [cancelTarget, setCancelTarget] = useState<{
+    id: string | number;
+    paidAmount?: number;
+  } | null>(null);
   const {
     control,
     handleSubmit,
@@ -125,9 +124,16 @@ export const Reservations = () => {
   // ── Add Complaint / Feedback (per reservation) ─────────────────────────────
   const [isComplaintModalOpen, setIsComplaintModalOpen] = useState(false);
   const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
+  const [isComplaintsListModalOpen, setIsComplaintsListModalOpen] =
+    useState(false);
   const [activeReservationId, setActiveReservationId] = useState<
     string | number | null
   >(null);
+
+  const openComplaintsListModal = (reservationId: string | number) => {
+    setActiveReservationId(reservationId);
+    setIsComplaintsListModalOpen(true);
+  };
 
   const openAddComplaintModal = (reservationId: string | number) => {
     setActiveReservationId(reservationId);
@@ -189,17 +195,26 @@ export const Reservations = () => {
       render: (row) => (
         <span>
           {row?.isActive ? (
-            <Button
-              onClick={() => handleToggleReservationStatus(row?.id)}
-              className="text-red-500 bg-transparent border-red-500 hover:bg-red-500 hover:text-white transition-all duration-300"
-              loading={loadingSwitchId === row?.id}
-            >
-              {t("CANCEL")}
-            </Button>
+            canCancel ? (
+              <Button
+                className="text-red-500 bg-transparent border-red-500 hover:bg-red-500 hover:text-white transition-all duration-300"
+                onClick={() =>
+                  setCancelTarget({ id: row?.id, paidAmount: row?.paidAmount })
+                }
+              >
+                {t("CANCEL")}
+              </Button>
+            ) : (
+              <span className="text-green-600 border border-green-500/60 px-2 py-1 rounded-md">
+                {t("ACTIVE")}
+              </span>
+            )
           ) : (
-            <span className="text-gray-500/80 border border-gray-300 px-2 py-1 rounded-md cursor-not-allowed">
-              {t("CANCELLED")}
-            </span>
+            <Tooltip title={cancellationInfo(row, t)}>
+              <span className="text-gray-500/80 border border-gray-300 px-2 py-1 rounded-md cursor-help">
+                {t("CANCELLED")}
+              </span>
+            </Tooltip>
           )}
         </span>
       ),
@@ -209,18 +224,28 @@ export const Reservations = () => {
       title: t("IS_CONFIRMED"),
       dataIndex: "isConfirmed",
       key: "isConfirmed",
-      render: (isConfirmed) =>
-        isConfirmed ? (
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-green-500/60 bg-green-50 px-2.5 py-1 text-sm font-medium text-green-600">
-            <FaCheckCircle size={14} />
-            {t("CONFIRMED")}
-          </span>
-        ) : (
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-gray-300 bg-gray-100 px-2.5 py-1 text-sm font-medium text-gray-500">
-            <FaTimesCircle size={14} />
-            {t("NOT_CONFIRMED")}
-          </span>
-        ),
+      // Confirmed and OnSpot are independent, so both are shown
+      render: (isConfirmed, row) => (
+        <div className="flex flex-wrap items-center gap-1.5">
+          {isConfirmed ? (
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-green-500/60 bg-green-50 px-2.5 py-1 text-sm font-medium text-green-600">
+              <FaCheckCircle size={14} />
+              {t("CONFIRMED")}
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-gray-300 bg-gray-100 px-2.5 py-1 text-sm font-medium text-gray-500">
+              <FaTimesCircle size={14} />
+              {t("NOT_CONFIRMED")}
+            </span>
+          )}
+          {row?.onSpot && (
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/60 bg-amber-50 px-2.5 py-1 text-sm font-medium text-amber-700">
+              <AiOutlineThunderbolt size={14} />
+              {t("ON_SPOT")}
+            </span>
+          )}
+        </div>
+      ),
     },
 
     {
@@ -228,12 +253,22 @@ export const Reservations = () => {
       key: "complain",
       render: (row) => (
         <div className="flex items-center gap-2">
-          <Button
-            shape="circle"
-            className="hover:bg-mainGray/60 hover:text-white hover:border-transparent size-10 [&>span]:flex [&>span]:items-center"
-            onClick={() => navigate("/complaints")}
-            icon={<RiCustomerService2Fill size={18} />}
-          />
+          {/* Click handler on wrapper so both the badge count and the button open the modal */}
+          <span
+            className={row?.complaintsCount ? "cursor-pointer" : undefined}
+            onClick={() =>
+              row?.complaintsCount && openComplaintsListModal(row?.id)
+            }
+          >
+            <Badge count={row?.complaintsCount ?? 0} size="small">
+              <Button
+                shape="circle"
+                className="hover:bg-mainGray/60 hover:text-white hover:border-transparent size-10 [&>span]:flex [&>span]:items-center"
+                disabled={!row?.complaintsCount}
+                icon={<RiCustomerService2Fill size={18} />}
+              />
+            </Badge>
+          </span>
           <Button
             shape="circle"
             className="bg-green-600/60 hover:bg-green-600 border-green-600 text-white size-10 [&>span]:flex [&>span]:items-center"
@@ -389,6 +424,7 @@ export const Reservations = () => {
               { value: "Confirmed", label: t("CONFIRMED") },
               { value: "Pending", label: t("PENDING") },
               { value: "OnSpot", label: t("ON_SPOT") },
+              { value: "ConfirmedOnSpot", label: t("CONFIRMED_ON_SPOT") },
             ]}
           />
 
@@ -474,6 +510,19 @@ export const Reservations = () => {
       <ComplaintForm
         open={isComplaintModalOpen}
         onClose={() => setIsComplaintModalOpen(false)}
+        reservationId={activeReservationId}
+      />
+
+      <CancelReservationModal
+        open={cancelTarget !== null}
+        reservationId={cancelTarget?.id ?? null}
+        paidAmount={cancelTarget?.paidAmount}
+        onClose={() => setCancelTarget(null)}
+      />
+
+      <ReservationComplaintsModal
+        open={isComplaintsListModalOpen}
+        onClose={() => setIsComplaintsListModalOpen(false)}
         reservationId={activeReservationId}
       />
 

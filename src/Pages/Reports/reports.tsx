@@ -137,6 +137,7 @@ const Reports = () => {
   const totalAmount = report?.totalAmount ?? 0;
   const totalPaid = report?.totalPaid ?? 0;
   const totalRemaining = report?.totalRemaining ?? 0;
+  const totalDiscount = report?.totalDiscount ?? 0;
   const collectedPercent =
     totalAmount > 0 ? Math.round((totalPaid / totalAmount) * 100) : 0;
 
@@ -195,18 +196,34 @@ const Reports = () => {
     {
       title: t("STATUS"),
       key: "status",
-      render: (row: dailyReportItemProps) => {
-        const status =
-          pickString(row, "status") ??
-          (row.isConfirmed ? "Confirmed" : row.onSpot ? "OnSpot" : undefined);
-        if (!status) return <span>{renderValue(undefined)}</span>;
-        const isPositive = status === "Confirmed";
-        return (
+      // Confirmed and OnSpot are independent, so both are shown
+      render: (row: dailyReportItemProps) => (
+        <div className="flex flex-wrap items-center gap-1">
           <Tag
-            className={`capitalize rounded-full ${isPositive ? "bg-green-50 text-green-600 border-green-500/60" : "bg-amber-50 text-amber-700 border-amber-500/60"}`}
+            className={`capitalize rounded-full ${row.isConfirmed ? "bg-green-50 text-green-600 border-green-500/60" : "bg-gray-100 text-gray-500 border-gray-300"}`}
           >
-            {status}
+            {t(row.isConfirmed ? "CONFIRMED" : "NOT_CONFIRMED")}
           </Tag>
+          {row.onSpot && (
+            <Tag className="capitalize rounded-full bg-amber-50 text-amber-700 border-amber-500/60">
+              {t("ON_SPOT")}
+            </Tag>
+          )}
+        </div>
+      ),
+    },
+    {
+      title: t("DISCOUNT"),
+      key: "discount",
+      render: (row: dailyReportItemProps) => {
+        const discount = pickNumber(row, "discountAmount");
+        return discount ? (
+          <p className="flex items-center gap-1 text-green-700">
+            - <FaPoundSign size={12} />
+            {discount.toLocaleString()}
+          </p>
+        ) : (
+          <p>{renderValue(undefined)}</p>
         );
       },
     },
@@ -301,6 +318,7 @@ const Reports = () => {
                 { value: "Confirmed", label: t("CONFIRMED") },
                 { value: "Pending", label: t("PENDING") },
                 { value: "OnSpot", label: t("ON_SPOT") },
+                { value: "ConfirmedOnSpot", label: t("CONFIRMED_ON_SPOT") },
               ]}
             />
           </div>
@@ -365,10 +383,10 @@ const Reports = () => {
               className="bg-amber-500/10 text-amber-700"
             />
             <StatTile
-              label={t("CANCELLED")}
-              value={report?.cancelledCount ?? 0}
-              icon={<BsBoxSeam size={18} />}
-              className="bg-red-500/10 text-red-600"
+              label={t("CONFIRMED_ON_SPOT")}
+              value={report?.confirmedOnSpotCount ?? 0}
+              icon={<AiOutlineThunderbolt size={20} />}
+              className="bg-green-500/10 text-green-700"
             />
             <StatTile
               label={t("TOTAL_WORKERS")}
@@ -380,7 +398,7 @@ const Reports = () => {
 
           {/* ── Money summary ───────────────────────────────────────────── */}
           <section className="bg-white rounded-2xl shadow-sm p-4 sm:p-6 mb-6">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <MoneyTile
                 label={t("TOTAL_AMOUNT")}
                 value={totalAmount}
@@ -395,6 +413,11 @@ const Reports = () => {
                 label={t("TOTAL_REMAINING")}
                 value={totalRemaining}
                 className="bg-amber-500/25 text-amber-700"
+              />
+              <MoneyTile
+                label={t("TOTAL_DISCOUNT")}
+                value={totalDiscount}
+                className="bg-purple-500/10 text-purple-700"
               />
             </div>
 

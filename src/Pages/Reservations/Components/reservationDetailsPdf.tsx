@@ -706,6 +706,28 @@ export const ReservationDetailsPdf = ({
                 L.E
               </Text>
             </View>
+            {Number(data?.discountAmount) > 0 && (
+              <>
+                <View style={styles.summaryRow}>
+                  <Text style={styles.summaryText}>
+                    {t("DISCOUNT")} (
+                    {data?.discountType === "Percentage"
+                      ? `${data?.discountValue}%`
+                      : `${Number(data?.discountValue).toLocaleString()} L.E`}
+                    )
+                  </Text>
+                  <Text style={styles.summaryText}>
+                    - {Number(data?.discountAmount).toLocaleString()} L.E
+                  </Text>
+                </View>
+                <View style={styles.summaryTotal}>
+                  <Text style={styles.summaryTotalText}>{t("FINAL_AMOUNT")}</Text>
+                  <Text style={styles.summaryTotalText}>
+                    {Number(data?.reservationAmount).toLocaleString()} L.E
+                  </Text>
+                </View>
+              </>
+            )}
           </View>
         </View>
 

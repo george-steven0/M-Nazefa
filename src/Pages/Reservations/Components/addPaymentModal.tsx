@@ -4,6 +4,7 @@ import dayjs from "dayjs";
 import type { TFunction } from "i18next";
 import {
   Controller,
+  useWatch,
   type Control,
   type FieldErrors,
   type UseFormHandleSubmit,
@@ -21,7 +22,15 @@ type addPaymentModalProps = {
   loading: boolean;
   paymentMethods?: string[];
   methodsLoading?: boolean;
+  /** "Pay" adds a payment, "Refund" adds a refund (type is fixed by the button that opened the modal) */
+  mode: "Pay" | "Refund";
+  /** Editing an existing payment/refund (title only; the type never changes) */
+  isEdit?: boolean;
+  /** Customer's wallet balance, shown when the "Wallet" method is selected */
+  walletBalance?: number;
 };
+
+const WALLET_METHOD = "Wallet";
 
 export default function AddPaymentModal({
   open,
@@ -34,7 +43,14 @@ export default function AddPaymentModal({
   loading,
   paymentMethods,
   methodsLoading,
+  mode,
+  walletBalance,
+  isEdit,
 }: addPaymentModalProps) {
+  const isRefund = mode === "Refund";
+  const selectedMethod = useWatch({ control, name: "paymentMethod" });
+  const isWallet = selectedMethod === WALLET_METHOD;
+
   const paymentMethodOptions = paymentMethods?.map((method) => ({
     value: method,
     label: method,
@@ -42,7 +58,11 @@ export default function AddPaymentModal({
 
   return (
     <Modal
-      title={t("ADD_PAYMENT")}
+      title={t(
+        isEdit
+          ? isRefund ? "EDIT_REFUND" : "EDIT_PAYMENT"
+          : isRefund ? "ADD_REFUND" : "ADD_PAYMENT",
+      )}
       closable={{ "aria-label": "Custom Close Button" }}
       open={open}
       onCancel={close}
@@ -76,6 +96,14 @@ export default function AddPaymentModal({
                 />
               )}
             />
+            {isWallet && (
+              <span className="text-xs text-gray-500">
+                {t("WALLET_AVAILABLE_BALANCE")}:{" "}
+                <span dir="ltr" className="font-semibold text-mainColor">
+                  {walletBalance ?? 0} {t("EGP")}
+                </span>
+              </span>
+            )}
             {errors.paymentMethod?.message && (
               <p>{errors.paymentMethod?.message}</p>
             )}
@@ -90,6 +118,12 @@ export default function AddPaymentModal({
               rules={{
                 required: { value: true, message: t("REQUIRED") },
                 min: { value: 1, message: t("REQUIRED") },
+                // Paying from the wallet cannot exceed the balance (checked again by the API)
+                validate: (value) =>
+                  isRefund ||
+                  !isWallet ||
+                  Number(value) <= (walletBalance ?? 0) ||
+                  t("WALLET_INSUFFICIENT_BALANCE"),
               }}
               render={({ field }) => (
                 <InputNumber
@@ -134,32 +168,6 @@ export default function AddPaymentModal({
             {errors.operationDate?.message && (
               <p>{errors.operationDate?.message}</p>
             )}
-          </div>
-
-          {/* Type */}
-          <div>
-            <label>{t("TYPE")}</label>
-            <Controller
-              name="type"
-              control={control}
-              rules={{
-                required: { value: true, message: t("REQUIRED") },
-              }}
-              render={({ field }) => (
-                <Select
-                  {...field}
-                  placeholder={t("TYPE")}
-                  className="min-h-10 w-full"
-                  status={errors?.type ? "error" : ""}
-                  options={[
-                    { value: "Pay", label: t("PAYMENT") },
-                    { value: "Refund", label: t("REFUND") },
-                  ]}
-                  allowClear
-                />
-              )}
-            />
-            {errors.type?.message && <p>{errors.type?.message}</p>}
           </div>
 
           {/* Notes */}

@@ -13,6 +13,7 @@ import {
   Collapse,
   DatePicker,
   Input,
+  InputNumber,
   Select,
   Skeleton,
 } from "antd";
@@ -46,6 +47,7 @@ import {
 import { toast } from "react-toastify";
 import Astrisk from "../../../components/Common/Astrisk/astrisk";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { isAdmin, isSuperAdmin } from "../../../Utilities/utilities";
 
 // const extraOptions = [
 //   "EXTRA_BATHROOM",
@@ -71,6 +73,9 @@ const ReservationForm = () => {
 
   // Grand total computed by the summary (packages + workers × transport fee)
   const [reservationTotal, setReservationTotal] = useState(0);
+
+  // Only admins can give/change a discount (the API enforces it too)
+  const canManageDiscount = isAdmin() || isSuperAdmin();
 
   const handleCustomerSearch = (value: string) => {
     if (debounceRef.current) {
@@ -110,6 +115,9 @@ const ReservationForm = () => {
   } = useForm<reservationFormProps>({
     defaultValues: {
       onSpot: false,
+      discountType: "None",
+      discountValue: null,
+      discountReason: "",
       addReservationPackagesDtos: [
         {
           packageId: "",
@@ -122,6 +130,8 @@ const ReservationForm = () => {
   });
 
   const customerId = watch("customerId");
+  const discountType = watch("discountType");
+  const hasDiscount = !!discountType && discountType !== "None";
 
   // all customers
   const {
@@ -335,6 +345,9 @@ const ReservationForm = () => {
         cityId: d?.getTransportationFeesDetails?.cityId || "",
         fee: d?.getTransportationFeesDetails?.fee || "",
         transportationFeesId: d?.getTransportationFeesDetails?.id || "",
+        discountType: d.discountType ?? "None",
+        discountValue: d.discountValue ?? null,
+        discountReason: d.discountReason ?? "",
       } as unknown as reservationFormProps);
 
       // Pre-select the service unit type so it displays (and filters the
@@ -377,6 +390,13 @@ const ReservationForm = () => {
       rodents: data?.rodents === "true",
       totalReservationAmount: reservationTotal,
       serviceTypeId: serviceTypeId,
+      // Admins send the discount ("None" removes it); others send nothing so the
+      // backend keeps whatever discount the reservation already has.
+      discountType: canManageDiscount ? (data.discountType ?? "None") : null,
+      discountValue:
+        canManageDiscount && hasDiscount ? Number(data.discountValue) : null,
+      discountReason:
+        canManageDiscount && hasDiscount ? data.discountReason || null : null,
     };
 
     // console.log(formattedData);
@@ -1711,10 +1731,104 @@ const ReservationForm = () => {
                 </div>
               </section>
 
+              {/* ── Discount on the reservation total (admins only) ───────── */}
+              <section>
+                <div>
+                  <label>{t("DISCOUNT_TYPE")}</label>
+                  <Controller
+                    control={control}
+                    name="discountType"
+                    render={({ field }) => (
+                      <Select
+                        {...field}
+                        value={field.value ?? "None"}
+                        disabled={!canManageDiscount}
+                        className="w-full min-h-10"
+                        options={[
+                          { value: "None", label: t("NO_DISCOUNT") },
+                          { value: "Percentage", label: t("DISCOUNT_PERCENTAGE") },
+                          { value: "Fixed", label: t("DISCOUNT_FIXED") },
+                        ]}
+                        onChange={(value) => {
+                          field.onChange(value);
+                          if (value === "None") {
+                            setValue("discountValue", null);
+                            setValue("discountReason", "");
+                          }
+                        }}
+                      />
+                    )}
+                  />
+                  {!canManageDiscount && (
+                    <p className="text-xs text-gray-400">
+                      {t("DISCOUNT_ADMIN_ONLY")}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label>{t("DISCOUNT_VALUE")}</label>
+                  <Controller
+                    control={control}
+                    name="discountValue"
+                    rules={{
+                      validate: (value, values) => {
+                        const type = values.discountType;
+                        if (!type || type === "None") return true;
+                        const amount = Number(value);
+                        if (!amount || amount <= 0)
+                          return t("DISCOUNT_VALUE_REQUIRED");
+                        if (type === "Percentage" && amount > 100)
+                          return t("DISCOUNT_PERCENT_MAX");
+                        if (type === "Fixed" && amount > reservationTotal)
+                          return t("DISCOUNT_FIXED_MAX");
+                        return true;
+                      },
+                    }}
+                    render={({ field }) => (
+                      <InputNumber
+                        {...field}
+                        min={0}
+                        max={discountType === "Percentage" ? 100 : undefined}
+                        disabled={!canManageDiscount || !hasDiscount}
+                        variant="filled"
+                        placeholder={t("DISCOUNT_VALUE")}
+                        addonAfter={discountType === "Percentage" ? "%" : t("EGP")}
+                        className="w-full"
+                        status={errors?.discountValue ? "error" : ""}
+                      />
+                    )}
+                  />
+                  {errors?.discountValue && (
+                    <p>{errors?.discountValue?.message}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label>{t("DISCOUNT_REASON")}</label>
+                  <Controller
+                    control={control}
+                    name="discountReason"
+                    render={({ field }) => (
+                      <Input
+                        {...field}
+                        value={field.value ?? ""}
+                        maxLength={500}
+                        disabled={!canManageDiscount || !hasDiscount}
+                        variant="filled"
+                        placeholder={t("DISCOUNT_REASON")}
+                        className="py-2"
+                      />
+                    )}
+                  />
+                </div>
+              </section>
+
               {/* ── Reservation Amount Summary ─────────────────────────────── */}
               <ReservationSummary
                 control={control}
                 onTotalChange={setReservationTotal}
+                hasMembership={!!customerData?.hasMembership}
               />
 
               <div className="md:col-span-full">

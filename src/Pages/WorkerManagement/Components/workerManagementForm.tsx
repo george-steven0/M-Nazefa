@@ -26,6 +26,15 @@ export default function WorkerManagementForm({
   t: TFunction;
   isAddDurationLoading: boolean;
 }) {
+  // Workers no OR reserve workers must be at least 1 (either one is enough)
+  const validateAnyWorkers = (
+    _value: unknown,
+    values: workerManagementFormProps,
+  ) =>
+    Number(values.workersNo) > 0 ||
+    Number(values.reserveWorkersNo) > 0 ||
+    t("WORKERS_OR_RESERVE_REQUIRED");
+
   return (
     <Modal
       title={t("ADD_DURATION")}
@@ -108,14 +117,9 @@ export default function WorkerManagementForm({
                 name="workersNo"
                 control={control}
                 rules={{
-                  required: {
-                    value: true,
-                    message: t("REQUIRED"),
-                  },
-                  min: {
-                    value: 1,
-                    message: t("MIN_WORKERS", { count: 1 }),
-                  },
+                  min: { value: 0, message: t("REQUIRED") },
+                  validate: validateAnyWorkers,
+                  deps: ["reserveWorkersNo"],
                 }}
                 render={({ field }) => (
                   <InputNumber
@@ -129,6 +133,33 @@ export default function WorkerManagementForm({
                 )}
               />
               {errors.workersNo?.message && <p>{errors.workersNo?.message}</p>}
+            </div>
+
+            {/* Reserve workers (used by OnSpot reservations) */}
+            <div>
+              <label>{t("RESERVE_WORKERS")}</label>
+              <Controller
+                name="reserveWorkersNo"
+                control={control}
+                rules={{
+                  min: { value: 0, message: t("REQUIRED") },
+                  validate: validateAnyWorkers,
+                  deps: ["workersNo"],
+                }}
+                render={({ field }) => (
+                  <InputNumber
+                    min={0}
+                    {...field}
+                    variant="filled"
+                    placeholder={t("RESERVE_WORKERS")}
+                    className="min-h-10 border-[#C4C4C4] border rounded-md placeholder:capitalize w-full"
+                    status={errors?.reserveWorkersNo ? "error" : ""}
+                  />
+                )}
+              />
+              {errors.reserveWorkersNo?.message && (
+                <p>{errors.reserveWorkersNo?.message}</p>
+              )}
             </div>
 
             {/* Notes (optional) */}

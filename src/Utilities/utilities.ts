@@ -26,6 +26,9 @@ export const isDataEntry = () => parseRoles().includes("data_entry");
 export const isAdmin = () => parseRoles().includes("admin");
 export const isSuperAdmin = () => parseRoles().includes("super_admin");
 
+export const hasPermission = (permission: Permission) =>
+  getUserRoles().some((role) => ROLE_PERMISSIONS[role]?.includes(permission));
+
 const NAV_ROUTES = [
   { path: "/dashboard", permission: PERMISSIONS.VIEW_DASHBOARD },
   { path: "/profile", permission: PERMISSIONS.PROFILE },

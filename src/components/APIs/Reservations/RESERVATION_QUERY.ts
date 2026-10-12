@@ -58,21 +58,6 @@ const reservationQuery = API.injectEndpoints({
       providesTags: ["reservations"],
     }),
 
-    confirmReservation: builder.mutation<
-      APIResponse<reservationFormProps>,
-      { reservationId: string | number }
-    >({
-      query: (data: { reservationId: string | number }) => ({
-        url: "/Reservation/ConfirmReservation",
-        method: "POST",
-        // body: data,
-        headers:{
-          reservationId: data?.reservationId.toString()
-        }
-      }),
-      invalidatesTags: ["reservations"],
-    }),
-
     getReservationById: builder.query<
       SingleAPIResponse<reservationDetailsData>,
       { id: string }
@@ -116,7 +101,7 @@ const reservationQuery = API.injectEndpoints({
         method: "POST",
         body: data,
       }),
-      invalidatesTags: ["reservations", "dashboardMetrics"],
+      invalidatesTags: ["reservations", "dashboardMetrics", "customerWallet"],
     }),
 
     updateReservation: builder.mutation<
@@ -128,19 +113,21 @@ const reservationQuery = API.injectEndpoints({
         method: "POST",
         body: data,
       }),
-      invalidatesTags: ["reservations", "dashboardMetrics"],
+      invalidatesTags: ["reservations", "dashboardMetrics", "customerWallet"],
     }),
 
-    toggleReservationStatus: builder.mutation<
-      APIResponse<reservationFormProps>,
-      { reservationId: string; isActive: boolean }
+    // The only way to cancel (admins). Returns workers and refunds what was paid to the wallet.
+    cancelReservation: builder.mutation<
+      SingleAPIResponse<number>,
+      { reservationId: number; cancelReason?: string | null }
     >({
-      query: (data: { reservationId: string; isActive: boolean }) => ({
-        url: "/Reservation/DeactivateReservation",
+      query: (data) => ({
+        url: "/Reservation/CancelReservation",
         method: "POST",
         body: data,
       }),
-      invalidatesTags: ["reservations"],
+      // Cancelling refunds everything paid to the customer's wallet
+      invalidatesTags: ["reservations", "customerWallet", "dashboardMetrics"],
     }),
 
     assignWorkerToReservation: builder.mutation<
@@ -192,8 +179,7 @@ export const {
   useGetHoldReservationQuery,
   useAddHoldReservationMutation,
   useAssignWorkerToReservationMutation,
-  useToggleReservationStatusMutation,
-  useConfirmReservationMutation,
+  useCancelReservationMutation,
   useUpdateReservationMutation,
   useGetDailyReservationReportQuery,
   useLazyGetDailyReservationReportPdfQuery,

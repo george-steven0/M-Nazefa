@@ -31,12 +31,19 @@ const ReservationFeedback = () => {
     pageSize: 10,
   });
 
+  // ── Search ─────────────────────────────────────────────────────────────────
+  const { SearchBox, debounceValue } = useSearchBox({
+    placeholder: t("SEARCH_FEEDBACK"),
+  });
+
   // ── Queries ────────────────────────────────────────────────────────────────
   const {
     data: feedbacks,
     isLoading,
     isFetching,
-  } = useGetAllReservationFeedbacksQuery();
+  } = useGetAllReservationFeedbacksQuery({
+    search: encodeURIComponent(debounceValue.trim()),
+  });
 
   // ── Handlers ───────────────────────────────────────────────────────────────
   const openAddModal = () => setIsAddModalOpen(true);
@@ -52,11 +59,6 @@ const ReservationFeedback = () => {
     setSelectedFeedbackId(null);
   };
 
-  // ── Search ─────────────────────────────────────────────────────────────────
-  const { SearchBox } = useSearchBox({
-    placeholder: t("SEARCH_FEEDBACK"),
-  });
-
   // ── Table columns ──────────────────────────────────────────────────────────
   const columns: TableProps<feedbackResponseProps>["columns"] = [
     {
@@ -70,6 +72,18 @@ const ReservationFeedback = () => {
       dataIndex: "reservationId",
       key: "reservationId",
       render: (text) => <p>{text}</p>,
+    },
+    {
+      title: t("CUSTOMER_NAME"),
+      dataIndex: "customerName",
+      key: "customerName",
+      render: (text) => <p>{text || t("NA")}</p>,
+    },
+    {
+      title: t("PHONE_NUMBER"),
+      dataIndex: "customerPhone",
+      key: "customerPhone",
+      render: (text) => <p dir="ltr">{text || t("NA")}</p>,
     },
     {
       title: t("RATE"),

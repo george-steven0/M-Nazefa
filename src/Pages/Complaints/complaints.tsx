@@ -82,16 +82,18 @@ const Complaints = () => {
     null,
   );
 
+  // ── Search ─────────────────────────────────────────────────────────────────
+  const { SearchBox, debounceValue } = useSearchBox({
+    placeholder: t("SEARCH_COMPLAINTS"),
+  });
+
   // ── Queries ────────────────────────────────────────────────────────────────
   const {
     data: complaints,
     isLoading,
     isFetching,
-  } = useGetAllComplaintsQuery();
-
-  // ── Search ─────────────────────────────────────────────────────────────────
-  const { SearchBox } = useSearchBox({
-    placeholder: t("SEARCH_COMPLAINTS"),
+  } = useGetAllComplaintsQuery({
+    search: encodeURIComponent(debounceValue.trim()),
   });
 
   // ── Handlers ───────────────────────────────────────────────────────────────
@@ -128,6 +130,18 @@ const Complaints = () => {
       render: (text) => <p>{text}</p>,
     },
     {
+      title: t("CUSTOMER_NAME"),
+      dataIndex: "customerName",
+      key: "customerName",
+      render: (text) => <p>{text || t("NA")}</p>,
+    },
+    {
+      title: t("PHONE_NUMBER"),
+      dataIndex: "customerPhone",
+      key: "customerPhone",
+      render: (text) => <p dir="ltr">{text || t("NA")}</p>,
+    },
+    {
       title: t("COMMENT"),
       dataIndex: "comment",
       key: "comment",
@@ -137,8 +151,8 @@ const Complaints = () => {
     },
     {
       title: t("CREATED_BY"),
-      dataIndex: "createdBy",
-      key: "createdBy",
+      dataIndex: "createdByName",
+      key: "createdByName",
       render: (text) => <p>{text || t("NA")}</p>,
     },
     {
