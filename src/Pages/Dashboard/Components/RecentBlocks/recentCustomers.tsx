@@ -3,7 +3,7 @@ import { RxAvatar } from "react-icons/rx";
 import { Link } from "react-router-dom";
 import { useAppSelector } from "../../../../components/APIs/store";
 import type { TFunction } from "i18next";
-import { Skeleton } from "antd";
+import { Empty, Skeleton } from "antd";
 import type { mostRecentCustomersProps } from "../../../../components/Utilities/Types/types";
 
 type mostRecentCustomerProps = {
@@ -38,6 +38,8 @@ const RecentCustomers = ({ t, data, isLoading }: mostRecentCustomerProps) => {
                 />
               ))}
             </div>
+          ) : !data?.length ? (
+            <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={t("NO_DATA_IN_PERIOD")} />
           ) : (
             data?.map((customer) => (
               <li key={customer?.id} className="flex items-center gap-2">

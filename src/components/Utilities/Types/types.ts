@@ -759,6 +759,42 @@ export type mostUsedPackage = {
   usagePercent: number;
 };
 
+// Dashboard period filter: YYYY-MM-DD, both inclusive; omitted = all time
+export type dashboardPeriodParams = {
+  fromDate?: string;
+  toDate?: string;
+};
+
+export type monthlyReservationsProps = {
+  year: number;
+  month: number; // 1-12
+  reservationsCount: number;
+  totalAmount: number;
+};
+
+export type topCustomerByAmountProps = {
+  customerId: number;
+  customerName?: string | null;
+  totalAmount: number;
+  reservationsCount: number;
+};
+
+// typeId null = customers without a type (shown as a note, not a slice)
+export type customersByTypeProps = {
+  typeId: number | null;
+  name?: string | null;
+  arName?: string | null;
+  count: number;
+};
+
+export type dashboardSummaryProps = {
+  fromDate?: string | null;
+  toDate?: string | null;
+  totalAmount: number;
+  reservationsCount: number;
+  customersCount: number;
+};
+
 export type complaintFormProps = {
   reservationId: string | number;
   comment: string;
