@@ -114,7 +114,7 @@ const WalletTransactionModal = ({
                     options={[
                       { value: "Deposit", label: t("WALLET_TYPE_DEPOSIT") },
                       { value: "CashBack", label: t("WALLET_TYPE_CASHBACK") },
-                      { value: "Adjustment", label: t("WALLET_TYPE_ADJUSTMENT") },
+                      { value: "Deduct", label: t("WALLET_TYPE_DEDUCT") },
                     ]}
                   />
                 )}
@@ -123,7 +123,7 @@ const WalletTransactionModal = ({
             </div>
           )}
 
-          {/* Amount: only an adjustment can be negative (takes money out) */}
+          {/* Amount: always positive; Deduct takes it out of the wallet */}
           <div>
             <label>{t("AMOUNT")}</label>
             <Controller
@@ -134,15 +134,14 @@ const WalletTransactionModal = ({
                 validate: (value) => {
                   const amount = Number(value);
                   if (!amount) return t("WALLET_AMOUNT_NOT_ZERO");
-                  if (type !== "Adjustment" && amount < 0)
-                    return t("WALLET_AMOUNT_POSITIVE");
+                  if (amount < 0) return t("WALLET_AMOUNT_POSITIVE");
                   return true;
                 },
               }}
               render={({ field }) => (
                 <InputNumber
                   {...field}
-                  min={!isOpening && type === "Adjustment" ? undefined : 0}
+                  min={0}
                   variant="filled"
                   placeholder={t("AMOUNT")}
                   className="min-h-10 border-[#C4C4C4] border rounded-md placeholder:capitalize w-full"
@@ -150,9 +149,9 @@ const WalletTransactionModal = ({
                 />
               )}
             />
-            {!isOpening && type === "Adjustment" && (
-              <span className="text-xs text-gray-400">
-                {t("WALLET_ADJUSTMENT_HINT")}
+            {!isOpening && type === "Deduct" && (
+              <span className="text-xs text-red-500">
+                {t("WALLET_DEDUCT_HINT")}
               </span>
             )}
             {errors.amount?.message && <p>{errors.amount?.message}</p>}

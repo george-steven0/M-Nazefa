@@ -22,7 +22,8 @@ const TYPE_COLORS: Record<walletTransactionType, string> = {
   ReservationPayment: "orange",
   Refund: "cyan",
   CashBack: "purple",
-  Adjustment: "default",
+  // Deduct is the only manual type that takes money out, so it stands out in red
+  Deduct: "red",
   PaymentCorrection: "gold",
 };
 
@@ -32,7 +33,7 @@ const TYPE_LABELS: Record<walletTransactionType, string> = {
   ReservationPayment: "WALLET_TYPE_RESERVATION_PAYMENT",
   Refund: "WALLET_TYPE_REFUND",
   CashBack: "WALLET_TYPE_CASHBACK",
-  Adjustment: "WALLET_TYPE_ADJUSTMENT",
+  Deduct: "WALLET_TYPE_DEDUCT",
   PaymentCorrection: "WALLET_TYPE_PAYMENT_CORRECTION",
 };
 

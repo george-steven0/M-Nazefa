@@ -422,6 +422,9 @@ export type reservationDetailsData = {
   cancelledAt?: string | null;
   cancelledByName?: string | null;
   cancelReason?: string | null;
+  /** Set when a free reservation (amount 0) was confirmed by hand */
+  manuallyConfirmedAt?: string | null;
+  manuallyConfirmedByName?: string | null;
   serviceTypeId?: string | number | null;
   customerId: number;
   customerName: string;
@@ -905,7 +908,7 @@ export type walletTransactionType =
   | "ReservationPayment"
   | "Refund"
   | "CashBack"
-  | "Adjustment"
+  | "Deduct"
   | "PaymentCorrection";
 
 export type walletTransactionProps = {
@@ -934,7 +937,8 @@ export type customerWalletProps = {
 /** Form for both "opening balance" and manual transactions (type is ignored for opening balance) */
 export type walletTransactionFormProps = {
   customerId: string | number;
-  type?: "Deposit" | "CashBack" | "Adjustment";
+  type?: "Deposit" | "CashBack" | "Deduct";
+  // Always entered positive; the backend stores Deduct as negative
   amount: number | null;
   transactionDate: string;
   description?: string;

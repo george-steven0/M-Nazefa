@@ -130,6 +130,19 @@ const reservationQuery = API.injectEndpoints({
       invalidatesTags: ["reservations", "customerWallet", "dashboardMetrics"],
     }),
 
+    // Free reservations (amount 0) can't be confirmed by a payment; admins confirm them by hand
+    confirmFreeReservation: builder.mutation<
+      SingleAPIResponse<number>,
+      { reservationId: number }
+    >({
+      query: (data) => ({
+        url: "/Reservation/ConfirmFreeReservation",
+        method: "POST",
+        body: data,
+      }),
+      invalidatesTags: ["reservations", "dashboardMetrics"],
+    }),
+
     assignWorkerToReservation: builder.mutation<
       APIResponse<reservationFormProps>,
       { reservationId: string; workerIds: string[] }
@@ -180,6 +193,7 @@ export const {
   useAddHoldReservationMutation,
   useAssignWorkerToReservationMutation,
   useCancelReservationMutation,
+  useConfirmFreeReservationMutation,
   useUpdateReservationMutation,
   useGetDailyReservationReportQuery,
   useLazyGetDailyReservationReportPdfQuery,

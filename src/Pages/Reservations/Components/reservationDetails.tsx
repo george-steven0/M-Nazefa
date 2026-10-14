@@ -11,14 +11,18 @@ import {
   Typography,
   Avatar,
   List,
+  Popconfirm,
 } from "antd";
 import { useState } from "react";
 import { FaCheckCircle, FaTimesCircle, FaDownload } from "react-icons/fa";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   useAssignWorkerToReservationMutation,
+  useConfirmFreeReservationMutation,
   useGetReservationByIdQuery,
 } from "../../../components/APIs/Reservations/RESERVATION_QUERY";
+import { isAdmin, isSuperAdmin } from "../../../Utilities/utilities";
+import { handleApiError } from "../../../components/Utilities/helper";
 import { useGetCustomerByIdQuery } from "../../../components/APIs/ClientQuery/CLIENTS_QUERY";
 import { skipToken } from "@reduxjs/toolkit/query";
 import dayjs from "dayjs";
@@ -65,7 +69,28 @@ const ReservationDetails = () => {
   const [assignWorker, { isLoading: assignWorkerLoading }] =
     useAssignWorkerToReservationMutation();
 
+  const [confirmFreeReservation, { isLoading: confirmFreeLoading }] =
+    useConfirmFreeReservationMutation();
+
   const reservation = reservationData?.data;
+
+  // A free reservation (amount 0) has nothing to pay, so only an admin can confirm it
+  const canConfirmFree =
+    (isAdmin() || isSuperAdmin()) &&
+    !!reservation &&
+    reservation.isActive !== false &&
+    reservation.isConfirmed !== true &&
+    Number(reservation.reservationAmount) === 0;
+
+  const handleConfirmFree = async () => {
+    if (!reservation) return;
+    try {
+      await confirmFreeReservation({ reservationId: reservation.id }).unwrap();
+      toast.success(t("FREE_RESERVATION_CONFIRMED_SUCCESS"));
+    } catch (error) {
+      handleApiError(error, t("FREE_RESERVATION_CONFIRM_FAILED"));
+    }
+  };
 
   const {
     data: customer,
@@ -159,6 +184,25 @@ const ReservationDetails = () => {
             />
             {reservation && (
               <div className="flex flex-wrap lg:flex-nowrap items-center gap-2 sm:gap-3 [&>button]:text-xs [&>button]:px-2.5 sm:[&>button]:text-sm sm:[&>button]:px-4">
+                {canConfirmFree && (
+                  <Popconfirm
+                    title={t("CONFIRM_FREE_RESERVATION")}
+                    description={t("CONFIRM_FREE_RESERVATION_QUESTION")}
+                    onConfirm={handleConfirmFree}
+                    okText={t("YES")}
+                    cancelText={t("CANCEL")}
+                    okButtonProps={{ loading: confirmFreeLoading }}
+                  >
+                    <Button
+                      icon={<FaCheckCircle />}
+                      loading={confirmFreeLoading}
+                      className="bg-green-600 text-white font-semibold capitalize border-none hover:bg-green-700!"
+                    >
+                      {t("CONFIRM_FREE_RESERVATION")}
+                    </Button>
+                  </Popconfirm>
+                )}
+
                 <Button
                   onClick={handleNavigateToPayments}
                   className="bg-mainOrange text-white font-semibold capitalize"
@@ -207,6 +251,19 @@ const ReservationDetails = () => {
             className="mb-6 rounded-2xl normal-case"
             message={t("RESERVATION_IS_CANCELLED")}
             description={cancellationInfo(reservation, t)}
+          />
+        )}
+
+        {reservation?.isActive !== false && reservation?.manuallyConfirmedAt && (
+          <Alert
+            type="success"
+            showIcon
+            className="mb-6 rounded-2xl normal-case"
+            message={t("FREE_RESERVATION_CONFIRMED_MANUALLY")}
+            description={t("FREE_RESERVATION_CONFIRMED_BY", {
+              name: reservation.manuallyConfirmedByName || t("NA"),
+              date: dayjs(reservation.manuallyConfirmedAt).format("DD-MM-YYYY hh:mm A"),
+            })}
           />
         )}
 
