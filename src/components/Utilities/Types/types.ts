@@ -174,6 +174,8 @@ export type clientFormPropsType = {
   membershipId?: string | number;
   // memberShipNumber?: string;
   entryDate: string;
+  hasAccount?: boolean;
+  accountUserName?: string;
   customerAddresses: (addressProps & buildingProps)[];
   address?: (addressProps & buildingProps)[];
   customerFavourites: {
@@ -207,6 +209,13 @@ export type clientFormPropsType = {
   //       value: string | null;
   //     }[]
   //   | string[];
+};
+
+export type customerAccountPropsType = {
+  userId: string;
+  customerId: number | string;
+  userName: string;
+  password: string;
 };
 
 export type buildingProps = {
@@ -310,7 +319,7 @@ export type packageCard = {
   numberOfRooms?: string;
   numberofWorkers: string;
   numberOfWorkers?: string;
-  price: string;
+  price: string | number;
   CleaningAreaDetails: {
     CleaningAreaId: string;
     ArName: string;
