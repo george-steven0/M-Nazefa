@@ -111,7 +111,13 @@ export const routes = createBrowserRouter([
                   permission: PERMISSIONS.EDIT_EMPLOYEE,
                 },
               },
-              { path: "view-employee", element: <ViewEmployee /> },
+              {
+                path: "view-employee",
+                element: <ViewEmployee />,
+                handle: {
+                  permission: PERMISSIONS.VIEW_EMPLOYEE,
+                },
+              },
             ],
           },
 
@@ -171,7 +177,13 @@ export const routes = createBrowserRouter([
                   permission: PERMISSIONS.EDIT_SERVICE,
                 },
               },
-              { path: "view-service", element: <ViewService /> },
+              {
+                path: "view-service",
+                element: <ViewService />,
+                handle: {
+                  permission: PERMISSIONS.VIEW_SERVICE,
+                },
+              },
             ],
           },
 
@@ -199,7 +211,13 @@ export const routes = createBrowserRouter([
                   permission: PERMISSIONS.EDIT_CLIENT,
                 },
               },
-              { path: "view-client", element: <ViewClient /> },
+              {
+                path: "view-client",
+                element: <ViewClient />,
+                handle: {
+                  permission: PERMISSIONS.VIEW_CLIENT,
+                },
+              },
               {
                 path: "wallet",
                 element: <CustomerWallet />,
@@ -232,7 +250,13 @@ export const routes = createBrowserRouter([
                   permission: PERMISSIONS.EDIT_PACKAGE,
                 },
               },
-              { path: "view-package", element: <ViewPackage /> },
+              {
+                path: "view-package",
+                element: <ViewPackage />,
+                handle: {
+                  permission: PERMISSIONS.VIEW_PACKAGE,
+                },
+              },
             ],
           },
 
@@ -294,7 +318,13 @@ export const routes = createBrowserRouter([
                   permission: PERMISSIONS.EDIT_RESERVATION,
                 },
               },
-              { path: "reservation-details", element: <ReservationDetails /> },
+              {
+                path: "reservation-details",
+                element: <ReservationDetails />,
+                handle: {
+                  permission: PERMISSIONS.VIEW_RESERVATION,
+                },
+              },
             ],
           },
           {

@@ -24,18 +24,19 @@ export default function GuardRole({ children }: guardProps) {
     return <Navigate to="/login" replace />;
   }
 
-  const currentMatch = matches[matches.length - 1];
-  const requiredPermission = (currentMatch?.handle as routeHandle)?.permission;
-
-  if (!requiredPermission) {
-    return children ? children : <Outlet />;
-  }
+  // Check every matched route, not only the deepest one, so a child route
+  // without its own permission still requires its parent's permission.
+  const requiredPermissions = matches
+    .map((match) => (match.handle as routeHandle | undefined)?.permission)
+    .filter((permission): permission is Permission => Boolean(permission));
 
   const allowedPermissions = getUserRoles().flatMap(
     (r) => ROLE_PERMISSIONS[r] || [],
   );
 
-  const hasPermission = allowedPermissions.includes(requiredPermission);
+  const hasPermission = requiredPermissions.every((permission) =>
+    allowedPermissions.includes(permission),
+  );
 
   if (!hasPermission) {
     return <Navigate to="/unauthorized" replace />;
