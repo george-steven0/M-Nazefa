@@ -2,9 +2,17 @@ import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import Title from "../../components/Common/Title/title";
 import { useTranslation } from "react-i18next";
 import { useSearchBox } from "../../components/Common/Search/searchInput";
-import { Button, Table, type TableProps } from "antd";
+import {
+  Badge,
+  Button,
+  DatePicker,
+  Select,
+  Table,
+  Tooltip,
+  type TableProps,
+} from "antd";
+import dayjs, { type Dayjs } from "dayjs";
 import type {
-  APIErrorProps,
   holdReservationProps,
   serviceFormProps,
 } from "../../components/Utilities/Types/types";
@@ -12,13 +20,15 @@ import {
   useAddHoldReservationMutation,
   useGetAllReservationsQuery,
   useGetHoldReservationQuery,
-  useToggleReservationStatusMutation,
 } from "../../components/APIs/Reservations/RESERVATION_QUERY";
-import dayjs from "dayjs";
-import { AiOutlineEye } from "react-icons/ai";
-import { useEffect, useState } from "react";
+import { AiOutlineEye, AiOutlineThunderbolt } from "react-icons/ai";
+import { FaCheckCircle, FaTimesCircle } from "react-icons/fa";
+import { useEffect, useMemo, useState } from "react";
 import HoldReservationModal from "./Components/holdReservationModal";
 import ComplaintForm from "../Complaints/Components/complaintForm";
+import ReservationComplaintsModal from "./Components/reservationComplaintsModal";
+import CancelReservationModal from "./Components/cancelReservationModal";
+import { cancellationInfo } from "./Components/cancellationInfo";
 import FeedbackForm from "../ReservationFeedback/Components/feedbackForm";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
@@ -32,6 +42,8 @@ import { MdOutlineFeedback } from "react-icons/md";
 
 const Actions = ({ data }: { data: serviceFormProps }) => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
+  const isCancelled = data?.isActive === false;
   const handleNavigateEdit = () => {
     navigate(`edit-reservation?id=${data?.id}`);
     // console.log(data);
@@ -42,12 +54,15 @@ const Actions = ({ data }: { data: serviceFormProps }) => {
   };
   return (
     <div className="flex items-center gap-2">
-      <Button
-        shape="circle"
-        className="hover:bg-mainColor/60 hover:text-white hover:border-transparent size-10 [&>span]:flex [&>span]:items-center"
-        onClick={handleNavigateEdit}
-        icon={<BiEdit size={20} />}
-      />
+      <Tooltip title={isCancelled ? t("CANCELLED_CANNOT_EDIT") : undefined}>
+        <Button
+          shape="circle"
+          className="hover:bg-mainColor/60 hover:text-white hover:border-transparent size-10 [&>span]:flex [&>span]:items-center"
+          onClick={handleNavigateEdit}
+          disabled={isCancelled}
+          icon={<BiEdit size={20} />}
+        />
+      </Tooltip>
       <Button
         className="hover:bg-mainGray/60 hover:text-white hover:border-transparent size-10 [&>span]:flex [&>span]:items-center"
         shape="circle"
@@ -63,27 +78,12 @@ export const Reservations = () => {
   const { pathname } = useLocation();
   const { lang } = useAppSelector((state) => state?.lang);
 
-  const [toggleReservationStatus] = useToggleReservationStatusMutation();
-
-  const [loadingSwitchId, setLoadingSwitchId] = useState<string | null>(null);
-
-  const handleToggleReservationStatus = async (reservationId: string) => {
-    try {
-      setLoadingSwitchId(reservationId);
-      await toggleReservationStatus({
-        reservationId,
-        isActive: false,
-      }).unwrap();
-      toast.success(t("RESERVATION_CANCELLED_SUCCESS"));
-    } catch (error) {
-      const err = error as APIErrorProps;
-      err?.data?.errorMessages?.forEach((message) => {
-        toast.error(message);
-      });
-    } finally {
-      setLoadingSwitchId(null);
-    }
-  };
+  // Only admins can cancel (enforced by the API too)
+  const canCancel = isAdmin() || isSuperAdmin();
+  const [cancelTarget, setCancelTarget] = useState<{
+    id: string | number;
+    paidAmount?: number;
+  } | null>(null);
   const {
     control,
     handleSubmit,
@@ -98,11 +98,24 @@ export const Reservations = () => {
 
   // console.log(isDirty);
 
+  const { SearchBox, debounceValue } = useSearchBox({
+    placeholder: t("SEARCH_RESERVATIONS"),
+  });
+
+  const [statusFilter, setStatusFilter] = useState<string | undefined>(
+    undefined,
+  );
+  const [dateFilter, setDateFilter] = useState<Dayjs | null>(null);
+
   const {
     data: reservations,
     isLoading,
     isFetching,
-  } = useGetAllReservationsQuery();
+  } = useGetAllReservationsQuery({
+    search: encodeURIComponent(debounceValue),
+    status: statusFilter,
+    date: dateFilter ? dateFilter.format("YYYY-MM-DD") : undefined,
+  });
 
   // console.log(reservations?.data);
 
@@ -111,9 +124,16 @@ export const Reservations = () => {
   // ── Add Complaint / Feedback (per reservation) ─────────────────────────────
   const [isComplaintModalOpen, setIsComplaintModalOpen] = useState(false);
   const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
+  const [isComplaintsListModalOpen, setIsComplaintsListModalOpen] =
+    useState(false);
   const [activeReservationId, setActiveReservationId] = useState<
     string | number | null
   >(null);
+
+  const openComplaintsListModal = (reservationId: string | number) => {
+    setActiveReservationId(reservationId);
+    setIsComplaintsListModalOpen(true);
+  };
 
   const openAddComplaintModal = (reservationId: string | number) => {
     setActiveReservationId(reservationId);
@@ -124,10 +144,6 @@ export const Reservations = () => {
     setActiveReservationId(reservationId);
     setIsFeedbackModalOpen(true);
   };
-
-  const { SearchBox } = useSearchBox({
-    placeholder: t("SEARCH_RESERVATIONS"),
-  });
 
   const columns: TableProps<serviceFormProps>["columns"] = [
     {
@@ -179,33 +195,80 @@ export const Reservations = () => {
       render: (row) => (
         <span>
           {row?.isActive ? (
-            <Button
-              onClick={() => handleToggleReservationStatus(row?.id)}
-              className="text-red-500 bg-transparent border-red-500 hover:bg-red-500 hover:text-white transition-all duration-300"
-              loading={loadingSwitchId === row?.id}
-            >
-              {t("CANCEL")}
-            </Button>
+            canCancel ? (
+              <Button
+                className="text-red-500 bg-transparent border-red-500 hover:bg-red-500 hover:text-white transition-all duration-300"
+                onClick={() =>
+                  setCancelTarget({ id: row?.id, paidAmount: row?.paidAmount })
+                }
+              >
+                {t("CANCEL")}
+              </Button>
+            ) : (
+              <span className="text-green-600 border border-green-500/60 px-2 py-1 rounded-md">
+                {t("ACTIVE")}
+              </span>
+            )
           ) : (
-            <span className="text-gray-500/80 border border-gray-300 px-2 py-1 rounded-md cursor-not-allowed">
-              {t("CANCELLED")}
-            </span>
+            <Tooltip title={cancellationInfo(row, t)}>
+              <span className="text-gray-500/80 border border-gray-300 px-2 py-1 rounded-md cursor-help">
+                {t("CANCELLED")}
+              </span>
+            </Tooltip>
           )}
         </span>
       ),
     },
-    
+
+    {
+      title: t("IS_CONFIRMED"),
+      dataIndex: "isConfirmed",
+      key: "isConfirmed",
+      // Confirmed and OnSpot are independent, so both are shown
+      render: (isConfirmed, row) => (
+        <div className="flex flex-wrap items-center gap-1.5">
+          {isConfirmed ? (
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-green-500/60 bg-green-50 px-2.5 py-1 text-sm font-medium text-green-600">
+              <FaCheckCircle size={14} />
+              {t("CONFIRMED")}
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-gray-300 bg-gray-100 px-2.5 py-1 text-sm font-medium text-gray-500">
+              <FaTimesCircle size={14} />
+              {t("NOT_CONFIRMED")}
+            </span>
+          )}
+          {row?.onSpot && (
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/60 bg-amber-50 px-2.5 py-1 text-sm font-medium text-amber-700">
+              <AiOutlineThunderbolt size={14} />
+              {t("ON_SPOT")}
+            </span>
+          )}
+        </div>
+      ),
+    },
+
     {
       title: t("COMPLAIN"),
       key: "complain",
       render: (row) => (
         <div className="flex items-center gap-2">
-          <Button
-            shape="circle"
-            className="hover:bg-mainGray/60 hover:text-white hover:border-transparent size-10 [&>span]:flex [&>span]:items-center"
-            onClick={() => navigate("/complaints")}
-            icon={<RiCustomerService2Fill size={18} />}
-          />
+          {/* Click handler on wrapper so both the badge count and the button open the modal */}
+          <span
+            className={row?.complaintsCount ? "cursor-pointer" : undefined}
+            onClick={() =>
+              row?.complaintsCount && openComplaintsListModal(row?.id)
+            }
+          >
+            <Badge count={row?.complaintsCount ?? 0} size="small">
+              <Button
+                shape="circle"
+                className="hover:bg-mainGray/60 hover:text-white hover:border-transparent size-10 [&>span]:flex [&>span]:items-center"
+                disabled={!row?.complaintsCount}
+                icon={<RiCustomerService2Fill size={18} />}
+              />
+            </Badge>
+          </span>
           <Button
             shape="circle"
             className="bg-green-600/60 hover:bg-green-600 border-green-600 text-white size-10 [&>span]:flex [&>span]:items-center"
@@ -241,7 +304,10 @@ export const Reservations = () => {
     },
   ];
 
-  const data: serviceFormProps[] = reservations?.data || [];
+  const reservationsList: serviceFormProps[] = useMemo(
+    () => reservations?.data || [],
+    [reservations?.data],
+  );
 
   const handleNavigateAdd = () => {
     navigate(`/reservations/add-reservation`);
@@ -313,8 +379,8 @@ export const Reservations = () => {
     // console.log(data);
 
     const formData = {
-      dateFrom: dayjs(data.dateFrom).format("YYYY-MM-DDThh:mm:ss[Z]"),
-      dateTo: dayjs(data.dateTo).format("YYYY-MM-DDThh:mm:ss[Z]"),
+      dateFrom: dayjs(data.dateFrom).format("YYYY-MM-DDTHH:mm:ss[Z]"),
+      dateTo: dayjs(data.dateTo).format("YYYY-MM-DDTHH:mm:ss[Z]"),
     };
 
     // console.log(formData);
@@ -343,15 +409,40 @@ export const Reservations = () => {
       </header>
 
       <div>
-        <section className="my-8 max-w-[80%] lg:max-w-[40%]">
-          {SearchBox()}
+        <section className="my-8 flex flex-wrap items-center gap-4">
+          <div className="w-full sm:max-w-[80%] lg:max-w-[40%]">
+            {SearchBox()}
+          </div>
+
+          <Select
+            allowClear
+            placeholder={t("FILTER_BY_STATUS")}
+            className="min-h-10 w-full sm:w-[220px] [&_.ant-select-selector]:min-h-10"
+            value={statusFilter}
+            onChange={(value) => setStatusFilter(value)}
+            options={[
+              { value: "Confirmed", label: t("CONFIRMED") },
+              { value: "Pending", label: t("PENDING") },
+              { value: "OnSpot", label: t("ON_SPOT") },
+              { value: "ConfirmedOnSpot", label: t("CONFIRMED_ON_SPOT") },
+            ]}
+          />
+
+          <DatePicker
+            allowClear
+            placeholder={t("FILTER_BY_DATE")}
+            className="min-h-10 w-full sm:w-[220px]"
+            format="DD-MM-YYYY"
+            value={dateFilter}
+            onChange={(date) => setDateFilter(date)}
+          />
         </section>
 
         <section className="mt-8 overflow-x-auto">
           <Table<serviceFormProps>
             rowKey="id"
             columns={columns}
-            dataSource={data}
+            dataSource={reservationsList}
             loading={isLoading || isFetching}
             scroll={{ x: "max-content" }}
             className="w-full"
@@ -361,11 +452,11 @@ export const Reservations = () => {
                   {/* <p className="capitalize text-lg font-semibold text-gray-800">
                     {t("WORKERS_DETAILS")}:
                   </p> */}
-                  <div className="flex justify-between flex-wrap gap-4">
+                  <div className="flex justify-start flex-wrap gap-5">
                     {row?.reservationWorkers &&
                     row?.reservationWorkers?.length !== 0 ? (
                       row?.reservationWorkers?.map((worker) => (
-                        <div key={worker.workerId} className="flex gap-2">
+                        <div key={worker.workerId} className="flex gap-2 bg-[#f3f3f3] py-1 pe-2 rounded-r-md">
                           <span className="w-[3px] h-6 bg-mainOrange rounded-full" />
                           <div className="flex items-center gap-2">
                             <span className="font-semibold text-gray-600">
@@ -419,6 +510,19 @@ export const Reservations = () => {
       <ComplaintForm
         open={isComplaintModalOpen}
         onClose={() => setIsComplaintModalOpen(false)}
+        reservationId={activeReservationId}
+      />
+
+      <CancelReservationModal
+        open={cancelTarget !== null}
+        reservationId={cancelTarget?.id ?? null}
+        paidAmount={cancelTarget?.paidAmount}
+        onClose={() => setCancelTarget(null)}
+      />
+
+      <ReservationComplaintsModal
+        open={isComplaintsListModalOpen}
+        onClose={() => setIsComplaintsListModalOpen(false)}
         reservationId={activeReservationId}
       />
 

@@ -1,5 +1,9 @@
 import type {
+  APIParams,
   APIResponse,
+  calendarReservationProps,
+  dailyReportFilterParams,
+  dailyReservationReportProps,
   holdReservationProps,
   reservationDetailsData,
   reservationFormProps,
@@ -8,29 +12,50 @@ import type {
 } from "../../Utilities/Types/types";
 import { API } from "../apiSlice";
 
+type getReservationsParams = APIParams & {
+  status?: string;
+  date?: string;
+};
+
+// Shared by GetDailyReservationReport and its PDF sibling — both take the
+// same three filter headers. "dateFilter" rather than "date": browsers
+// forbid scripts from setting a header called "Date" and silently drop it.
+const buildReportHeaders = (params?: dailyReportFilterParams) => ({
+  ...(params?.searchKey ? { searchKey: params.searchKey } : {}),
+  ...(params?.status ? { status: params.status } : {}),
+  ...(params?.area ? { area: params.area } : {}),
+  ...(params?.dateFilter ? { dateFilter: params.dateFilter } : {}),
+});
+
 const reservationQuery = API.injectEndpoints({
   endpoints: (builder) => ({
-    getAllReservations: builder.query<APIResponse<reservationFormProps>, void>({
-      query: () => ({
+    getAllReservations: builder.query<
+      APIResponse<reservationFormProps>,
+      getReservationsParams | void
+    >({
+      query: (params) => ({
         url: "/Reservation/GetReservationList",
         method: "GET",
+        // Named "dateFilter" rather than "date": browsers forbid scripts from
+        // setting a header called "Date" and silently drop it.
+        headers: {
+          searchKey: params?.search ?? "",
+          ...(params?.status ? { status: params.status } : {}),
+          ...(params?.date ? { dateFilter: params.date } : {}),
+        },
       }),
       providesTags: ["reservations"],
     }),
 
-    confirmReservation: builder.mutation<
-      APIResponse<reservationFormProps>,
-      { reservationId: string | number }
+    getReservationsCalendar: builder.query<
+      APIResponse<calendarReservationProps>,
+      void
     >({
-      query: (data: { reservationId: string | number }) => ({
-        url: "/Reservation/ConfirmReservation",
-        method: "POST",
-        // body: data,
-        headers:{
-          reservationId: data?.reservationId.toString()
-        }
+      query: () => ({
+        url: "/Reservation/GetReservationsCalendar",
+        method: "GET",
       }),
-      invalidatesTags: ["reservations"],
+      providesTags: ["reservations"],
     }),
 
     getReservationById: builder.query<
@@ -76,7 +101,7 @@ const reservationQuery = API.injectEndpoints({
         method: "POST",
         body: data,
       }),
-      invalidatesTags: ["reservations", "dashboardMetrics"],
+      invalidatesTags: ["reservations", "dashboardMetrics", "customerWallet"],
     }),
 
     updateReservation: builder.mutation<
@@ -88,19 +113,34 @@ const reservationQuery = API.injectEndpoints({
         method: "POST",
         body: data,
       }),
-      invalidatesTags: ["reservations", "dashboardMetrics"],
+      invalidatesTags: ["reservations", "dashboardMetrics", "customerWallet"],
     }),
 
-    toggleReservationStatus: builder.mutation<
-      APIResponse<reservationFormProps>,
-      { reservationId: string; isActive: boolean }
+    // The only way to cancel (admins). Returns workers and refunds what was paid to the wallet.
+    cancelReservation: builder.mutation<
+      SingleAPIResponse<number>,
+      { reservationId: number; cancelReason?: string | null }
     >({
-      query: (data: { reservationId: string; isActive: boolean }) => ({
-        url: "/Reservation/DeactivateReservation",
+      query: (data) => ({
+        url: "/Reservation/CancelReservation",
         method: "POST",
         body: data,
       }),
-      invalidatesTags: ["reservations"],
+      // Cancelling refunds everything paid to the customer's wallet
+      invalidatesTags: ["reservations", "customerWallet", "dashboardMetrics"],
+    }),
+
+    // Free reservations (amount 0) can't be confirmed by a payment; admins confirm them by hand
+    confirmFreeReservation: builder.mutation<
+      SingleAPIResponse<number>,
+      { reservationId: number }
+    >({
+      query: (data) => ({
+        url: "/Reservation/ConfirmFreeReservation",
+        method: "POST",
+        body: data,
+      }),
+      invalidatesTags: ["reservations", "dashboardMetrics"],
     }),
 
     assignWorkerToReservation: builder.mutation<
@@ -116,17 +156,45 @@ const reservationQuery = API.injectEndpoints({
         { type: "reservations", id: reservationId },
       ],
     }),
+
+    getDailyReservationReport: builder.query<
+      SingleAPIResponse<dailyReservationReportProps>,
+      dailyReportFilterParams | void
+    >({
+      query: (params) => ({
+        url: "/Reservation/GetDailyReservationReport",
+        method: "GET",
+        headers: buildReportHeaders(params ?? undefined),
+      }),
+      providesTags: ["reservations"],
+    }),
+
+    getDailyReservationReportPdf: builder.query<
+      Blob,
+      dailyReportFilterParams | void
+    >({
+      query: (params) => ({
+        url: "/Reservation/GetDailyReservationReportPdf",
+        method: "GET",
+        headers: buildReportHeaders(params ?? undefined),
+        responseHandler: (response: Response) => response.blob(),
+        cache: "no-cache",
+      }),
+    }),
   }), //builder braces
 });
 
 export const {
   useGetAllReservationsQuery,
+  useGetReservationsCalendarQuery,
   useAddReservationMutation,
   useGetReservationByIdQuery,
   useGetHoldReservationQuery,
   useAddHoldReservationMutation,
   useAssignWorkerToReservationMutation,
-  useToggleReservationStatusMutation,
-  useConfirmReservationMutation,
+  useCancelReservationMutation,
+  useConfirmFreeReservationMutation,
   useUpdateReservationMutation,
+  useGetDailyReservationReportQuery,
+  useLazyGetDailyReservationReportPdfQuery,
 } = reservationQuery;

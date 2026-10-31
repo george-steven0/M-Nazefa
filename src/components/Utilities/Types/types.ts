@@ -288,6 +288,7 @@ export type packageFormProps = {
     ArName: string;
     Name: string;
     Price: string | number;
+    numberOfWorkers: string | number;
   }[];
   // TransportationFees: { Fee: string; CityId: string }[];
 };
@@ -341,6 +342,7 @@ export type packageCard = {
     arName: string;
     name: string;
     price: string | number;
+    numberOfWorkers?: string | number;
     id?: string | number;
   }[];
   // transportationFees: { id?: string; fee: string; cityId: string }[];
@@ -352,6 +354,8 @@ export type appointmentProps = {
   endTime: string;
 };
 
+export type reservationDiscountType = "None" | "Percentage" | "Fixed";
+
 export type reservationFormProps = {
   customerId: string | number;
   customerAddressId: string | number | null;
@@ -362,7 +366,14 @@ export type reservationFormProps = {
   reservationDate: string;
   transportationFeesId: string | number | null;
   fee?: string | number | null;
+  totalReservationAmount?: number;
+  serviceTypeId?: string | number | null;
   onSpot: boolean;
+  /** Discount on the reservation total (admins only). "None" removes it. */
+  discountType?: reservationDiscountType | null;
+  /** 10 = 10% for Percentage, or EGP for Fixed */
+  discountValue?: number | null;
+  discountReason?: string | null;
   apartmentClosingPeriodId: string | number;
   generalComments: string;
   cityId?: string | null;
@@ -386,10 +397,44 @@ export type reservationFormProps = {
   buildingProps &
   extraServiceProps;
 
+// Shape consumed by the Calendar page (react-big-calendar events).
+export type calendarReservationProps = {
+  id: string | number;
+  customerName?: string;
+  customerPhone?: string;
+  customerAddress?: string;
+  serviceType?: string;
+  reservationDate: string; // ISO start date-time
+  endDate?: string; // ISO end date-time (optional; defaults to +1h client-side)
+  isConfirmed?: boolean;
+  isActive?: boolean;
+  /** Net paid (payments - refunds); returned to the wallet when cancelled */
+  paidAmount?: number;
+  /** Cancellation audit (empty for reservations cancelled before it was recorded) */
+  cancelledAt?: string | null;
+  cancelledByName?: string | null;
+  cancelReason?: string | null;
+};
+
 export type reservationDetailsData = {
   id: number;
   reservationDate: string;
+  /** Final price (after membership and reservation discount) */
   reservationAmount: number;
+  discountType?: reservationDiscountType | null;
+  discountValue?: number | null;
+  discountAmount?: number;
+  discountReason?: string | null;
+  amountBeforeDiscount?: number;
+  isActive?: boolean | null;
+  /** Cancellation audit (empty for reservations cancelled before it was recorded) */
+  cancelledAt?: string | null;
+  cancelledByName?: string | null;
+  cancelReason?: string | null;
+  /** Set when a free reservation (amount 0) was confirmed by hand */
+  manuallyConfirmedAt?: string | null;
+  manuallyConfirmedByName?: string | null;
+  serviceTypeId?: string | number | null;
   customerId: number;
   customerName: string;
   customerAddressId: number;
@@ -478,7 +523,7 @@ export type reservationDetailsData = {
       description: string;
       tools: string;
       supplies: string;
-      rules: string;
+      rules: string[] | null;
       discount: number;
       isPercentage: boolean;
       numberOfWorkers: number;
@@ -539,6 +584,15 @@ export type serviceFormProps = {
   description?: string;
   package?: string;
   isActive?:boolean
+  isConfirmed?: boolean;
+  onSpot?: boolean;
+  complaintsCount?: number;
+  /** Net paid (payments - refunds); returned to the wallet when cancelled */
+  paidAmount?: number;
+  /** Cancellation audit (empty for reservations cancelled before it was recorded) */
+  cancelledAt?: string | null;
+  cancelledByName?: string | null;
+  cancelReason?: string | null;
   extraServices?:
     | {
         extraServiceId: string | number;
@@ -644,6 +698,7 @@ export type extraServiceProps = {
   name: string;
   arName: string;
   price: string | number;
+  numberOfWorkers?: string | number;
 };
 
 export type customerAddressDDLProps = {
@@ -716,6 +771,42 @@ export type mostUsedPackage = {
   usagePercent: number;
 };
 
+// Dashboard period filter: YYYY-MM-DD, both inclusive; omitted = all time
+export type dashboardPeriodParams = {
+  fromDate?: string;
+  toDate?: string;
+};
+
+export type monthlyReservationsProps = {
+  year: number;
+  month: number; // 1-12
+  reservationsCount: number;
+  totalAmount: number;
+};
+
+export type topCustomerByAmountProps = {
+  customerId: number;
+  customerName?: string | null;
+  totalAmount: number;
+  reservationsCount: number;
+};
+
+// typeId null = customers without a type (shown as a note, not a slice)
+export type customersByTypeProps = {
+  typeId: number | null;
+  name?: string | null;
+  arName?: string | null;
+  count: number;
+};
+
+export type dashboardSummaryProps = {
+  fromDate?: string | null;
+  toDate?: string | null;
+  totalAmount: number;
+  reservationsCount: number;
+  customersCount: number;
+};
+
 export type complaintFormProps = {
   reservationId: string | number;
   comment: string;
@@ -732,8 +823,11 @@ export type complaintResponseProps = {
   id: string | number;
   reservationId: string | number;
   customerId?: string | number;
+  customerName?: string;
+  customerPhone?: string;
   comment: string;
   createdBy?: string;
+  createdByName?: string;
   createdAt?: string;
   creationDate?: string;
   workers?: complaintWorkerProps[];
@@ -748,9 +842,12 @@ export type feedbackFormProps = {
 export type feedbackResponseProps = {
   id: string | number;
   reservationId: string | number;
+  customerName?: string;
+  customerPhone?: string;
   rate: number;
   comment: string;
   createdBy?: string;
+  createdByName?: string;
   creationDate?: string;
 };
 
@@ -758,6 +855,7 @@ export type workerManagementFormProps = {
   startDate: string;
   endDate: string;
   workersNo: number;
+  reserveWorkersNo?: number | null;
   notes?: string;
 };
 
@@ -768,6 +866,8 @@ export type workerManagementResponseProps = {
   workersNo?: number;
   availableNoWorkers?: number;
   remainNoOfWorkers?: number;
+  reserveNoOfWorkers?: number | null;
+  remainReserveNoOfWorkers?: number | null;
   date?: string;
   notes?: string;
   creationDate?: string;
@@ -777,6 +877,17 @@ export type workerManagementEditProps = {
   id: string | number;
   availableNoWorkers: number;
   remainNoOfWorkers: number;
+  reserveNoOfWorkers?: number | null;
+  remainReserveNoOfWorkers?: number | null;
+  notes?: string;
+};
+
+export type workerManagementGroupEditProps = {
+  ids: (string | number)[];
+  availableNoWorkers: number;
+  remainNoOfWorkers: number;
+  reserveNoOfWorkers?: number | null;
+  remainReserveNoOfWorkers?: number | null;
   notes?: string;
 };
 
@@ -786,10 +897,118 @@ export type workerManagementFilterParams = {
 };
 
 export type reservationPaymentsProps = {
+  id?: number;
   reservationId: string | number;
   type: string;
   amount: number;
   operationDate: string;
   paymentMethod: string;
   note: string;
+  /** Created automatically by the system (wallet auto-pay, refund on cancel): locked */
+  isSystem?: boolean;
+  modifiedByName?: string | null;
+  modifiedAt?: string | null;
+};
+
+/* ── Customer wallet ─────────────────────────────────────────────────────── */
+export type walletTransactionType =
+  | "OpeningBalance"
+  | "Deposit"
+  | "ReservationPayment"
+  | "Refund"
+  | "CashBack"
+  | "Deduct"
+  | "PaymentCorrection";
+
+export type walletTransactionProps = {
+  id: number;
+  customerId: number;
+  reservationId?: number | null;
+  reservationPaymentId?: number | null;
+  type: walletTransactionType;
+  amount: number;
+  balanceAfter: number;
+  transactionDate: string;
+  description?: string | null;
+  createdBy: string;
+  createdByName?: string | null;
+  creationDate: string;
+};
+
+export type customerWalletProps = {
+  customerId: number;
+  customerName?: string | null;
+  balance: number;
+  hasOpeningBalance: boolean;
+  transactions: walletTransactionProps[];
+};
+
+/** Form for both "opening balance" and manual transactions (type is ignored for opening balance) */
+export type walletTransactionFormProps = {
+  customerId: string | number;
+  type?: "Deposit" | "CashBack" | "Deduct";
+  // Always entered positive; the backend stores Deduct as negative
+  amount: number | null;
+  transactionDate: string;
+  description?: string;
+};
+
+/* ── Daily reservation report ─────────────────────────────────────────────
+   The API returns section `items` and `reservations` as free-form rows, so
+   every field is optional and unknown keys are tolerated: the report UI
+   renders whichever fields are actually present. */
+export type dailyReportItemProps = {
+  id?: string | number;
+  reservationId?: string | number;
+  customerName?: string;
+  customerPhoneNumber?: string;
+  phoneNumber?: string;
+  reservationDate?: string;
+  time?: string;
+  cityName?: string;
+  areaName?: string;
+  address?: string;
+  packageName?: string;
+  numberOfWorkers?: number;
+  workers?: string;
+  amount?: number;
+  totalAmount?: number;
+  paidAmount?: number;
+  remainingAmount?: number;
+  status?: string;
+  isConfirmed?: boolean;
+  onSpot?: boolean;
+  notes?: string;
+  [key: string]: unknown;
+};
+
+export type dailyReportSectionProps = {
+  key: string;
+  title: string;
+  items: dailyReportItemProps[];
+};
+
+export type dailyReservationReportProps = {
+  reportDate: string;
+  dayName: string;
+  generatedAt: string;
+  totalReservations: number;
+  contractCount: number;
+  confirmedCount: number;
+  onSpotCount: number;
+  confirmedOnSpotCount?: number;
+  totalWorkers: number;
+  totalAmount: number;
+  totalPaid: number;
+  totalRemaining: number;
+  totalDiscount?: number;
+  sections: dailyReportSectionProps[];
+  reservations: dailyReportItemProps[];
+};
+
+export type dailyReportFilterParams = {
+  dateFilter?: string;
+  searchKey?: string;
+  status?: string;
+  area?: string;
 };

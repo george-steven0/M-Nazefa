@@ -39,10 +39,47 @@ const reservationPaymentsQuery = API.injectEndpoints({
         method: "POST",
         body: data,
       }),
-      invalidatesTags: ["reservations"],
+      invalidatesTags: ["reservations", "customerWallet"],
+    }),
+
+    // Admins: edit a manual payment (wallet difference is corrected by the API)
+    editReservationPayment: builder.mutation<
+      SingleAPIResponse<number>,
+      {
+        id: number;
+        amount: number;
+        paymentMethod: string;
+        operationDate: string;
+        note?: string | null;
+      }
+    >({
+      query: (data) => ({
+        url: "/ReservationPayment/EditPayment",
+        method: "POST",
+        body: data,
+      }),
+      invalidatesTags: ["reservations", "customerWallet", "dashboardMetrics"],
+    }),
+
+    // Admins: delete a manual payment (wallet effect is reversed by the API)
+    deleteReservationPayment: builder.mutation<
+      SingleAPIResponse<number>,
+      { id: number }
+    >({
+      query: ({ id }) => ({
+        url: "/ReservationPayment/DeletePayment",
+        method: "POST",
+        headers: { id: String(id) },
+      }),
+      invalidatesTags: ["reservations", "customerWallet", "dashboardMetrics"],
     }),
   }), //builder braces
 });
 
-export const { useGetPaymentMethodsQuery, useAddReservationPaymentMutation, useGetReservationPaymentsQuery } =
-  reservationPaymentsQuery;
+export const {
+  useGetPaymentMethodsQuery,
+  useAddReservationPaymentMutation,
+  useGetReservationPaymentsQuery,
+  useEditReservationPaymentMutation,
+  useDeleteReservationPaymentMutation,
+} = reservationPaymentsQuery;

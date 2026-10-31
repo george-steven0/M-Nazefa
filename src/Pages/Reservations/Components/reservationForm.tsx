@@ -13,6 +13,7 @@ import {
   Collapse,
   DatePicker,
   Input,
+  InputNumber,
   Select,
   Skeleton,
 } from "antd";
@@ -46,6 +47,7 @@ import {
 import { toast } from "react-toastify";
 import Astrisk from "../../../components/Common/Astrisk/astrisk";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { isAdmin, isSuperAdmin } from "../../../Utilities/utilities";
 
 // const extraOptions = [
 //   "EXTRA_BATHROOM",
@@ -63,9 +65,17 @@ const ReservationForm = () => {
   const [searchParams] = useSearchParams();
   const reservatinId = searchParams.get("id") || null;
   const isEditMode = !!reservatinId;
+  // Date passed from the calendar's "add new reservation" prompt
+  const dateParam = searchParams.get("date");
 
   const [customerSearch,setCustomerSearch] = useState<string | null>(null)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Grand total computed by the summary (packages + workers × transport fee)
+  const [reservationTotal, setReservationTotal] = useState(0);
+
+  // Only admins can give/change a discount (the API enforces it too)
+  const canManageDiscount = isAdmin() || isSuperAdmin();
 
   const handleCustomerSearch = (value: string) => {
     if (debounceRef.current) {
@@ -105,22 +115,23 @@ const ReservationForm = () => {
   } = useForm<reservationFormProps>({
     defaultValues: {
       onSpot: false,
+      discountType: "None",
+      discountValue: null,
+      discountReason: "",
       addReservationPackagesDtos: [
         {
           packageId: "",
           count: 1,
           packageAmount: "",
-          reservationPackageExtraServices: [
-            {
-              packageExtraServiceId: undefined,
-            },
-          ],
+          reservationPackageExtraServices: [],
         },
       ],
     },
   });
 
   const customerId = watch("customerId");
+  const discountType = watch("discountType");
+  const hasDiscount = !!discountType && discountType !== "None";
 
   // all customers
   const {
@@ -213,7 +224,7 @@ const ReservationForm = () => {
     serviceTypeId != null ? { serviceTypeId } : undefined,
   );
 
-  console.log(serviceTypeId);
+  // console.log(serviceTypeId);
   
 
   // Get availiable Reservation appointemtns
@@ -253,6 +264,28 @@ const ReservationForm = () => {
   const handlePackageRemove = (index: number) => {
     packagesRemove(index);
   };
+
+  // A row's extra services and amount belong to the package that was selected
+  // when they were filled in. Wipe them when the package changes, otherwise the
+  // old package's extras stay in the form state and are submitted next to the
+  // new package's own.
+  const handlePackageChange = (index: number) => {
+    setValue(
+      `addReservationPackagesDtos.${index}.reservationPackageExtraServices`,
+      [],
+    );
+    setValue(`addReservationPackagesDtos.${index}.packageAmount`, "");
+  };
+
+  // The package list is filtered by the unit type, so once it changes the
+  // selected packages (and everything attached to them) no longer apply.
+  const handleServiceTypeChange = (value?: string | number | null) => {
+    setServiceTypeId(value ?? null);
+    packagesFields.forEach((_, index) => {
+      setValue(`addReservationPackagesDtos.${index}.packageId`, "");
+      handlePackageChange(index);
+    });
+  };
   // console.log(packages);
 
   // const [selectedRadio, setSelectedRadio] = useState(0);
@@ -282,7 +315,11 @@ const ReservationForm = () => {
       reset({
         customerId: d.customerId,
         customerAddressId: d.customerAddressId,
-        reservationDate: d.reservationDate ? dayjs.utc(d.reservationDate).local() : "",
+        // Read the stored value as local wall-clock (ignore the trailing "Z")
+        // so the picked date/time round-trips without a UTC shift.
+        reservationDate: d.reservationDate
+          ? dayjs(d.reservationDate.replace("Z", ""))
+          : "",
         insects: d.insects ? "true" : "false",
         rodents: d.rodents ? "true" : "false",
         apartmentClosingPeriodId: d.apartmentClosingPeriodId,
@@ -293,33 +330,52 @@ const ReservationForm = () => {
           count: pkg.count || 1,
           packageAmount: pkg.packageAmount || pkg.getPackageDto?.price || "",
           reservationPackageExtraServices:
-            pkg.reservationPackageExtraServices?.length > 0
-              ? pkg.reservationPackageExtraServices.map((es) => ({
-                  packageExtraServiceId: es.id,
-                }))
-              : [{ packageExtraServiceId: undefined }],
+            pkg.reservationPackageExtraServices?.map((es) => ({
+              packageExtraServiceId: es.id,
+            })) || [],
         })) || [
           {
             packageId: "",
             count: 1,
             packageAmount: "",
-            reservationPackageExtraServices: [
-              { packageExtraServiceId: undefined },
-            ],
+            reservationPackageExtraServices: [],
           },
         ],
         areaId: d?.getTransportationFeesDetails?.areaId || "",
         cityId: d?.getTransportationFeesDetails?.cityId || "",
         fee: d?.getTransportationFeesDetails?.fee || "",
         transportationFeesId: d?.getTransportationFeesDetails?.id || "",
+        discountType: d.discountType ?? "None",
+        discountValue: d.discountValue ?? null,
+        discountReason: d.discountReason ?? "",
       } as unknown as reservationFormProps);
+
+      // Pre-select the service unit type so it displays (and filters the
+      // packages correctly) in edit mode.
+      setServiceTypeId(
+        d.serviceTypeId ??
+          d.getPackageDtoList?.[0]?.getPackageDto?.packageTypeId ??
+          null,
+      );
     }
-  }, [isEditMode, reservationDetails, reset]);
+  }, [isEditMode, reservationDetails, reset, setServiceTypeId]);
+
+  // Prefill the reservation date when arriving from the calendar (add mode)
+  useEffect(() => {
+    if (!isEditMode && dateParam) {
+      setValue(
+        "reservationDate",
+        dayjs(dateParam) as unknown as reservationFormProps["reservationDate"],
+      );
+    }
+  }, [isEditMode, dateParam, setValue]);
 
   const handleSubmitForm = async (data: reservationFormProps) => {
     const formattedData = {
       ...data,
-      reservationDate: dayjs(data?.reservationDate)?.utc()?.toISOString(),
+      reservationDate: dayjs(data?.reservationDate).format(
+        "YYYY-MM-DDTHH:mm:ss[Z]",
+      ),
       addReservationPackagesDtos: data?.addReservationPackagesDtos?.map(
         (item) => ({
           ...item,
@@ -332,6 +388,15 @@ const ReservationForm = () => {
       ),
       insects: data?.insects === "true",
       rodents: data?.rodents === "true",
+      totalReservationAmount: reservationTotal,
+      serviceTypeId: serviceTypeId,
+      // Admins send the discount ("None" removes it); others send nothing so the
+      // backend keeps whatever discount the reservation already has.
+      discountType: canManageDiscount ? (data.discountType ?? "None") : null,
+      discountValue:
+        canManageDiscount && hasDiscount ? Number(data.discountValue) : null,
+      discountReason:
+        canManageDiscount && hasDiscount ? data.discountReason || null : null,
     };
 
     // console.log(formattedData);
@@ -444,7 +509,11 @@ const ReservationForm = () => {
                       <Select
                         {...field}
                         disabled={
-                          !customerId || customerLoading || customerIsFetching
+                          !customerId ||
+                          customerLoading ||
+                          customerIsFetching ||
+                          addressesLoading ||
+                          addressesIsFetching
                         }
                         loading={addressesLoading || addressesIsFetching}
                         className="min-h-10 border-[#C4C4C4] border rounded-md capitalize [&>.ant-select-selector]:capitalize"
@@ -1287,18 +1356,18 @@ const ReservationForm = () => {
                 <div>
                   <label className="font-semibold">
                     {t("APARTMENT_CLOSING_PERIOD")}
-                    <Astrisk />
+                    {/* <Astrisk /> */}
                   </label>
 
                   <Controller
                     control={control}
                     name="apartmentClosingPeriodId"
-                    rules={{
-                      required: {
-                        value: true,
-                        message: t("REQUIRED"),
-                      },
-                    }}
+                    // rules={{
+                    //   required: {
+                    //     value: true,
+                    //     message: t("REQUIRED"),
+                    //   },
+                    // }}
                     render={({ field }) => (
                       <Select
                         {...field}
@@ -1306,14 +1375,19 @@ const ReservationForm = () => {
                           apartmentClosingPeriodLoading ||
                           apartmentClosingPeriodIsFetching
                         }
+                        disabled={
+                          apartmentClosingPeriodLoading ||
+                          apartmentClosingPeriodIsFetching
+                        }
                         className="min-h-10 border-[#C4C4C4] border rounded-md capitalize [&>.ant-select-selector]:capitalize"
                         variant="filled"
+                        allowClear
                         status={errors?.apartmentClosingPeriodId ? "error" : ""}
                         // defaultValue="male"
                         placeholder="Select apartment closing period"
                         style={{ width: "100%" }}
                         onChange={(e) => {
-                          field.onChange(e);
+                          field.onChange(e ?? null);
                           //   handleChange(e);
                         }}
                         options={apartmentClosingPeriod?.data?.map(
@@ -1360,6 +1434,7 @@ const ReservationForm = () => {
                       <Select
                         {...field}
                         loading={isCitiesLoading || isCitiesFetching}
+                        disabled={isCitiesLoading || isCitiesFetching}
                         className="min-h-10 border-[#C4C4C4] border rounded-md capitalize [&>.ant-select-selector]:capitalize"
                         variant="filled"
                         status={errors?.cityId ? "error" : ""}
@@ -1373,6 +1448,13 @@ const ReservationForm = () => {
                           setValue("fee", "");
                           //   handleChange(e);
                         }}
+                        showSearch
+                        optionFilterProp="label"
+                        filterOption={(input, option) =>
+                          (option?.label ?? "")
+                            .toLowerCase()
+                            .includes(input.toLowerCase())
+                        }
                         options={cities?.data?.map((city) => ({
                           value: city?.id,
                           label: lang === "en" ? city?.name : city?.arName,
@@ -1418,6 +1500,13 @@ const ReservationForm = () => {
                           setValue("fee", "");
                           //   handleChange(e);
                         }}
+                        showSearch
+                        optionFilterProp="label"
+                        filterOption={(input, option) =>
+                          (option?.label ?? "")
+                            .toLowerCase()
+                            .includes(input.toLowerCase())
+                        }
                         options={newAreas?.data?.map((area) => ({
                           value: area?.id,
                           label: lang === "en" ? area?.name : area?.arName,
@@ -1457,12 +1546,20 @@ const ReservationForm = () => {
                         className="min-h-10 border-[#C4C4C4] border rounded-md capitalize [&>.ant-select-selector]:capitalize"
                         variant="filled"
                         status={errors?.transportationFeesId ? "error" : ""}
-                        disabled={!cityId || !areaId}
+                        disabled={
+                          !cityId ||
+                          !areaId ||
+                          transportationFeesLoading ||
+                          transportationFeesIsFetching
+                        }
                         placeholder="Select transportation fees"
                         style={{ width: "100%" }}
                         onChange={(e) => {
                           field.onChange(e);
-                          //   handleChange(e);
+                          const selectedFee = transportationFees?.data?.find(
+                            (fee) => String(fee.id) === String(e),
+                          );
+                          setValue("fee", selectedFee?.fee ?? "");
                         }}
                         options={transportationFees?.data
                           ?.filter(
@@ -1499,16 +1596,17 @@ const ReservationForm = () => {
 
                 <div className="service-filter-wrapper col-span-full">
                   <label className="block mb-1 capitalize font-medium">
-                    {t("SERVICE")}
+                    {t("UNIT_TYPE_SERVICE")}
                   </label>
                   <Select
                     loading={servicesLoading || servicesIsFetching}
+                    disabled={servicesLoading || servicesIsFetching}
                     className="min-h-10 border-[#C4C4C4] border rounded-md capitalize [&>.ant-select-selector]:capitalize w-full"
                     variant="filled"
                     allowClear
                     placeholder={t("SELECT_SERVICE")}
                     value={serviceTypeId}
-                    onChange={(value) => setServiceTypeId(value ?? null)}
+                    onChange={handleServiceTypeChange}
                     showSearch
                     optionFilterProp="label"
                     filterOption={(input, option) =>
@@ -1559,6 +1657,9 @@ const ReservationForm = () => {
                                         loading={
                                           packagesLoading || packagesIsFetching
                                         }
+                                        disabled={
+                                          packagesLoading || packagesIsFetching
+                                        }
                                         value={field?.value || null}
                                         className="min-h-10 border-[#C4C4C4] border rounded-md capitalize [&>.ant-select-selector]:capitalize"
                                         variant="filled"
@@ -1572,9 +1673,17 @@ const ReservationForm = () => {
                                         placeholder="Select package"
                                         style={{ width: "100%" }}
                                         onChange={(e) => {
-                                          field.onChange(e);                                          
+                                          field.onChange(e);
+                                          handlePackageChange(index);
                                           //   handleChange(e);
                                         }}
+                                        showSearch
+                                        optionFilterProp="label"
+                                        filterOption={(input, option) =>
+                                          (option?.label ?? "")
+                                            .toLowerCase()
+                                            .includes(input.toLowerCase())
+                                        }
                                         options={
                                           packages?.data?.map((pkg) => ({
                                             value: pkg.id,
@@ -1622,8 +1731,105 @@ const ReservationForm = () => {
                 </div>
               </section>
 
+              {/* ── Discount on the reservation total (admins only) ───────── */}
+              <section>
+                <div>
+                  <label>{t("DISCOUNT_TYPE")}</label>
+                  <Controller
+                    control={control}
+                    name="discountType"
+                    render={({ field }) => (
+                      <Select
+                        {...field}
+                        value={field.value ?? "None"}
+                        disabled={!canManageDiscount}
+                        className="w-full min-h-10"
+                        options={[
+                          { value: "None", label: t("NO_DISCOUNT") },
+                          { value: "Percentage", label: t("DISCOUNT_PERCENTAGE") },
+                          { value: "Fixed", label: t("DISCOUNT_FIXED") },
+                        ]}
+                        onChange={(value) => {
+                          field.onChange(value);
+                          if (value === "None") {
+                            setValue("discountValue", null);
+                            setValue("discountReason", "");
+                          }
+                        }}
+                      />
+                    )}
+                  />
+                  {!canManageDiscount && (
+                    <p className="text-xs text-gray-400">
+                      {t("DISCOUNT_ADMIN_ONLY")}
+                    </p>
+                  )}
+                </div>
+
+                <div>
+                  <label>{t("DISCOUNT_VALUE")}</label>
+                  <Controller
+                    control={control}
+                    name="discountValue"
+                    rules={{
+                      validate: (value, values) => {
+                        const type = values.discountType;
+                        if (!type || type === "None") return true;
+                        const amount = Number(value);
+                        if (!amount || amount <= 0)
+                          return t("DISCOUNT_VALUE_REQUIRED");
+                        if (type === "Percentage" && amount > 100)
+                          return t("DISCOUNT_PERCENT_MAX");
+                        if (type === "Fixed" && amount > reservationTotal)
+                          return t("DISCOUNT_FIXED_MAX");
+                        return true;
+                      },
+                    }}
+                    render={({ field }) => (
+                      <InputNumber
+                        {...field}
+                        min={0}
+                        max={discountType === "Percentage" ? 100 : undefined}
+                        disabled={!canManageDiscount || !hasDiscount}
+                        variant="filled"
+                        placeholder={t("DISCOUNT_VALUE")}
+                        addonAfter={discountType === "Percentage" ? "%" : t("EGP")}
+                        className="w-full"
+                        status={errors?.discountValue ? "error" : ""}
+                      />
+                    )}
+                  />
+                  {errors?.discountValue && (
+                    <p>{errors?.discountValue?.message}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label>{t("DISCOUNT_REASON")}</label>
+                  <Controller
+                    control={control}
+                    name="discountReason"
+                    render={({ field }) => (
+                      <Input
+                        {...field}
+                        value={field.value ?? ""}
+                        maxLength={500}
+                        disabled={!canManageDiscount || !hasDiscount}
+                        variant="filled"
+                        placeholder={t("DISCOUNT_REASON")}
+                        className="py-2"
+                      />
+                    )}
+                  />
+                </div>
+              </section>
+
               {/* ── Reservation Amount Summary ─────────────────────────────── */}
-              <ReservationSummary control={control} />
+              <ReservationSummary
+                control={control}
+                onTotalChange={setReservationTotal}
+                hasMembership={!!customerData?.hasMembership}
+              />
 
               <div className="md:col-span-full">
                 <label className="font-semibold mb-1 block">

@@ -1,12 +1,19 @@
 import { useState } from "react";
-import { Button, Table, type TableProps } from "antd";
+import { Button, Popconfirm, Table, type TableProps } from "antd";
 import type { seedersProps } from "../../components/Utilities/Types/types";
 import { useTranslation } from "react-i18next";
 import { useSearchBox } from "../../components/Common/Search/searchInput";
 import Title from "../../components/Common/Title/title";
 import type { TFunction } from "i18next";
 import { BiEdit } from "react-icons/bi";
-import { useGetCleaningAreasQuery } from "../../components/APIs/CleaningArea/CLEANING_AREA_QUERY";
+import { AiOutlineDelete } from "react-icons/ai";
+import { toast } from "react-toastify";
+import {
+  useDeleteCleaningAreaMutation,
+  useGetCleaningAreasQuery,
+} from "../../components/APIs/CleaningArea/CLEANING_AREA_QUERY";
+import { handleApiError } from "../../components/Utilities/helper";
+import { isAdmin, isSuperAdmin } from "../../Utilities/utilities";
 import CleaningAreaForm from "./Components/cleaningAreaForm";
 
 const Actions = ({ data, t }: { data: seedersProps; t: TFunction }) => {
@@ -14,6 +21,20 @@ const Actions = ({ data, t }: { data: seedersProps; t: TFunction }) => {
 
   const handleEditModalToggle = () => {
     setEditModal((prev) => !prev);
+  };
+
+  const [deleteCleaningArea, { isLoading: isDeleteLoading }] =
+    useDeleteCleaningAreaMutation();
+
+  const canManage = isAdmin() || isSuperAdmin();
+
+  const handleDelete = async () => {
+    try {
+      await deleteCleaningArea({ id: data?.id ?? "" }).unwrap();
+      toast.success(t("CLEANING_AREA_DELETED_SUCCESS"));
+    } catch (error) {
+      handleApiError(error, t("CLEANING_AREA_DELETE_FAILED"));
+    }
   };
 
   return (
@@ -24,6 +45,24 @@ const Actions = ({ data, t }: { data: seedersProps; t: TFunction }) => {
         className="hover:bg-mainColor/60 hover:text-white hover:border-transparent size-10 [&>span]:flex [&>span]:items-center"
         icon={<BiEdit size={20} />}
       />
+
+      {canManage && (
+        <Popconfirm
+          title={t("DELETE_CLEANING_AREA")}
+          description={t("DELETE_CLEANING_AREA_CONFIRM")}
+          okText={t("DELETE")}
+          cancelText={t("CANCEL")}
+          okButtonProps={{ danger: true, loading: isDeleteLoading }}
+          onConfirm={handleDelete}
+        >
+          <Button
+            danger
+            shape="circle"
+            className="size-10 [&>span]:flex [&>span]:items-center"
+            icon={<AiOutlineDelete size={20} />}
+          />
+        </Popconfirm>
+      )}
 
       <CleaningAreaForm
         open={editModal}

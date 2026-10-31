@@ -15,13 +15,16 @@ import { useTranslation } from "react-i18next";
 type PackageSummaryRowProps = {
   index: number;
   control: Control<reservationFormProps>;
-  onUpdateTotal: (index: number, total: number) => void;
+  onUpdateRow: (
+    index: number,
+    data: { total: number; workers: number },
+  ) => void;
 };
 
 function PackageSummaryRow({
   index,
   control,
-  onUpdateTotal,
+  onUpdateRow,
 }: PackageSummaryRowProps) {
   const { lang } = useAppSelector((state) => state?.lang);
   const { t } = useTranslation();
@@ -74,26 +77,45 @@ function PackageSummaryRow({
   }
 
   // ── Selected extra services ────────────────────────────────────────────────
-  const selectedIds = new Set(
-    (selectedExtraServices ?? [])
-      .map((s) => s?.packageExtraServiceId)
-      .filter(Boolean),
-  );
+  // Each selection is pushed as its own array entry, so the same extra
+  // service can appear more than once — quantity is how many times its id
+  // occurs.
+  const quantityByExtraServiceId = new Map<string | number, number>();
+  (selectedExtraServices ?? []).forEach((s) => {
+    if (!s?.packageExtraServiceId) return;
+    const id = s.packageExtraServiceId;
+    quantityByExtraServiceId.set(id, (quantityByExtraServiceId.get(id) || 0) + 1);
+  });
 
-  const checkedExtras = (extraServices?.data ?? []).filter((es) =>
-    selectedIds.has(es.id as string | number),
-  );
+  const checkedExtras = (extraServices?.data ?? [])
+    .filter((es) => quantityByExtraServiceId.has(es.id as string | number))
+    .map((es) => ({
+      ...es,
+      quantity: quantityByExtraServiceId.get(es.id as string | number) || 0,
+    }));
 
   const extraServicesTotal = checkedExtras.reduce(
-    (sum, es) => sum + (Number(es.price) || 0),
+    (sum, es) => sum + (Number(es.price) || 0) * es.quantity,
     0,
   );
 
   const rowTotal = pkg ? priceAfterDiscount + extraServicesTotal : 0;
 
+  // Extra workers required by the checked extra services.
+  const extraServicesWorkers = checkedExtras.reduce(
+    (sum, es) => sum + (Number(es.numberOfWorkers) || 0) * es.quantity,
+    0,
+  );
+
+  // Number of workers this package needs (drives the transportation cost):
+  // the package's base workers + workers required by its checked extra services.
+  const workers = pkg
+    ? (Number(pkg.numberOfWorkers) || 0) + extraServicesWorkers
+    : 0;
+
   useEffect(() => {
-    onUpdateTotal(index, rowTotal);
-  }, [index, rowTotal, onUpdateTotal]);
+    onUpdateRow(index, { total: rowTotal, workers });
+  }, [index, rowTotal, workers, onUpdateRow]);
 
   if (!packageId) return null;
 
@@ -158,12 +180,33 @@ function PackageSummaryRow({
             >
               <span className="text-gray-600 capitalize">
                 {lang === "ar" ? es.arName : es.name}
+                {es.quantity > 1 && (
+                  <span className="ms-1 text-xs text-gray-400">
+                    x{es.quantity}
+                  </span>
+                )}
               </span>
-              <span className="text-gray-700">
-                + {Number(es.price).toLocaleString()} {t("EGP")}
+              <span className="text-gray-700 flex items-center gap-2">
+                <span>
+                  + {(Number(es.price) * es.quantity).toLocaleString()}{" "}
+                  {t("EGP")}
+                </span>
+                {Number(es.numberOfWorkers) > 0 && (
+                  <span className="text-xs text-gray-500">
+                    (+{Number(es.numberOfWorkers) * es.quantity} {t("WORKERS")})
+                  </span>
+                )}
               </span>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Workers (counted towards the transportation cost) */}
+      {workers > 0 && (
+        <div className="flex items-center justify-between text-sm">
+          <span className="text-gray-500">{t("NO_WORKERS")}</span>
+          <span className="text-gray-700">{workers}</span>
         </div>
       )}
 
@@ -183,35 +226,89 @@ function PackageSummaryRow({
 
 type ReservationSummaryProps = {
   control: Control<reservationFormProps>;
+  onTotalChange?: (total: number) => void;
+  /** Customer has a membership: its % is applied by the system, so the final price may be lower */
+  hasMembership?: boolean;
 };
 
 export default function ReservationSummary({
   control,
+  onTotalChange,
+  hasMembership,
 }: ReservationSummaryProps) {
   const { t } = useTranslation();
-  const [subtotals, setSubtotals] = useState<Record<number, number>>({});
+  const [rows, setRows] = useState<
+    Record<number, { total: number; workers: number }>
+  >({});
 
   const packages = useWatch({
     control,
     name: "addReservationPackagesDtos",
   });
 
-  const handleUpdateSubtotal = useCallback((index: number, total: number) => {
-    setSubtotals((prev) => {
-      if (prev[index] === total) return prev;
-      return { ...prev, [index]: total };
-    });
-  }, []);
+  const fee = useWatch({
+    control,
+    name: "fee",
+  });
+
+  const transportationFee = Number(fee) || 0;
+
+  const discountType = useWatch({ control, name: "discountType" });
+  const discountValueRaw = useWatch({ control, name: "discountValue" });
+
+  const handleUpdateRow = useCallback(
+    (index: number, data: { total: number; workers: number }) => {
+      setRows((prev) => {
+        const existing = prev[index];
+        if (
+          existing &&
+          existing.total === data.total &&
+          existing.workers === data.workers
+        ) {
+          return prev;
+        }
+        return { ...prev, [index]: data };
+      });
+    },
+    [],
+  );
 
   const hasAnyPackage = packages?.some((p) => p?.packageId);
 
-  if (!hasAnyPackage) return null;
-
-  const grandTotal =
+  // Sum of each package's (price after discount + extra services)
+  const packagesTotal =
     packages?.reduce((sum, pkg, index) => {
       if (!pkg?.packageId) return sum;
-      return sum + (subtotals[index] || 0);
+      return sum + (rows[index]?.total || 0);
     }, 0) || 0;
+
+  // Sum of every package's number of workers
+  const totalWorkers =
+    packages?.reduce((sum, pkg, index) => {
+      if (!pkg?.packageId) return sum;
+      return sum + (rows[index]?.workers || 0);
+    }, 0) || 0;
+
+  // Transportation is charged per worker: total workers × fee
+  const transportationTotal = totalWorkers * transportationFee;
+  const grandTotal = packagesTotal + transportationTotal;
+
+  // Preview of the reservation discount (same rule as the backend, which recalculates it)
+  const discountValue = Number(discountValueRaw) || 0;
+  const discountAmount =
+    discountType === "Percentage"
+      ? Math.round(grandTotal * discountValue) / 100
+      : discountType === "Fixed"
+        ? Math.min(discountValue, grandTotal)
+        : 0;
+  const finalTotal = grandTotal - discountAmount;
+
+  // Report the computed total up so the form can submit it.
+  useEffect(() => {
+    onTotalChange?.(grandTotal);
+  }, [grandTotal, onTotalChange]);
+
+  if (!hasAnyPackage) return null;
 
   return (
     <div className="col-span-full mt-2">
@@ -231,9 +328,25 @@ export default function ReservationSummary({
                 key={index}
                 index={index}
                 control={control}
-                onUpdateTotal={handleUpdateSubtotal}
+                onUpdateRow={handleUpdateRow}
               />
             ) : null,
+          )}
+
+          {/* Transportation fee = total workers × fee */}
+          {transportationFee > 0 && totalWorkers > 0 && (
+            <div className="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
+              <span className="font-medium capitalize text-[#1D1B1B]">
+                {t("TRANSPORTATION_FEES")}
+                <span className="ms-2 text-xs font-normal normal-case text-gray-500">
+                  ({totalWorkers} {t("WORKERS")} ×{" "}
+                  {transportationFee.toLocaleString()} {t("EGP")})
+                </span>
+              </span>
+              <span className="text-gray-700">
+                + {transportationTotal.toLocaleString()} {t("EGP")}
+              </span>
+            </div>
           )}
 
           {/* Grand total */}
@@ -245,6 +358,41 @@ export default function ReservationSummary({
               {grandTotal.toLocaleString()} {t("EGP")}
             </span>
           </div>
+
+          {/* Reservation discount -> final price */}
+          {discountAmount > 0 && (
+            <>
+              <div className="flex items-center justify-between rounded-lg border border-green-200 bg-green-50 px-4 py-3">
+                <span className="font-medium capitalize text-green-700">
+                  {t("DISCOUNT")}{" "}
+                  <span className="text-xs font-normal">
+                    (
+                    {discountType === "Percentage"
+                      ? `${discountValue}%`
+                      : `${discountValue.toLocaleString()} ${t("EGP")}`}
+                    )
+                  </span>
+                </span>
+                <span className="text-green-700">
+                  - {discountAmount.toLocaleString()} {t("EGP")}
+                </span>
+              </div>
+              <div className="flex items-center justify-between bg-mainColor rounded-lg px-4 py-3">
+                <span className="font-bold text-white text-lg capitalize">
+                  {t("FINAL_AMOUNT")}
+                </span>
+                <span className="font-bold text-white text-xl">
+                  {finalTotal.toLocaleString()} {t("EGP")}
+                </span>
+              </div>
+            </>
+          )}
+
+          {hasMembership && (
+            <p className="text-xs text-gray-500">
+              {t("MEMBERSHIP_DISCOUNT_BY_SYSTEM")}
+            </p>
+          )}
         </div>
       </div>
     </div>

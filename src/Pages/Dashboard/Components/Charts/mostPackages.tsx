@@ -1,4 +1,4 @@
-import { Progress, Skeleton } from "antd";
+import { Empty, Progress, Skeleton } from "antd";
 import type { mostUsedPackage } from "../../../../components/Utilities/Types/types";
 import type { TFunction } from "i18next";
 
@@ -54,6 +54,8 @@ const MostPackages = ({ t, data, isLoading }: mostPackagesProps) => {
                 style={{ width: "100%" }}
               />
             ))
+          : !progressList?.length
+          ? <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={t("NO_DATA_IN_PERIOD")} />
           : progressList?.map((prog) => (
               <div key={prog?.id} className="flex flex-col w-full capitalize">
                 <div className="label-container w-full flex items-center justify-between">

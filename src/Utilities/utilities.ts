@@ -26,6 +26,9 @@ export const isDataEntry = () => parseRoles().includes("data_entry");
 export const isAdmin = () => parseRoles().includes("admin");
 export const isSuperAdmin = () => parseRoles().includes("super_admin");
 
+export const hasPermission = (permission: Permission) =>
+  getUserRoles().some((role) => ROLE_PERMISSIONS[role]?.includes(permission));
+
 const NAV_ROUTES = [
   { path: "/dashboard", permission: PERMISSIONS.VIEW_DASHBOARD },
   { path: "/profile", permission: PERMISSIONS.PROFILE },
@@ -40,6 +43,7 @@ const NAV_ROUTES = [
   { path: "/package_types", permission: PERMISSIONS.VIEW_PACKAGE_TYPE },
   { path: "/cleaning_area", permission: PERMISSIONS.VIEW_CLEANING_AREA },
   { path: "/reservations", permission: PERMISSIONS.VIEW_RESERVATION },
+  { path: "/reports", permission: PERMISSIONS.VIEW_REPORTS },
   { path: "/complaints", permission: PERMISSIONS.VIEW_COMPLAINTS },
   { path: "/messages", permission: PERMISSIONS.VIEW_MESSAGES },
 ];

@@ -15,6 +15,9 @@ export const PERMISSIONS = {
   VIEW_CLIENT: "view_client",
   DELETE_CLIENT: "delete_client",
 
+  // Customer wallet (managing it is admin-only, checked by role)
+  VIEW_CUSTOMER_WALLET: "view_customer_wallet",
+
   // Reservations
   ADD_RESERVATION: "add_reservation",
   EDIT_RESERVATION: "edit_reservation",
@@ -83,6 +86,9 @@ export const PERMISSIONS = {
   //Worker Management
   VIEW_WORKER_MANAGEMENT: "view_worker_management",
   VIEW_RESERVATION_PAYMENTS: "view_reservation_payments",
+
+  //Reports
+  VIEW_REPORTS: "view_reports",
 } as const;
 
 // 2) Permission type
@@ -108,6 +114,7 @@ export const ROLE_PERMISSIONS: Record<AppRole, Permission[]> = {
     PERMISSIONS.ADD_CLIENT,
     PERMISSIONS.EDIT_CLIENT,
     PERMISSIONS.VIEW_CLIENT,
+    PERMISSIONS.VIEW_CUSTOMER_WALLET,
 
     //Reservations
     PERMISSIONS.ADD_RESERVATION,
@@ -128,53 +135,10 @@ export const ROLE_PERMISSIONS: Record<AppRole, Permission[]> = {
     PERMISSIONS.VIEW_CLIENT,
   ],
 
-  admin: [
-    PERMISSIONS.PROFILE,
-    // Services
-    PERMISSIONS.ADD_SERVICE,
-    PERMISSIONS.EDIT_SERVICE,
-    PERMISSIONS.VIEW_SERVICE,
-
-    // Packages
-    PERMISSIONS.ADD_PACKAGE,
-    PERMISSIONS.EDIT_PACKAGE,
-    PERMISSIONS.VIEW_PACKAGE,
-    PERMISSIONS.VIEW_PACKAGE_TYPE,
-
-    // Tools
-    PERMISSIONS.ADD_TOOL,
-    PERMISSIONS.EDIT_TOOL,
-    PERMISSIONS.VIEW_TOOL,
-    PERMISSIONS.DELETE_TOOL,
-
-    //Cleaning area
-    // PERMISSIONS.VIEW_CLEANING_AREA,
-
-    //EMPLOYEES
-
-    PERMISSIONS.ADD_EMPLOYEE,
-    PERMISSIONS.EDIT_EMPLOYEE,
-    PERMISSIONS.VIEW_EMPLOYEE,
-
-    // Clients
-    PERMISSIONS.ADD_CLIENT,
-    PERMISSIONS.EDIT_CLIENT,
-    PERMISSIONS.VIEW_CLIENT,
-    PERMISSIONS.DELETE_CLIENT,
-
-    // Reservations
-    PERMISSIONS.VIEW_RESERVATION,
-    PERMISSIONS.ADD_RESERVATION,
-    PERMISSIONS.EDIT_RESERVATION,
-    PERMISSIONS.DELETE_RESERVATION,
-    PERMISSIONS.VIEW_RESERVATION_PAYMENTS,
-
-    //Transportation
-    PERMISSIONS.VIEW_TRANSPORTATION,
-
-    //Messages
-    // PERMISSIONS.VIEW_MESSAGES,
-  ],
+  // Same as super admin, except the dashboard page
+  admin: Object.values(PERMISSIONS).filter(
+    (permission) => permission !== PERMISSIONS.VIEW_DASHBOARD,
+  ),
 
   super_admin: Object.values(PERMISSIONS),
 };

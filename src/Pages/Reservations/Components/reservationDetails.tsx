@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import Title from "../../../components/Common/Title/title";
 import {
+  Alert,
   Button,
   Skeleton,
   Card,
@@ -10,15 +11,18 @@ import {
   Typography,
   Avatar,
   List,
+  Popconfirm,
 } from "antd";
 import { useState } from "react";
 import { FaCheckCircle, FaTimesCircle, FaDownload } from "react-icons/fa";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   useAssignWorkerToReservationMutation,
-  useConfirmReservationMutation,
+  useConfirmFreeReservationMutation,
   useGetReservationByIdQuery,
 } from "../../../components/APIs/Reservations/RESERVATION_QUERY";
+import { isAdmin, isSuperAdmin } from "../../../Utilities/utilities";
+import { handleApiError } from "../../../components/Utilities/helper";
 import { useGetCustomerByIdQuery } from "../../../components/APIs/ClientQuery/CLIENTS_QUERY";
 import { skipToken } from "@reduxjs/toolkit/query";
 import dayjs from "dayjs";
@@ -33,6 +37,7 @@ import type {
   assignWorkerFormProps,
 } from "../../../components/Utilities/Types/types";
 import { toast } from "react-toastify";
+import { cancellationInfo } from "./cancellationInfo";
 
 const { Text, Title: TypographyTitle } = Typography;
 
@@ -42,9 +47,6 @@ const ReservationDetails = () => {
   const [params] = useSearchParams();
   const id = params.get("id");
   const { lang } = useAppSelector((state) => state?.lang);
-
-  const [confirmReservation, { isLoading: isConfirmLoading }] =
-    useConfirmReservationMutation();
 
   const {
     control,
@@ -67,7 +69,28 @@ const ReservationDetails = () => {
   const [assignWorker, { isLoading: assignWorkerLoading }] =
     useAssignWorkerToReservationMutation();
 
+  const [confirmFreeReservation, { isLoading: confirmFreeLoading }] =
+    useConfirmFreeReservationMutation();
+
   const reservation = reservationData?.data;
+
+  // A free reservation (amount 0) has nothing to pay, so only an admin can confirm it
+  const canConfirmFree =
+    (isAdmin() || isSuperAdmin()) &&
+    !!reservation &&
+    reservation.isActive !== false &&
+    reservation.isConfirmed !== true &&
+    Number(reservation.reservationAmount) === 0;
+
+  const handleConfirmFree = async () => {
+    if (!reservation) return;
+    try {
+      await confirmFreeReservation({ reservationId: reservation.id }).unwrap();
+      toast.success(t("FREE_RESERVATION_CONFIRMED_SUCCESS"));
+    } catch (error) {
+      handleApiError(error, t("FREE_RESERVATION_CONFIRM_FAILED"));
+    }
+  };
 
   const {
     data: customer,
@@ -142,19 +165,6 @@ const ReservationDetails = () => {
     );
   }
 
-  const handleConfirmReservation = async () => {
-    try {
-      await confirmReservation({ reservationId: Number(id) }).unwrap();
-      toast.success(t("RESERVATION_CONFIRMED_SUCCESSFULLY"));
-      reset();
-    } catch (error) {
-      const err = error as APIErrorProps;
-      err?.data?.errorMessages?.forEach((message) => {
-        toast.error(message);
-      });
-    }
-  };
-
   const handleNavigateToPayments = () => {
     navigate(`/reservations/reservation-payemnts?id=${id}`);
   };
@@ -163,71 +173,101 @@ const ReservationDetails = () => {
 
   return (
     <>
-      <main className="pb-10 bg-lightGray min-h-screen capitalize  rounded-lg">
-        <header className="bg-white p-6 shadow-sm mb-6 rounded-b-2xl">
-          <div className="flex justify-between items-center flex-wrap gap-4">
+      <main className="p-4 sm:p-6 lg:p-8 bg-lightGray min-h-screen capitalize rounded-lg">
+        <header className="bg-white p-4 sm:p-6 shadow-sm mb-6 rounded-2xl">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <Title
               title={t("CUSTOMER_RESERVATION_DETAILS")}
               subTitle
               component={null}
-              className="m-0 [&>span]:text-xl"
+              className="m-0 [&>span]:text-lg sm:[&>span]:text-xl"
             />
-            <div className="flex gap-3">
-              {reservation && (
-                <div className="flex items-stretch gap-3 [&>button]:h-full [&>button]:py-2 [&>button]:px-3">
-                  <Button
-                    onClick={handleNavigateToPayments}
-                    className="bg-mainOrange text-white font-semibold capitalize"
+            {reservation && (
+              <div className="flex flex-wrap lg:flex-nowrap items-center gap-2 sm:gap-3 [&>button]:text-xs [&>button]:px-2.5 sm:[&>button]:text-sm sm:[&>button]:px-4">
+                {canConfirmFree && (
+                  <Popconfirm
+                    title={t("CONFIRM_FREE_RESERVATION")}
+                    description={t("CONFIRM_FREE_RESERVATION_QUESTION")}
+                    onConfirm={handleConfirmFree}
+                    okText={t("YES")}
+                    cancelText={t("CANCEL")}
+                    okButtonProps={{ loading: confirmFreeLoading }}
                   >
-                    {t("VIEW_PAYEMNTS")}
-                  </Button>
-
-                  <PDFDownloadLink
-                    document={
-                      <ReservationDetailsPdf
-                        data={reservation}
-                        customer={customerData}
-                        address={selectedAddress}
-                      />
-                    }
-                    fileName={`reservation-${reservation.id}.pdf`}
-                  >
-                    {({ loading }: { loading: boolean }) => (
-                      <Button
-                        type="primary"
-                        icon={<FaDownload />}
-                        loading={loading}
-                        className="bg-mainColor hover:bg-mainColor/90! border-none px-4 py-3 h-full rounded-md flex items-center justify-center font-semibold"
-                      >
-                        {loading ? t("LOADING") : t("DOWNLOAD_PDF")}
-                      </Button>
-                    )}
-                  </PDFDownloadLink>
-
-                  <Button
-                    type="primary"
-                    className="bg-white text-mainColor hover:bg-mainColor/90! hover:text-white border-mainColor border-2 px-4 py-3 h-auto rounded-md flex items-center justify-center font-semibold"
-                    onClick={toggleModal}
-                  >
-                    {t("ASSIGN_WORKERS")}
-                  </Button>
-
-                  {(reservation?.onSpot && !reservation?.isConfirmed) && (
                     <Button
-                      loading={isConfirmLoading}
-                      onClick={handleConfirmReservation}
-                      className="h-full capitalize font-semibold border border-green-600 text-green-600 bg-green-600/20 hover:bg-green-600/40"
+                      icon={<FaCheckCircle />}
+                      loading={confirmFreeLoading}
+                      className="bg-green-600 text-white font-semibold capitalize border-none hover:bg-green-700!"
                     >
-                      {t("CONFIRM_RESERVATION")}
+                      {t("CONFIRM_FREE_RESERVATION")}
+                    </Button>
+                  </Popconfirm>
+                )}
+
+                <Button
+                  onClick={handleNavigateToPayments}
+                  className="bg-mainOrange text-white font-semibold capitalize"
+                >
+                  {t("VIEW_PAYEMNTS")}
+                </Button>
+
+                <PDFDownloadLink
+                  document={
+                    <ReservationDetailsPdf
+                      data={reservation}
+                      customer={customerData}
+                      address={selectedAddress}
+                    />
+                  }
+                  fileName={`reservation-${reservation.id}.pdf`}
+                >
+                  {({ loading }: { loading: boolean }) => (
+                    <Button
+                      type="primary"
+                      icon={<FaDownload />}
+                      loading={loading}
+                      className="bg-mainColor hover:bg-mainColor/90! border-none rounded-md font-semibold"
+                    >
+                      {loading ? t("LOADING") : t("DOWNLOAD_PDF")}
                     </Button>
                   )}
-                </div>
-              )}
-            </div>
+                </PDFDownloadLink>
+
+                <Button
+                  type="primary"
+                  className="bg-white text-mainColor hover:bg-mainColor/90! hover:text-white border-mainColor border-2 rounded-md font-semibold"
+                  onClick={toggleModal}
+                >
+                  {t("ASSIGN_WORKERS")}
+                </Button>
+              </div>
+            )}
           </div>
         </header>
 
-        <div className="px-4 lg:px-8 flex flex-col gap-6">
+        {reservation?.isActive === false && (
+          <Alert
+            type="error"
+            showIcon
+            className="mb-6 rounded-2xl normal-case"
+            message={t("RESERVATION_IS_CANCELLED")}
+            description={cancellationInfo(reservation, t)}
+          />
+        )}
+
+        {reservation?.isActive !== false && reservation?.manuallyConfirmedAt && (
+          <Alert
+            type="success"
+            showIcon
+            className="mb-6 rounded-2xl normal-case"
+            message={t("FREE_RESERVATION_CONFIRMED_MANUALLY")}
+            description={t("FREE_RESERVATION_CONFIRMED_BY", {
+              name: reservation.manuallyConfirmedByName || t("NA"),
+              date: dayjs(reservation.manuallyConfirmedAt).format("DD-MM-YYYY hh:mm A"),
+            })}
+          />
+        )}
+
+        <div className="flex flex-col gap-6">
           {/* Top Info Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card
@@ -239,7 +279,11 @@ const ReservationDetails = () => {
                 </span>
               }
             >
-              <Descriptions column={2} size="small" colon={false}>
+              <Descriptions
+                column={{ xs: 1, sm: 2, md: 2, lg: 2, xl: 2, xxl: 2 }}
+                size="small"
+                colon={false}
+              >
                 <Descriptions.Item label={t("DATE")}>
                   {renderValue(
                     reservation?.reservationDate
@@ -266,7 +310,11 @@ const ReservationDetails = () => {
                 </span>
               }
             >
-              <Descriptions column={2} size="small" colon={false}>
+              <Descriptions
+                column={{ xs: 1, sm: 2, md: 2, lg: 2, xl: 2, xxl: 2 }}
+                size="small"
+                colon={false}
+              >
                 <Descriptions.Item label={t("INSECTS")}>
                   {renderValue(reservation?.insects)}
                 </Descriptions.Item>
@@ -358,7 +406,13 @@ const ReservationDetails = () => {
                   `${customerData?.customerFavourites?.favoriteList?.length || 0} Fav / ${customerData?.customerFavourites?.notRecommendedWorkerList?.length || 0} Not Rec`,
                 )}
               </Descriptions.Item> */}
-              <Descriptions.Item label={t("GENERAL_NOTES")} span={3}>
+            </Descriptions>
+
+            {/* Rendered in its own full-width Descriptions so it always
+                takes the whole row, regardless of how the grid above
+                divides at the current breakpoint. */}
+            <Descriptions column={1} size="small" colon={false}>
+              <Descriptions.Item label={t("GENERAL_NOTES")}>
                 {renderValue(customerData?.generalNotes)}
               </Descriptions.Item>
             </Descriptions>
@@ -412,10 +466,16 @@ const ReservationDetails = () => {
                   selectedAddress?.landMark || selectedAddress?.landmark,
                 )}
               </Descriptions.Item>
-              <Descriptions.Item label={t("DESCRIPTION")} span={2}>
+            </Descriptions>
+
+            {/* Own full-width Descriptions so these long-text fields always
+                take the whole row, regardless of how the grid above
+                divides at the current breakpoint. */}
+            <Descriptions column={1} size="small" colon={false}>
+              <Descriptions.Item label={t("DESCRIPTION")}>
                 {renderValue(selectedAddress?.fullDescription)}
               </Descriptions.Item>
-              <Descriptions.Item label={t("NOTES")} span={3}>
+              <Descriptions.Item label={t("NOTES")}>
                 {renderValue(selectedAddress?.notes)}
               </Descriptions.Item>
             </Descriptions>
@@ -520,28 +580,35 @@ const ReservationDetails = () => {
               </span>
             }
           >
-            <div className="flex items-center justify-start gap-5">
-              {reservation?.reservationWorkers &&
-              reservation?.reservationWorkers?.length > 0 ? (
-                reservation?.reservationWorkers?.map((worker) => (
-                  <div key={worker.workerId} className="flex gap-2">
-                    <span className="w-[3px] h-6 bg-mainOrange rounded-full" />
-                    <div className="flex items-center gap-2">
-                      <span className="font-bold">{t("WORKER")} : </span>
-                      <span>
+            {reservation?.reservationWorkers &&
+            reservation?.reservationWorkers?.length > 0 ? (
+              // Grid: up to 5 per row on large screens, max 3 rows then scroll.
+              // Row height 3rem (h-12) + gap 1rem → 3 rows = 11rem.
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 max-h-44 overflow-y-auto pr-1">
+                {reservation?.reservationWorkers?.map((worker) => (
+                  <div
+                    key={worker.workerId}
+                    className="flex items-center gap-2 h-12 rounded-lg border border-gray-200 bg-gray-50 px-3"
+                  >
+                    <span className="w-[3px] h-6 bg-mainOrange rounded-full shrink-0" />
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-[10px] uppercase tracking-wide text-gray-400 leading-none">
+                        {t("WORKER")}
+                      </span>
+                      <span className="font-semibold truncate leading-tight">
                         {lang === "ar"
                           ? worker.workerArName
                           : worker.workerName}
                       </span>
                     </div>
                   </div>
-                ))
-              ) : (
-                <p className="flex items-center justify-center w-full">
-                  {t("NA")}
-                </p>
-              )}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <p className="flex items-center justify-center w-full">
+                {t("NA")}
+              </p>
+            )}
           </Card>
 
           {/* Packages */}
@@ -639,15 +706,17 @@ const ReservationDetails = () => {
                             <List
                               size="small"
                               dataSource={pkg?.reservationPackageExtraServices}
-                              className="[&_.ant-list-items]:grid [&_.ant-list-items]:grid-cols-2 [&_.ant-list-items]:gap-5"
+                              className="[&_.ant-list-items]:grid [&_.ant-list-items]:grid-cols-1 sm:[&_.ant-list-items]:grid-cols-2 lg:[&_.ant-list-items]:grid-cols-3 [&_.ant-list-items]:gap-2"
                               renderItem={(item) => (
-                                <List.Item className="py-1! px-0! border-none">
-                                  <Tag className="flex items-center gap-2 bg-mainOrange/20 text-mainOrange border-mainOrange">
-                                    <div className="flex items-center gap-2">
-                                      <div className="w-1.5 h-1.5 rounded-full bg-mainOrange" />
-                                      {item.service}
+                                <List.Item className="py-0! px-0! border-none">
+                                  <Tag className="w-full flex flex-wrap items-center gap-x-1.5 gap-y-0.5 rounded-full px-2.5 py-1 text-xs bg-mainOrange/20 text-mainOrange border-mainOrange">
+                                    <div className="flex items-start gap-1.5">
+                                      <div className="w-1 h-1 mt-1 rounded-full bg-mainOrange shrink-0" />
+                                      <span className="wrap-break-word">
+                                        {item.service}
+                                      </span>
                                     </div>
-                                    <Text className="font-semibold text-mainOrange">
+                                    <Text className="text-xs! font-semibold text-mainOrange! shrink-0">
                                       {item.price} L.E
                                     </Text>
                                   </Tag>
@@ -672,6 +741,34 @@ const ReservationDetails = () => {
                           </div>
                         </div>
                       </div>
+
+                      {pkg.getPackageDto?.rules &&
+                        pkg.getPackageDto.rules.length > 0 && (
+                          <>
+                            <Divider className="my-4" />
+                            <div>
+                              <Text
+                                type="secondary"
+                                className="text-xs block mb-3 font-bold uppercase tracking-wider"
+                              >
+                                {t("RULES")}
+                              </Text>
+                              <ul className="flex flex-col gap-2.5 max-h-64 overflow-y-auto pr-1">
+                                {pkg.getPackageDto.rules.map((rule, ruleIdx) => (
+                                  <li
+                                    key={ruleIdx}
+                                    className="flex items-start gap-2.5"
+                                  >
+                                    <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-mainOrange" />
+                                    <span className="text-sm leading-relaxed text-mainTextLight normal-case">
+                                      {rule}
+                                    </span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          </>
+                        )}
                     </div>
                   </div>
                 </Card>
@@ -697,6 +794,7 @@ const ReservationDetails = () => {
                 <div className="p-4 flex flex-col gap-3">
                   {(() => {
                     let grandTotal = 0;
+                    let totalWorkers = 0;
 
                     const packageRows = reservation?.getPackageDtoList?.map(
                       (pkg: Record<string, unknown>, index: number) => {
@@ -748,19 +846,21 @@ const ReservationDetails = () => {
                           (priceAfterDiscount + extraServicesTotal) * count;
 
                         grandTotal += calculatedTotal;
+                        totalWorkers +=
+                          Number(packageDto.numberOfWorkers) || 0;
 
                         return (
                           <div
                             key={index}
                             className="flex flex-col gap-2 p-4 bg-gray-50 rounded-lg border border-gray-200"
                           >
-                            <div className="flex items-center justify-between">
-                              <span className="font-semibold text-[#1D1B1B] capitalize">
+                            <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+                              <span className="font-semibold text-[#1D1B1B] capitalize wrap-break-word">
                                 {lang
                                   ? (packageDto.arTitle as string)
                                   : (packageDto.title as string)}
                               </span>
-                              <span className="text-gray-700 font-medium">
+                              <span className="text-gray-700 font-medium shrink-0">
                                 {basePrice > 0
                                   ? `${basePrice.toLocaleString()} ${t("EGP")}`
                                   : renderValue(null)}
@@ -807,12 +907,12 @@ const ReservationDetails = () => {
                                   ) => (
                                     <div
                                       key={esIdx}
-                                      className="flex items-center justify-between text-sm ps-2"
+                                      className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 text-sm ps-2"
                                     >
-                                      <span className="text-gray-600 capitalize">
+                                      <span className="text-gray-600 capitalize wrap-break-word">
                                         {es.service as string}
                                       </span>
-                                      <span className="text-gray-700">
+                                      <span className="text-gray-700 shrink-0">
                                         + {Number(es.price).toLocaleString()}{" "}
                                         {t("EGP")}
                                       </span>
@@ -844,9 +944,31 @@ const ReservationDetails = () => {
                       },
                     );
 
+                    const transportationFee =
+                      Number(reservation?.getTransportationFeesDetails?.fee) ||
+                      0;
+                    // Transportation is charged per worker across all packages
+                    const transportationTotal =
+                      totalWorkers * transportationFee;
+                    grandTotal += transportationTotal;
+
                     return (
                       <>
                         {packageRows}
+                        {transportationFee > 0 && totalWorkers > 0 && (
+                          <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
+                            <span className="font-medium capitalize text-[#1D1B1B]">
+                              {t("TRANSPORTATION_FEES")}
+                              <span className="ms-2 text-xs font-normal normal-case text-gray-500">
+                                ({totalWorkers} {t("WORKERS")} ×{" "}
+                                {transportationFee.toLocaleString()} {t("EGP")})
+                              </span>
+                            </span>
+                            <span className="text-gray-700 shrink-0">
+                              + {transportationTotal.toLocaleString()} {t("EGP")}
+                            </span>
+                          </div>
+                        )}
                         <div className="flex items-center justify-between bg-mainColor/10 rounded-lg px-4 py-3 mt-1">
                           <span className="font-bold text-mainColor text-lg capitalize">
                             {t("TOTAL_AMOUNT")}
@@ -855,6 +977,40 @@ const ReservationDetails = () => {
                             {Number(grandTotal).toLocaleString()} {t("EGP")}
                           </span>
                         </div>
+                        {Number(reservation?.discountAmount) > 0 && (
+                          <>
+                            <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 rounded-lg border border-green-200 bg-green-50 px-4 py-3">
+                              <span className="font-medium capitalize text-green-700">
+                                {t("DISCOUNT")}{" "}
+                                <span className="text-xs font-normal">
+                                  (
+                                  {reservation?.discountType === "Percentage"
+                                    ? `${reservation?.discountValue}%`
+                                    : `${Number(reservation?.discountValue).toLocaleString()} ${t("EGP")}`}
+                                  )
+                                </span>
+                                {reservation?.discountReason && (
+                                  <span className="ms-2 text-xs font-normal normal-case text-gray-500">
+                                    {reservation.discountReason}
+                                  </span>
+                                )}
+                              </span>
+                              <span className="text-green-700 shrink-0">
+                                - {Number(reservation?.discountAmount).toLocaleString()}{" "}
+                                {t("EGP")}
+                              </span>
+                            </div>
+                            <div className="flex items-center justify-between bg-mainColor rounded-lg px-4 py-3">
+                              <span className="font-bold text-white text-lg capitalize">
+                                {t("FINAL_AMOUNT")}
+                              </span>
+                              <span className="font-bold text-white text-xl">
+                                {Number(reservation?.reservationAmount).toLocaleString()}{" "}
+                                {t("EGP")}
+                              </span>
+                            </div>
+                          </>
+                        )}
                       </>
                     );
                   })()}

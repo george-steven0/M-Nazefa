@@ -8,10 +8,16 @@ import { API } from "../apiSlice";
 
 const complaintQuery = API.injectEndpoints({
   endpoints: (builder) => ({
-    getAllComplaints: builder.query<APIResponse<complaintResponseProps>, void>({
-      query: () => ({
+    getAllComplaints: builder.query<
+      APIResponse<complaintResponseProps>,
+      { search?: string } | void
+    >({
+      query: (params) => ({
         url: "/api/ReservationComplaint",
         method: "GET",
+        headers: {
+          searchKey: params?.search ?? "",
+        },
       }),
       providesTags: ["complaints"],
     }),
@@ -27,6 +33,20 @@ const complaintQuery = API.injectEndpoints({
       providesTags: (_result, _error, { id }) => [{ type: "complaints", id }],
     }),
 
+    getComplaintsByReservation: builder.query<
+      APIResponse<complaintResponseProps>,
+      { reservationId: string | number }
+    >({
+      query: ({ reservationId }) => ({
+        url: "/api/ReservationComplaint/GetByReservation",
+        method: "GET",
+        headers: {
+          reservationId: String(reservationId),
+        },
+      }),
+      providesTags: ["complaints"],
+    }),
+
     addComplaint: builder.mutation<
       SingleAPIResponse<complaintResponseProps>,
       complaintFormProps
@@ -36,7 +56,7 @@ const complaintQuery = API.injectEndpoints({
         method: "POST",
         body: data,
       }),
-      invalidatesTags: ["complaints"],
+      invalidatesTags: ["complaints", "reservations"],
     }),
 
     deleteComplaint: builder.mutation<
@@ -50,7 +70,7 @@ const complaintQuery = API.injectEndpoints({
           id: String(id),
         }
       }),
-      invalidatesTags: ["complaints"],
+      invalidatesTags: ["complaints", "reservations"],
     }),
   }),
 });
@@ -58,6 +78,7 @@ const complaintQuery = API.injectEndpoints({
 export const {
   useGetAllComplaintsQuery,
   useGetComplaintByIdQuery,
+  useGetComplaintsByReservationQuery,
   useAddComplaintMutation,
   useDeleteComplaintMutation,
 } = complaintQuery;

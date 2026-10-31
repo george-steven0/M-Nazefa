@@ -1,5 +1,6 @@
-import { createBrowserRouter, Navigate } from "react-router-dom";
+import { createBrowserRouter } from "react-router-dom";
 import App from "../../App";
+import HomeRedirect from "./Roles/homeRedirect";
 import Notfound from "../../Pages/Notfound/notfound";
 import Employees from "../../Pages/Employees/employees";
 import AddEmployee from "../../Pages/Employees/Components/addEmployee";
@@ -45,6 +46,9 @@ import Complaints from "../../Pages/Complaints/complaints";
 import ReservationFeedback from "../../Pages/ReservationFeedback/reservationFeedback";
 import WorkerManagement from "../../Pages/WorkerManagement/workerManagement";
 import PayemntsDetails from "../../Pages/Reservations/Components/payemntsDeatils";
+import CalendarPage from "../../Pages/Calendar/calendar";
+import Reports from "../../Pages/Reports/reports";
+import CustomerWallet from "../../Pages/CustomerWallet/customerWallet";
 
 export const routes = createBrowserRouter([
   // Guest Routes
@@ -64,10 +68,7 @@ export const routes = createBrowserRouter([
         children: [
           {
             index: true,
-            element: <Navigate to="dashboard" replace />,
-            handle: {
-              permission: PERMISSIONS.VIEW_DASHBOARD,
-            },
+            element: <HomeRedirect />,
           },
 
           // Dashboard
@@ -199,6 +200,13 @@ export const routes = createBrowserRouter([
                 },
               },
               { path: "view-client", element: <ViewClient /> },
+              {
+                path: "wallet",
+                element: <CustomerWallet />,
+                handle: {
+                  permission: PERMISSIONS.VIEW_CUSTOMER_WALLET,
+                },
+              },
             ],
           },
 
@@ -294,6 +302,24 @@ export const routes = createBrowserRouter([
             element: <PayemntsDetails />,
             handle: {
               permission: PERMISSIONS.VIEW_RESERVATION_PAYMENTS,
+            },
+          },
+
+          // Calendar
+          {
+            path: "calendar",
+            element: <CalendarPage />,
+            handle: {
+              permission: PERMISSIONS.VIEW_RESERVATION,
+            },
+          },
+
+          // Reports (Admin Only)
+          {
+            path: "reports",
+            element: <Reports />,
+            handle: {
+              permission: PERMISSIONS.VIEW_REPORTS,
             },
           },
 

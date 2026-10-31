@@ -160,7 +160,7 @@ const ToolForm = ({ open, close, t, data, type }: toolFormProps) => {
                     {...field}
                     variant="filled"
                     placeholder={t("SELECT_TYPE")}
-                    className="w-full"
+                    className="w-full border border-[#C4C4C4] rounded-md min-h-10"
                     status={errors?.type ? "error" : ""}
                     options={TOOL_TYPES.map((toolType) => ({
                       value: toolType,

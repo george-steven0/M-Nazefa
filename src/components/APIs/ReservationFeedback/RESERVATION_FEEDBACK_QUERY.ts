@@ -10,11 +10,14 @@ const reservationFeedbackQuery = API.injectEndpoints({
   endpoints: (builder) => ({
     getAllReservationFeedbacks: builder.query<
       APIResponse<feedbackResponseProps>,
-      void
+      { search?: string } | void
     >({
-      query: () => ({
+      query: (params) => ({
         url: "/ReservationFeedBack/GetAllReservationFeedBacks",
         method: "GET",
+        headers: {
+          searchKey: params?.search ?? "",
+        },
       }),
       providesTags: ["reservationFeedback"],
     }),

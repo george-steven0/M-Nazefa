@@ -26,6 +26,7 @@ import { BiEdit } from "react-icons/bi";
 import { AiOutlineDelete } from "react-icons/ai";
 import WorkerManagementForm from "./Components/workerManagementForm";
 import EditWorkerManagementForm from "./Components/editWorkerManagementForm";
+import GroupEditWorkerManagementForm from "./Components/groupEditWorkerManagementForm";
 
 const { RangePicker } = DatePicker;
 
@@ -35,6 +36,7 @@ const WorkerManagement = () => {
   // ── State ──────────────────────────────────────────────────────────────────
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isGroupEditModalOpen, setIsGroupEditModalOpen] = useState(false);
   const [recordToEdit, setRecordToEdit] =
     useState<workerManagementResponseProps | null>(null);
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
@@ -48,7 +50,7 @@ const WorkerManagement = () => {
       setIsAddModalOpen(true);
       return;
     } else {
-      reset({ startDate: "", endDate: "", workersNo: 0, notes: "" });
+      reset({ startDate: "", endDate: "", workersNo: 0, reserveWorkersNo: null, notes: "" });
       setIsAddModalOpen(true);
     }
   };
@@ -67,6 +69,9 @@ const WorkerManagement = () => {
     setIsEditModalOpen(false);
     setRecordToEdit(null);
   };
+
+  const openGroupEditModal = () => setIsGroupEditModalOpen(true);
+  const closeGroupEditModal = () => setIsGroupEditModalOpen(false);
 
   // ── Queries ────────────────────────────────────────────────────────────────
   const {
@@ -124,6 +129,18 @@ const WorkerManagement = () => {
       render: (text) => <p>{text || 0}</p>,
     },
     {
+      title: t("RESERVE_WORKERS"),
+      dataIndex: "reserveNoOfWorkers",
+      key: "reserveNoOfWorkers",
+      render: (text) => <p>{text || 0}</p>,
+    },
+    {
+      title: t("REMAIN_RESERVE_WORKERS"),
+      dataIndex: "remainReserveNoOfWorkers",
+      key: "remainReserveNoOfWorkers",
+      render: (text) => <p>{text || 0}</p>,
+    },
+    {
       title: t("DATE"),
       dataIndex: "date",
       key: "date",
@@ -156,18 +173,28 @@ const WorkerManagement = () => {
     return (
       <div className="flex gap-2 items-center [&>button]:py-5 [&>button]:capitalize">
         {selectedRowKeys.length > 0 && (
-          <Popconfirm
-            title={t("DELETE_SELECTED")}
-            description={t("DELETE_CONFIRM_MESSAGE")}
-            okText={t("DELETE")}
-            cancelText={t("CANCEL")}
-            okButtonProps={{ danger: true, loading: isDeleteLoading }}
-            onConfirm={handleDeleteSelected}
-          >
-            <Button danger icon={<AiOutlineDelete size={16} />}>
-              {t("DELETE_SELECTED")} ({selectedRowKeys.length})
+          <>
+            <Button
+              icon={<BiEdit size={16} />}
+              className="bg-mainColor/10 text-mainColor border-mainColor hover:bg-mainColor hover:text-white"
+              onClick={openGroupEditModal}
+            >
+              {t("GROUP_EDIT")} ({selectedRowKeys.length})
             </Button>
-          </Popconfirm>
+
+            <Popconfirm
+              title={t("DELETE_SELECTED")}
+              description={t("DELETE_CONFIRM_MESSAGE")}
+              okText={t("DELETE")}
+              cancelText={t("CANCEL")}
+              okButtonProps={{ danger: true, loading: isDeleteLoading }}
+              onConfirm={handleDeleteSelected}
+            >
+              <Button danger icon={<AiOutlineDelete size={16} />}>
+                {t("DELETE_SELECTED")} ({selectedRowKeys.length})
+              </Button>
+            </Popconfirm>
+          </>
         )}
         <Button onClick={openAddModal} className="text-white bg-mainColor">
           {t("ADD_DURATION")}
@@ -192,6 +219,7 @@ const WorkerManagement = () => {
       startDate: "",
       endDate: "",
       workersNo: 0,
+      reserveWorkersNo: null,
       notes: "",
     },
   });
@@ -199,8 +227,21 @@ const WorkerManagement = () => {
   // ── Handlers ───────────────────────────────────────────────────────────────
 
   const handleAddDuration = async (data: workerManagementFormProps) => {
+    // Format as local wall-clock (keeps the picked day; no UTC shift),
+    // same pattern as the hold reservation dates.
+    const payload = {
+      ...data,
+      // Workers no is optional when reserve workers are set; an empty input means 0
+      workersNo: Number(data.workersNo) || 0,
+      startDate: data.startDate
+        ? dayjs(data.startDate).format("YYYY-MM-DDTHH:mm:ss[Z]")
+        : "",
+      endDate: data.endDate
+        ? dayjs(data.endDate).format("YYYY-MM-DDTHH:mm:ss[Z]")
+        : "",
+    };
     try {
-      await addDuration(data).unwrap();
+      await addDuration(payload).unwrap();
       toast.success(t("DURATION_ADDED_SUCCESS"));
       closeAddModal();
     } catch (error) {
@@ -269,6 +310,14 @@ const WorkerManagement = () => {
         open={isEditModalOpen}
         close={closeEditModal}
         record={recordToEdit}
+      />
+
+      {/* ── Group Edit Worker Management Modal ────────────────────────────── */}
+      <GroupEditWorkerManagementForm
+        open={isGroupEditModalOpen}
+        close={closeGroupEditModal}
+        ids={selectedRowKeys as (string | number)[]}
+        onSuccess={() => setSelectedRowKeys([])}
       />
     </main>
   );
