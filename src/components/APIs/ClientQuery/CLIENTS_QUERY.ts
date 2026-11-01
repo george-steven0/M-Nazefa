@@ -3,6 +3,7 @@ import type {
   APIParams,
   APIResponse,
   clientFormPropsType,
+  customerAccountPropsType,
   SingleAPIResponse,
 } from "../../Utilities/Types/types";
 import { API } from "../apiSlice";
@@ -129,6 +130,36 @@ const clients = API.injectEndpoints({
       }),
       invalidatesTags: [{ type: "clients", id: "LIST" }, "dashboardMetrics"],
     }),
+
+    generateCustomerAccount: build.mutation<
+      SingleAPIResponse<customerAccountPropsType>,
+      { customerId: string | number }
+    >({
+      query: (data) => ({
+        url: `/Customer/GenerateAccount`,
+        method: "POST",
+        body: data,
+      }),
+      invalidatesTags: (_res, _err, { customerId }) => [
+        { type: "clients", id: customerId },
+        { type: "clients", id: "LIST" },
+      ],
+    }),
+
+    resetCustomerAccountPassword: build.mutation<
+      SingleAPIResponse<customerAccountPropsType>,
+      { customerId: string | number }
+    >({
+      query: (data) => ({
+        url: `/Customer/ResetAccountPassword`,
+        method: "POST",
+        body: data,
+      }),
+      invalidatesTags: (_res, _err, { customerId }) => [
+        { type: "clients", id: customerId },
+        { type: "clients", id: "LIST" },
+      ],
+    }),
   }),
 });
 
@@ -139,4 +170,6 @@ export const {
   useEditClientMutation,
   useDeactivateClientMutation,
   useDeleteCustomerMutation,
+  useGenerateCustomerAccountMutation,
+  useResetCustomerAccountPasswordMutation,
 } = clients;

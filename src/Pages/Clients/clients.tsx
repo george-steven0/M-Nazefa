@@ -1,8 +1,10 @@
 import { AiOutlineDelete, AiOutlineEye } from "react-icons/ai";
 import { BiEdit, BiWallet } from "react-icons/bi";
+import { RiUserAddLine, RiLockPasswordLine } from "react-icons/ri";
 import {
   Button,
   Dropdown,
+  Modal,
   Popconfirm,
   type MenuProps,
   type TablePaginationConfig,
@@ -11,6 +13,7 @@ import {
 import type {
   APIErrorProps,
   clientFormPropsType,
+  customerAccountPropsType,
 } from "../../components/Utilities/Types/types";
 import Title from "../../components/Common/Title/title";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
@@ -18,6 +21,8 @@ import { useSearchBox } from "../../components/Common/Search/searchInput";
 import {
   useGetAllCustomersQuery,
   useDeleteCustomerMutation,
+  useGenerateCustomerAccountMutation,
+  useResetCustomerAccountPasswordMutation,
 } from "../../components/APIs/ClientQuery/CLIENTS_QUERY";
 import { useTranslation } from "react-i18next";
 import useCustomDataTable from "../../components/Common/Datatable/dataTable";
@@ -32,7 +37,49 @@ import {
 } from "../../Utilities/utilities";
 import { PERMISSIONS } from "../../Utilities/permissions.config";
 
-const Actions = ({ data }: { data: clientFormPropsType }) => {
+const AccountCredentialsModal = ({
+  credentials,
+  onClose,
+}: {
+  credentials: customerAccountPropsType | null;
+  onClose: () => void;
+}) => {
+  const { t } = useTranslation();
+  return (
+    <Modal
+      open={!!credentials}
+      title={t("ACCOUNT_CREDENTIALS")}
+      onCancel={onClose}
+      footer={[
+        <Button key="close" onClick={onClose}>
+          {t("CLOSE")}
+        </Button>,
+      ]}
+    >
+      <p className="text-mainRed text-sm mb-4">
+        {t("ACCOUNT_CREDENTIALS_NOTE")}
+      </p>
+      <div className="flex flex-col gap-2">
+        <div>
+          <span className="font-semibold">{t("USERNAME")}: </span>
+          <span>{credentials?.userName}</span>
+        </div>
+        <div>
+          <span className="font-semibold">{t("PASSWORD")}: </span>
+          <span>{credentials?.password}</span>
+        </div>
+      </div>
+    </Modal>
+  );
+};
+
+const Actions = ({
+  data,
+  onCredentials,
+}: {
+  data: clientFormPropsType;
+  onCredentials: (credentials: customerAccountPropsType) => void;
+}) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const handleNavigate = (type: string) => {
@@ -42,6 +89,10 @@ const Actions = ({ data }: { data: clientFormPropsType }) => {
 
   const [deleteCustomer, { isLoading: isDeleteLoading }] =
     useDeleteCustomerMutation();
+  const [generateAccount, { isLoading: isGenerateLoading }] =
+    useGenerateCustomerAccountMutation();
+  const [resetAccountPassword, { isLoading: isResetLoading }] =
+    useResetCustomerAccountPasswordMutation();
 
   const canManage = isAdmin() || isSuperAdmin();
 
@@ -55,6 +106,40 @@ const Actions = ({ data }: { data: clientFormPropsType }) => {
         err.data.errorMessages.forEach((message) => toast.error(message));
       } else {
         toast.error(t("CUSTOMER_DELETE_FAILED"));
+      }
+    }
+  };
+
+  const handleGenerateAccount = async () => {
+    try {
+      const res = await generateAccount({
+        customerId: data?.id ?? "",
+      }).unwrap();
+      toast.success(t("GENERATE_ACCOUNT_SUCCESS"));
+      if (res?.data) onCredentials(res.data);
+    } catch (error) {
+      const err = error as APIErrorProps;
+      if (err?.data?.errorMessages?.length) {
+        err.data.errorMessages.forEach((message) => toast.error(message));
+      } else {
+        toast.error(t("GENERATE_ACCOUNT_FAILED"));
+      }
+    }
+  };
+
+  const handleResetPassword = async () => {
+    try {
+      const res = await resetAccountPassword({
+        customerId: data?.id ?? "",
+      }).unwrap();
+      toast.success(t("RESET_PASSWORD_SUCCESS"));
+      if (res?.data) onCredentials(res.data);
+    } catch (error) {
+      const err = error as APIErrorProps;
+      if (err?.data?.errorMessages?.length) {
+        err.data.errorMessages.forEach((message) => toast.error(message));
+      } else {
+        toast.error(t("RESET_PASSWORD_FAILED"));
       }
     }
   };
@@ -73,6 +158,40 @@ const Actions = ({ data }: { data: clientFormPropsType }) => {
         onClick={() => handleNavigate("view")}
         icon={<AiOutlineEye size={20} />}
       />
+      {canManage && !data?.hasAccount && (
+        <Popconfirm
+          title={t("GENERATE_ACCOUNT")}
+          description={t("GENERATE_ACCOUNT_CONFIRM")}
+          okText={t("GENERATE_ACCOUNT")}
+          cancelText={t("CANCEL")}
+          okButtonProps={{ loading: isGenerateLoading }}
+          onConfirm={handleGenerateAccount}
+        >
+          <Button
+            shape="circle"
+            title={t("GENERATE_ACCOUNT")}
+            className="hover:bg-mainColor/60 hover:text-white hover:border-transparent size-10 [&>span]:flex [&>span]:items-center"
+            icon={<RiUserAddLine size={20} />}
+          />
+        </Popconfirm>
+      )}
+      {canManage && data?.hasAccount && (
+        <Popconfirm
+          title={t("RESET_PASSWORD")}
+          description={t("RESET_PASSWORD_CONFIRM")}
+          okText={t("RESET_PASSWORD")}
+          cancelText={t("CANCEL")}
+          okButtonProps={{ loading: isResetLoading }}
+          onConfirm={handleResetPassword}
+        >
+          <Button
+            shape="circle"
+            title={t("RESET_PASSWORD")}
+            className="hover:bg-mainGray/60 hover:text-white hover:border-transparent size-10 [&>span]:flex [&>span]:items-center"
+            icon={<RiLockPasswordLine size={20} />}
+          />
+        </Popconfirm>
+      )}
       {hasPermission(PERMISSIONS.VIEW_CUSTOMER_WALLET) && (
         <Button
           shape="circle"
@@ -107,6 +226,8 @@ const Clients = () => {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const [sort, setSort] = useState("true");
+  const [credentials, setCredentials] =
+    useState<customerAccountPropsType | null>(null);
 
   const [pagination, setPagination] = useState({
     current: 1,
@@ -194,9 +315,27 @@ const Clients = () => {
       ),
     },
     {
+      title: t("HAS_ACCOUNT"),
+      dataIndex: "hasAccount",
+      key: "hasAccount",
+      render: (_, data) => (
+        <span
+          className={`w-[120px] text-xs rounded-full p-2 block text-center font-semibold ${
+            data?.hasAccount
+              ? "text-[#027A48] bg-[#027A48]/20"
+              : "text-mainGray bg-mainGray/20"
+          }`}
+        >
+          {data?.hasAccount ? t("HAS_ACCOUNT") : t("NO_ACCOUNT")}
+        </span>
+      ),
+    },
+    {
       key: "actions",
       title: t("ACTIONS"),
-      render: (data) => <Actions data={data} />,
+      render: (data) => (
+        <Actions data={data} onCredentials={setCredentials} />
+      ),
     },
   ];
 
@@ -327,6 +466,11 @@ const Clients = () => {
         /> */}
         {renderDataTable()}
       </section>
+
+      <AccountCredentialsModal
+        credentials={credentials}
+        onClose={() => setCredentials(null)}
+      />
     </div>
   );
 };

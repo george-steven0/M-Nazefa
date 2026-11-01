@@ -18,6 +18,7 @@ import { toast } from "react-toastify";
 import { isAdmin, isSuperAdmin } from "../../../Utilities/utilities";
 import { AiOutlineCopy, AiOutlineDelete } from "react-icons/ai";
 import { BsThreeDotsVertical } from "react-icons/bs";
+import { FaPoundSign } from "react-icons/fa";
 type packageCardProps = {
   id: number | string;
   data: packageCard;
@@ -84,7 +85,7 @@ const PackageCard = ({ id, data }: packageCardProps) => {
     }
   };
 
-  const { title, arTitle, logo, isActive, description } = data;
+  const { title, arTitle, logo, isActive, description, price } = data;
 
   const packageName = (lang === "ar" ? arTitle : title) || t("NA");
 
@@ -217,6 +218,17 @@ const PackageCard = ({ id, data }: packageCardProps) => {
           <p title="" className="line-clamp-3 text-[#646363] text-sm">
             {description || t("NA")}
           </p>
+        </div>
+
+        <div className="card-price flex items-center gap-1 text-mainColor font-semibold">
+          {price ? (
+            <>
+              <span>{price}</span>
+              <FaPoundSign />
+            </>
+          ) : (
+            <span className="text-[#646363] font-normal">{t("NA")}</span>
+          )}
         </div>
 
         {/* {id % 2 === 0 ? (
