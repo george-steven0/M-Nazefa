@@ -48,6 +48,7 @@ import WorkerManagement from "../../Pages/WorkerManagement/workerManagement";
 import PayemntsDetails from "../../Pages/Reservations/Components/payemntsDeatils";
 import CalendarPage from "../../Pages/Calendar/calendar";
 import Reports from "../../Pages/Reports/reports";
+import CollectionsReport from "../../Pages/Reports/collectionsReport";
 import CustomerWallet from "../../Pages/CustomerWallet/customerWallet";
 
 export const routes = createBrowserRouter([
@@ -348,6 +349,13 @@ export const routes = createBrowserRouter([
           {
             path: "reports",
             element: <Reports />,
+            handle: {
+              permission: PERMISSIONS.VIEW_REPORTS,
+            },
+          },
+          {
+            path: "collections-report",
+            element: <CollectionsReport />,
             handle: {
               permission: PERMISSIONS.VIEW_REPORTS,
             },

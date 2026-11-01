@@ -1003,3 +1003,51 @@ export type dailyReportFilterParams = {
   status?: string;
   area?: string;
 };
+
+/* ── Daily collections report (تقرير التحصيلات) ───────────────────────── */
+export type collectionStatus = "Paid" | "Partial" | "Unpaid" | "Free";
+
+export type dailyCollectionPaymentProps = {
+  id: number;
+  type: "Pay" | "Refund";
+  /** Signed: refunds are negative */
+  amount: number;
+  paymentMethod?: string | null;
+  operationDate: string;
+  note?: string | null;
+  createdByName?: string | null;
+};
+
+export type dailyCollectionItemProps = {
+  reservationId: number;
+  reservationDate: string;
+  customerId: number;
+  customerName?: string | null;
+  customerPhone?: string | null;
+  onSpot?: boolean | null;
+  isConfirmed?: boolean | null;
+  totalAmount: number;
+  /** Payments minus refunds */
+  paidAmount: number;
+  remainingAmount: number;
+  paymentStatus: collectionStatus;
+  payments: dailyCollectionPaymentProps[];
+};
+
+export type dailyCollectionsReportProps = {
+  reportDate: string;
+  dayName?: string | null;
+  reservationsCount: number;
+  totalAmount: number;
+  totalPaid: number;
+  totalRemaining: number;
+  /** Whole day per status (before the status filter) */
+  statusCounts: Partial<Record<collectionStatus, number>>;
+  reservations: dailyCollectionItemProps[];
+};
+
+export type dailyCollectionsFilterParams = {
+  dateFilter?: string;
+  status?: collectionStatus;
+  searchKey?: string;
+};

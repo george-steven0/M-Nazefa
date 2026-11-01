@@ -2,6 +2,8 @@ import type {
   APIParams,
   APIResponse,
   calendarReservationProps,
+  dailyCollectionsFilterParams,
+  dailyCollectionsReportProps,
   dailyReportFilterParams,
   dailyReservationReportProps,
   holdReservationProps,
@@ -169,6 +171,24 @@ const reservationQuery = API.injectEndpoints({
       providesTags: ["reservations"],
     }),
 
+    // Daily collections report (admins only): reservations of one day with total / paid / remaining and payments
+    getReservationDailyCollectionsReport: builder.query<
+      SingleAPIResponse<dailyCollectionsReportProps>,
+      dailyCollectionsFilterParams | void
+    >({
+      query: (params) => ({
+        url: "/Reservation/GetReservationDailyCollectionsReport",
+        method: "GET",
+        headers: {
+          ...(params?.dateFilter ? { dateFilter: params.dateFilter } : {}),
+          ...(params?.status ? { status: params.status } : {}),
+          ...(params?.searchKey ? { searchKey: params.searchKey } : {}),
+        },
+      }),
+      // Payment and reservation changes invalidate "reservations"
+      providesTags: ["reservations"],
+    }),
+
     getDailyReservationReportPdf: builder.query<
       Blob,
       dailyReportFilterParams | void
@@ -196,5 +216,6 @@ export const {
   useConfirmFreeReservationMutation,
   useUpdateReservationMutation,
   useGetDailyReservationReportQuery,
+  useGetReservationDailyCollectionsReportQuery,
   useLazyGetDailyReservationReportPdfQuery,
 } = reservationQuery;

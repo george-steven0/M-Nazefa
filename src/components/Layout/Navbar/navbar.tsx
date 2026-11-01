@@ -11,7 +11,7 @@ import { useEffect, useMemo, useState } from "react";
 import navVector from "../../../assets/imgs/navbarVector.svg";
 import { Button, Collapse, Tooltip } from "antd";
 import { useTranslation } from "react-i18next";
-import { FaSignOutAlt } from "react-icons/fa";
+import { FaMoneyBillWave, FaSignOutAlt } from "react-icons/fa";
 import { RiCustomerService2Fill } from "react-icons/ri";
 
 import {
@@ -228,6 +228,14 @@ const Navbar = ({
             name: t("REPORTS"),
             path: "/reports",
             icon: <AiOutlineBarChart />,
+            iconType: "fontIcon",
+            permissions: [PERMISSIONS.VIEW_REPORTS],
+          },
+          {
+            id: "collections_report",
+            name: t("DAILY_COLLECTIONS_REPORT"),
+            path: "/collections-report",
+            icon: <FaMoneyBillWave />,
             iconType: "fontIcon",
             permissions: [PERMISSIONS.VIEW_REPORTS],
           },
